@@ -35,11 +35,14 @@ MONITOR_DIR = Path(__file__).parent
 STATE_FILE = MONITOR_DIR / "monitor_state.json"
 LOG_FILE = MONITOR_DIR / "monitor.log"
 
-# Desktop may be under OneDrive; detect correct path
+# Primary dashboard lives in the project folder (tracked in git)
+DASHBOARD_FILE = MONITOR_DIR / "LLM-Hardware-Monitor.html"
+
+# Also copy to Desktop for quick access (best-effort, machine-specific)
 _desktop_onedrive = Path.home() / "OneDrive - Microsoft" / "Desktop"
 _desktop_direct = Path.home() / "Desktop"
 DESKTOP_DIR = _desktop_onedrive if _desktop_onedrive.exists() else _desktop_direct
-DASHBOARD_FILE = DESKTOP_DIR / "LLM-Hardware-Monitor.html"
+DESKTOP_DASHBOARD = DESKTOP_DIR / "LLM-Hardware-Monitor.html"
 
 # Use .cmd wrapper so subprocess can find it (not .ps1)
 COPILOT_CMD = r"C:\ProgramData\global-npm\copilot.cmd"
@@ -1337,6 +1340,14 @@ document.addEventListener('keydown', (e) => {{
 
     DASHBOARD_FILE.write_text(html, encoding="utf-8")
     logger.info(f"Dashboard updated: {DASHBOARD_FILE}")
+
+    # Also copy to Desktop for quick access
+    try:
+        import shutil
+        shutil.copy2(DASHBOARD_FILE, DESKTOP_DASHBOARD)
+        logger.info(f"Desktop copy updated: {DESKTOP_DASHBOARD}")
+    except Exception as e:
+        logger.warning(f"Could not copy to Desktop (non-critical): {e}")
 
 
 # ─── Main Execution ─────────────────────────────────────────────────────────

@@ -1,5 +1,4 @@
 # Runtime data (machine-specific)
-monitor_state.json
 monitor.log
 *.log
 
