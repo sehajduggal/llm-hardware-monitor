@@ -102,8 +102,14 @@ PROMPTS = {
         '"corsair_ws300": {{"available": false, "price_usd": "unknown", "info": "Corsair AI Workstation 300 Strix Halo 128GB — orderable? Price?"}}, '
         '"amd_strix_halo_128gb_india": {{"available": false, "info": "ASUS ProArt PX13 Strix Halo 128GB in India — available? Price?"}}, '
         '"rtx_5090_india": {{"available": false, "price_inr": "unknown", "info": "RTX 5090 FE or AIB in India — Amazon/Flipkart availability and price?"}}, '
-        '"rtx_5090_us": {{"available": false, "price_usd": "unknown", "info": "RTX 5090 availability in US — any store?"}}}} '
-        "For Mac configs: report orderable=true only if add-to-bag works. Include delivery estimate and price. Return ONLY the JSON."
+        '"rtx_5090_us": {{"available": false, "price_usd": "unknown", "info": "RTX 5090 availability in US — any store?"}}, '
+        '"new_hardware_discoveries": {{"found": false, "items": [], '
+        '"info": "Search blogs, r/LocalLLaMA, Hacker News for ANY new mini PC, workstation, or GPU with >=48GB unified memory or >=24GB VRAM under $5000 '
+        'that we are NOT already tracking above. Include product name, memory, price, store URL. '
+        'Exclude: RTX 4090 (discontinued), RTX 4070/5080 (16GB too small), dual-GPU setups, OLX listings."}}}} '
+        "For Mac configs: report orderable=true only if add-to-bag works. Include delivery estimate and price. "
+        "For new_hardware_discoveries.items: array of {{\"name\": \"product\", \"memory_gb\": N, \"price\": \"$X\", \"url\": \"store_link\"}}. "
+        "Return ONLY the JSON."
     ),
 
     "models_and_agents": (
@@ -129,9 +135,12 @@ PROMPTS = {
         '{{"apple_india_deals": {{"has_deals": false, "info": "Mac Studio/Mac Mini deals, education discount, card offers on apple.com/in"}}, '
         '"strix_halo_deals": {{"has_deals": false, "info": "deals or price drops on Strix Halo mini PCs (Framework, Bosgame, Beelink, Minisforum, Corsair) for LLM use"}}, '
         '"gpu_deals_india": {{"has_deals": false, "info": "RTX 5090/5080 deals in India — any card under INR 3.5L? Include store links"}}, '
-        '"mac_studio_marketplace": {{"info": "Mac Studio 128GB availability and prices on Amazon India, Flipkart, OLX, refurbished"}}, '
+        '"mac_studio_marketplace": {{"info": "Mac Studio 128GB availability and prices on Amazon India, Flipkart, refurbished stores"}}, '
         '"latest_local_llm_news": {{"info": "top 3 developments from r/LocalLLaMA, HN about running 30B-70B models locally or fine-tuning 7B-14B models"}}, '
-        '"trending_models": {{"info": "top 3 trending models on HuggingFace for local coding agents — must run on 48-128GB unified memory or 24-32GB VRAM"}}}} '
+        '"trending_models": {{"info": "top 3 trending models on HuggingFace for local coding agents — must run on 48-128GB unified memory or 24-32GB VRAM"}}, '
+        '"new_products_from_blogs": {{"found": false, '
+        '"info": "Any NEW products announced in tech blogs/reviews in the last 2 weeks that have >=48GB unified memory or >=24GB VRAM and cost <$5000. '
+        'Include product name, specs, price, and source URL. Exclude discontinued items (RTX 4090) and 16GB VRAM cards."}}}} '
         "Include store URLs when available. Replace each info with real current findings. Return ONLY the JSON."
     ),
 }
@@ -645,14 +654,48 @@ def extract_discoveries_from_results(checks: dict, state: dict) -> list[dict]:
     """Extract potential new hardware from monitoring results (no extra API call).
 
     Scans all check results for product mentions with URLs that could be
-    new store entries. Returns candidate entries for validation.
+    new store entries. Also processes structured items from
+    new_hardware_discoveries.items and new_products_from_blogs.
+    Returns candidate entries for validation.
     """
     static_keys = _get_static_keys()
     existing_dynamic = {s["key"] for s in state.get("dynamic_stores", {}).get("stores", [])}
     pruned_keys = {p["key"] for p in state.get("dynamic_stores", {}).get("pruned", [])}
     candidates = []
+    seen_urls = set()
 
-    # Scan all categories for URLs and product mentions
+    def _add_candidate(url: str, label: str, source: str, info: str):
+        """Helper to add a candidate if it passes all filters."""
+        url = url.rstrip('.,;:)]}')
+        if url in seen_urls or not _is_trusted_url(url):
+            return
+        seen_urls.add(url)
+
+        domain = _extract_domain(url)
+        candidate_key = _normalize_key(f"{domain}_{label.replace(' ', '_')[:30]}")
+
+        if candidate_key in static_keys or candidate_key in existing_dynamic:
+            return
+        if candidate_key in pruned_keys:
+            return
+
+        candidates.append({
+            "key": candidate_key,
+            "label": f"Discovered: {label} ({domain})",
+            "url": url,
+            "store": _infer_store_type(url),
+            "currency": _infer_currency(url),
+            "status": "candidate",
+            "discovered_from": source,
+            "discovered_date": datetime.now().strftime("%Y-%m-%d"),
+            "last_checked": None,
+            "consecutive_failures": 0,
+            "failure_types": [],
+            "successful_checks": 0,
+            "provenance": info[:200],
+        })
+
+    # 1. Scan all categories for URLs in info text (original approach)
     for category, items in checks.items():
         if not isinstance(items, dict):
             continue
@@ -669,33 +712,34 @@ def extract_discoveries_from_results(checks: dict, state: dict) -> list[dict]:
             # Extract URLs from info text
             urls = re.findall(r'https?://[^\s<>"\']+', info)
             for url in urls:
-                url = url.rstrip('.,;:)]}')
-                if not _is_trusted_url(url):
-                    continue
+                _add_candidate(url, key, f"{category}.{key}", info)
 
-                domain = _extract_domain(url)
-                candidate_key = _normalize_key(f"{domain}_{key}")
+    # 2. Process structured discovery arrays (new_hardware_discoveries.items, new_products_from_blogs)
+    for discovery_key in ("new_hardware_discoveries", "new_products_from_blogs"):
+        for category, items in checks.items():
+            if not isinstance(items, dict):
+                continue
+            disc_data = items.get(discovery_key, {})
+            if not isinstance(disc_data, dict):
+                continue
 
-                if candidate_key in static_keys or candidate_key in existing_dynamic:
-                    continue
-                if candidate_key in pruned_keys:
-                    continue
+            # Process structured items array if present
+            disc_items = disc_data.get("items", [])
+            if isinstance(disc_items, list):
+                for item in disc_items:
+                    if not isinstance(item, dict):
+                        continue
+                    url = item.get("url", "")
+                    name = item.get("name", item.get("product", "unknown"))
+                    if url and _is_relevant_to_goal(name + " " + str(item.get("memory_gb", ""))):
+                        _add_candidate(url, name, f"{category}.{discovery_key}", json.dumps(item)[:200])
 
-                candidates.append({
-                    "key": candidate_key,
-                    "label": f"Discovered: {key} ({domain})",
-                    "url": url,
-                    "store": _infer_store_type(url),
-                    "currency": _infer_currency(url),
-                    "status": "candidate",
-                    "discovered_from": f"{category}.{key}",
-                    "discovered_date": datetime.now().strftime("%Y-%m-%d"),
-                    "last_checked": None,
-                    "consecutive_failures": 0,
-                    "failure_types": [],
-                    "successful_checks": 0,
-                    "provenance": info[:200],
-                })
+            # Also scan the info text for URLs (in case Copilot put URLs there)
+            info = str(disc_data.get("info", ""))
+            if info and _is_relevant_to_goal(info):
+                urls = re.findall(r'https?://[^\s<>"\']+', info)
+                for url in urls:
+                    _add_candidate(url, discovery_key, f"{category}.{discovery_key}", info)
 
     return candidates
 
@@ -838,10 +882,17 @@ def build_dynamic_prompt_context(state: dict, category: str = "hardware") -> str
     tracked = [s for s in dyn_stores if s.get("status") in ("validated", "tracked")]
     if tracked:
         disc_items = []
-        for s in tracked[:5]:
+        for s in tracked[:8]:
             label = s.get("label", s.get("key", "?"))
-            disc_items.append(label)
-        parts.append("DISCOVERED PRODUCTS: " + "; ".join(disc_items))
+            url = s.get("url", "")
+            disc_items.append(f"{label} ({url[:60]})" if url else label)
+        parts.append("PREVIOUSLY DISCOVERED PRODUCTS (check for updates): " + "; ".join(disc_items))
+
+    # Also include recent candidates that haven't been validated yet — mention for awareness
+    candidates = [s for s in dyn_stores if s.get("status") == "candidate"]
+    if candidates:
+        cand_names = [s.get("label", s.get("key", "?")) for s in candidates[:3]]
+        parts.append("UNVERIFIED LEADS: " + "; ".join(cand_names))
 
     # --- Category-specific context ---
     checks = state.get("checks", {})
