@@ -79,6 +79,9 @@ logger.addHandler(console)
 PROMPTS = {
     "hardware": (
         "You are a hardware monitoring agent. Today is {date}. "
+        "GOAL: Find the best machine for 24/7 local LLM coding agents — "
+        "30B-70B model inference at 25+ tok/s AND 7B-14B fine-tuning. "
+        "Needs unified memory >=48GB or GPU VRAM >=24GB. Budget INR 1.5-5L / USD 1500-5000. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these items and return exactly this structure: "
         '{{"mac_studio_m5": {{"announced": false, "info": "summary of Mac Studio M5 rumors/announcements"}}, '
@@ -105,26 +108,31 @@ PROMPTS = {
 
     "models_and_agents": (
         "You are an AI model monitoring agent. Today is {date}. "
+        "GOAL: Find models that run well locally for 24/7 YOLO coding agents. "
+        "Target hardware: 48-128GB unified memory (Apple/Strix Halo) or 24-32GB VRAM (RTX 5090). "
+        "Need: 30B-70B inference + 7B-14B fine-tuning capability. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these 4 items and return exactly this structure: "
-        '{{"new_moe_models": {{"found": false, "info": "any MoE model better than Qwen3-30B-A3B for coding on Apple Silicon or Strix Halo"}}, '
-        '"new_coding_models": {{"found": false, "info": "new local coding models released in last 30 days"}}, '
-        '"mlx_llama_cpp": {{"info": "latest MLX and llama.cpp updates for Apple Silicon and AMD iGPU"}}, '
-        '"coding_agents": {{"info": "updates to OpenHands, Aider, SWE-agent, Copilot CLI, or new YOLO coding agent frameworks"}}}} '
+        '{{"new_moe_models": {{"found": false, "info": "any MoE model better than Qwen3-30B-A3B for coding on 48-128GB unified memory or 24-32GB VRAM"}}, '
+        '"new_coding_models": {{"found": false, "info": "new local coding models (30B-70B) released in last 30 days that run well on unified memory or RTX 5090"}}, '
+        '"mlx_llama_cpp": {{"info": "latest MLX and llama.cpp updates for Apple Silicon and AMD iGPU (Strix Halo ROCm/Vulkan)"}}, '
+        '"coding_agents": {{"info": "updates to OpenHands, Aider, SWE-agent, Copilot CLI, or new YOLO coding agent frameworks. Focus on local-model support"}}}} '
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
 
     "deals_and_blogs": (
         "You are a deals and tech news monitoring agent. Today is {date}. "
+        "GOAL: Track deals and news for local LLM hardware. Budget INR 1.5-5L / USD 1500-5000. "
+        "Focus: Mac Studio/Mini, Strix Halo mini PCs, RTX 5090/5080 GPUs. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these items and return exactly this structure: "
         '{{"apple_india_deals": {{"has_deals": false, "info": "Mac Studio/Mac Mini deals, education discount, card offers on apple.com/in"}}, '
-        '"strix_halo_deals": {{"has_deals": false, "info": "deals or price drops on Strix Halo mini PCs (Framework, Bosgame, Beelink, Minisforum, Corsair)"}}, '
-        '"gpu_deals_india": {{"has_deals": false, "info": "RTX 5090/5080 deals or price drops in India"}}, '
-        '"mac_studio_marketplace": {{"info": "Mac Studio availability and prices on Amazon India, Flipkart"}}, '
-        '"latest_local_llm_news": {{"info": "top 3 developments from r/LocalLLaMA, Hacker News about local LLM hardware in last 7 days"}}, '
-        '"trending_models": {{"info": "top 3 trending models on HuggingFace relevant to local coding agents"}}}} '
-        "Replace each info with real current findings. Return ONLY the JSON."
+        '"strix_halo_deals": {{"has_deals": false, "info": "deals or price drops on Strix Halo mini PCs (Framework, Bosgame, Beelink, Minisforum, Corsair) for LLM use"}}, '
+        '"gpu_deals_india": {{"has_deals": false, "info": "RTX 5090/5080 deals in India — any card under INR 3.5L? Include store links"}}, '
+        '"mac_studio_marketplace": {{"info": "Mac Studio 128GB availability and prices on Amazon India, Flipkart, OLX, refurbished"}}, '
+        '"latest_local_llm_news": {{"info": "top 3 developments from r/LocalLLaMA, HN about running 30B-70B models locally or fine-tuning 7B-14B models"}}, '
+        '"trending_models": {{"info": "top 3 trending models on HuggingFace for local coding agents — must run on 48-128GB unified memory or 24-32GB VRAM"}}}} '
+        "Include store URLs when available. Replace each info with real current findings. Return ONLY the JSON."
     ),
 }
 
@@ -133,33 +141,34 @@ PROMPTS = {
 ENRICHMENT_PROMPTS = {
     "models_deep": (
         "You are an AI researcher. Today is {date}. "
+        "GOAL: Find the best local models for 24/7 YOLO coding agents on 48-128GB unified memory or 24-32GB VRAM. "
+        "Need: 30B-70B inference + 7B-14B fine-tuning. "
         "Do deep web searches for each item below. Return ONLY JSON with detailed analysis and source links. "
-        '{{"new_moe_models": {{"analysis": "2-3 paragraphs on MoE models for local coding on Apple Silicon/AMD. Include benchmark scores, tok/s on 128GB unified memory, quantization options, comparison with Qwen3-30B-A3B", '
+        '{{"new_moe_models": {{"analysis": "2-3 paragraphs on MoE models for local coding. Include benchmark scores, tok/s on 128GB unified memory, quantization options, comparison with Qwen3-30B-A3B. How do they perform for coding agents?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"new_coding_models": {{"analysis": "2-3 paragraphs on new local coding models released recently. Benchmark scores on HumanEval/SWE-bench, parameter counts, best quantization for 128GB RAM", '
+        '"new_coding_models": {{"analysis": "2-3 paragraphs on new local coding models (30B-70B). Benchmark scores on HumanEval/SWE-bench, tok/s on target hardware, best quantization for 48-128GB RAM. Any good for fine-tuning at 7B-14B?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"mlx_llama_cpp": {{"analysis": "Latest MLX and llama.cpp updates. Performance improvements, new model support, Apple Silicon optimizations, version numbers", '
+        '"mlx_llama_cpp": {{"analysis": "Latest MLX and llama.cpp updates. Performance improvements, new model support, Apple Silicon + AMD ROCm/Vulkan optimizations", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"coding_agents": {{"analysis": "Latest coding agent frameworks. OpenHands, Aider, SWE-agent, Copilot updates. New YOLO/autonomous coding capabilities, local LLM support", '
+        '"coding_agents": {{"analysis": "Latest coding agent frameworks. OpenHands, Aider, SWE-agent updates. Which support local 30B-70B models best? New YOLO/autonomous capabilities?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}}} '
         "1-3 REAL URLs per item. Replace all placeholders with real current data. ONLY JSON."
     ),
     "hardware_deals_links": (
         "You are a hardware researcher. Today is {date}. "
+        "GOAL: Best machine for local LLM inference (30B-70B) + fine-tuning (7B-14B). Budget INR 1.5-5L / USD 1500-5000. "
         "Search the web for each item. Return ONLY JSON with brief analysis and real source links: "
-        '{{"mac_studio_m5": {{"analysis": "Latest M5 Mac Studio news, expected specs, release timeline", '
+        '{{"mac_studio_m5": {{"analysis": "Latest M5 Mac Studio news, expected specs/price, release timeline. Better than M4 Max 128GB for LLM inference?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"mac_studio_128gb_india": {{"analysis": "128GB Mac Studio availability in India, alternative purchase options", '
+        '"mac_studio_128gb_india": {{"analysis": "128GB Mac Studio availability in India. Alternative purchase: Amazon, Flipkart, refurbished, education pricing", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"mac_studio_128gb_us": {{"analysis": "128GB Mac Studio US availability and pricing", '
+        '"strix_halo_options": {{"analysis": "Best Strix Halo 128GB mini PC for LLM inference. Framework vs Bosgame vs Beelink vs others. Price/performance, availability, LLM benchmarks", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"apple_refurbished": {{"analysis": "Refurbished Mac Studio availability and pricing", '
+        '"gpu_options": {{"analysis": "RTX 5090 32GB for LLM inference vs unified memory. Price in India, availability, tok/s for 30B-70B models. Worth it for fine-tuning?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"amd_strix_halo_128gb_india": {{"analysis": "AMD Strix Halo 128GB options in India", '
+        '"apple_india_deals": {{"analysis": "Current Apple India deals, education offers, card cashback. Any way to get Mac Studio 128GB under INR 3.5L?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"apple_india_deals": {{"analysis": "Current Apple India deals and education offers", '
-        '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}, '
-        '"latest_local_llm_news": {{"analysis": "Top local LLM news from Reddit and HN", '
+        '"latest_local_llm_news": {{"analysis": "Top local LLM hardware news from Reddit and HN relevant to 30B-70B inference on unified memory or discrete GPU", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}}} '
         "1-3 REAL URLs per item. ONLY JSON."
     ),
@@ -443,6 +452,41 @@ STORE_CHECK_CONFIGS = [
 
 # ─── Dynamic Store Discovery & Evolution ─────────────────────────────────────
 
+# === USER GOAL (anchors all discovery and monitoring) ===
+# Machine for 24/7 local LLM coding agents with good reasoning.
+# - Inference: 30B-70B models, 25+ tok/s, good context window
+# - Fine-tuning: smaller models (7B-14B), needs decent VRAM/RAM
+# - Budget: ₹1.5-3.5L (flexible up to ~₹5L for exceptional value)
+# - Buy in: India, USA, or Canada
+# - Key requirement: unified/shared memory ≥48GB OR discrete GPU ≥24GB VRAM
+USER_CONSTRAINTS = {
+    "min_memory_gb": 48,         # minimum useful memory for 30B+ models
+    "ideal_memory_gb": 128,      # ideal for 70B models
+    "min_vram_gb": 24,           # minimum discrete GPU VRAM
+    "budget_inr_min": 150_000,
+    "budget_inr_max": 500_000,   # stretch budget
+    "budget_usd_min": 1_500,
+    "budget_usd_max": 5_000,     # stretch budget
+    "use_cases": ["inference_30b_70b", "fine_tuning_7b_14b", "coding_agents_24x7"],
+    "buy_regions": ["India", "USA", "Canada"],
+}
+
+# Relevance keywords — product must match at least one to be discovered
+RELEVANCE_KEYWORDS = [
+    # Memory indicators (unified/shared ≥48GB)
+    "128gb", "96gb", "64gb", "48gb", "unified memory", "shared memory",
+    # GPU VRAM indicators (≥24GB)
+    "24gb vram", "32gb vram", "48gb vram", "rtx 5090", "rtx 4090", "rtx 5080",
+    # Chip families relevant to local LLM
+    "strix halo", "ryzen ai max", "apple silicon", "m4 max", "m4 ultra",
+    "m5 max", "m5 ultra", "m4 pro",
+    # Product types
+    "mac studio", "mac mini", "mini pc", "ai workstation", "ai desktop",
+    # Use case signals
+    "local llm", "llm inference", "fine-tuning", "fine tuning",
+    "coding agent", "ai pc",
+]
+
 # Trusted domains for auto-discovered store URLs
 TRUSTED_STORE_DOMAINS = {
     "apple.com", "amazon.in", "amazon.com", "flipkart.com",
@@ -467,14 +511,6 @@ DOMAIN_CURRENCY = {
     "in.store.asus.com": "INR", "croma.com": "INR", "mdcomputers.in": "INR",
     "primeabgb.com": "INR", "elitehubs.com": "INR", "vedantcomputers.com": "INR",
     "theitdepot.com": "INR", "pcstudio.in": "INR", "reliance.digital": "INR",
-}
-
-# Tags that indicate relevance to user's use case
-RELEVANT_TAGS = {
-    "unified_memory", "128gb", "96gb", "64gb", "48gb",
-    "strix_halo", "apple_silicon", "m4", "m5", "rtx_5090", "rtx_5080",
-    "mini_pc", "desktop", "workstation", "mac_studio", "mac_mini",
-    "local_llm", "ai_pc", "coding",
 }
 
 
@@ -522,6 +558,16 @@ def _normalize_key(name: str) -> str:
 def _get_static_keys() -> set:
     """Get all keys from the hardcoded STORE_CHECK_CONFIGS."""
     return {c["key"] for c in STORE_CHECK_CONFIGS}
+
+
+def _is_relevant_to_goal(info_text: str) -> bool:
+    """Check if a product mention is relevant to user's LLM inference/fine-tuning goal.
+
+    Must match at least one RELEVANCE_KEYWORD to avoid polluting the tracker
+    with random PCs, laptops, or peripherals.
+    """
+    text_lower = info_text.lower()
+    return any(kw in text_lower for kw in RELEVANCE_KEYWORDS)
 
 
 def load_dynamic_stores(state: dict) -> list[dict]:
@@ -572,6 +618,10 @@ def extract_discoveries_from_results(checks: dict, state: dict) -> list[dict]:
                 continue
 
             info = str(data.get("info", ""))
+
+            # Only consider items relevant to our LLM inference/fine-tuning goal
+            if not _is_relevant_to_goal(info):
+                continue
 
             # Extract URLs from info text
             urls = re.findall(r'https?://[^\s<>"\']+', info)
