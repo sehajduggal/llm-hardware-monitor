@@ -454,21 +454,59 @@ STORE_CHECK_CONFIGS = [
 
 # === USER GOAL (anchors all discovery and monitoring) ===
 # Machine for 24/7 local LLM coding agents with good reasoning.
-# - Inference: 30B-70B models, 25+ tok/s, good context window
-# - Fine-tuning: smaller models (7B-14B), needs decent VRAM/RAM
-# - Budget: ₹1.5-3.5L (flexible up to ~₹5L for exceptional value)
-# - Buy in: India, USA, or Canada
-# - Key requirement: unified/shared memory ≥48GB OR discrete GPU ≥24GB VRAM
+#
+# RESEARCH HISTORY (what we already investigated and concluded):
+# - RTX 4090: DISCONTINUED Oct 2024, not available new in India
+# - RTX 4070 Ti Super: 16GB VRAM, caps at 14B models — insufficient for 30B+
+# - RTX 5080: 16GB VRAM, same 14B cap — insufficient
+# - RTX 5090: 32GB VRAM, can do 32B+128k context, but ₹2.83-5.5L in India
+# - Dual GPU: unreliable, Ollama no support, llama.cpp tensor parallelism 1.5x only
+# - Mac Mini M4 Pro 48GB: ₹1.86-2.04L India, runs 32B+128k — solid budget option
+# - Mac Studio M4 Max 128GB: ₹3.45-3.65L India, runs 70B — best overall but was OOS
+# - Mac Studio M5: expected WWDC June 2026, ship ~Oct 2026
+# - Bosgame M5 96GB Strix Halo: $1,589-2,599, 66-72 tok/s MoE, cheapest 32B+128k
+# - Minisforum MS-S1 Max 128GB: $2,299, ships ~Oct 2025
+# - Corsair AI WS 300: $2,699 — same price as Mac Studio but 2.3x slower
+# - MoE game-changer: Qwen3-30B-A3B (3B active) = 66-72 tok/s on Strix Halo, ~160 on M4 Max
+# - Cloud cost: Sonnet 4.6 24/7 = ₹1.32 Cr/year vs local ₹7,200/year
+# - Quality gap: Sonnet 4.6 ~80% SWE-bench vs Qwen3-30B MoE ~45% hard tasks
+# - Hybrid approach: local for 70% routine work, cloud for 30% hard tasks
+# - Apple warranty: worldwide, works in India for US purchases
+# - Exchange rate: 1 USD = ₹94.13 (NOT ₹85)
+#
+# DECISION: Wait for Mac Studio M5 Max 128GB (expected Oct 2026).
+# Meanwhile monitor: availability changes, price drops, new Strix Halo options,
+# better models, and any game-changing developments.
+#
 USER_CONSTRAINTS = {
     "min_memory_gb": 48,         # minimum useful memory for 30B+ models
-    "ideal_memory_gb": 128,      # ideal for 70B models
-    "min_vram_gb": 24,           # minimum discrete GPU VRAM
+    "ideal_memory_gb": 128,      # ideal for 70B models + fine-tuning
+    "min_vram_gb": 24,           # minimum discrete GPU VRAM (only RTX 5090 qualifies)
     "budget_inr_min": 150_000,
-    "budget_inr_max": 500_000,   # stretch budget
+    "budget_inr_max": 500_000,   # stretch budget for exceptional value
     "budget_usd_min": 1_500,
-    "budget_usd_max": 5_000,     # stretch budget
-    "use_cases": ["inference_30b_70b", "fine_tuning_7b_14b", "coding_agents_24x7"],
+    "budget_usd_max": 5_000,
+    "use_cases": [
+        "inference_30b_70b",       # primary: run 30B-70B models for coding agents
+        "fine_tuning_7b_14b",      # secondary: fine-tune 7B-14B coding models
+        "coding_agents_24x7",      # must run 24/7 unattended
+        "moe_models",              # MoE models (Qwen3-30B-A3B) are game-changers on unified memory
+    ],
     "buy_regions": ["India", "USA", "Canada"],
+    "current_plan": "wait_for_mac_studio_m5",
+    "fallback_options": [
+        "mac_studio_m4_max_128gb_if_restocked",
+        "bosgame_m5_128gb_if_price_drops",
+        "framework_desktop_128gb",
+    ],
+    # Items we've already ruled out (don't re-discover these)
+    "ruled_out": [
+        "rtx_4090",          # discontinued
+        "rtx_4070_ti_super", # 16GB too small for 30B+
+        "rtx_5080",          # 16GB too small for 30B+
+        "dual_gpu",          # unreliable, poor software support
+        "olx",               # user explicitly said no OLX
+    ],
 }
 
 # Relevance keywords — product must match at least one to be discovered
@@ -1492,8 +1530,13 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
     context_lines = []
     important_keys = {
         "mac_studio_m5", "mac_studio_128gb_india", "mac_studio_128gb_us",
+        "mac_mini_48gb_india", "mac_mini_48gb_us",
+        "framework_desktop_128gb", "bosgame_m5_128gb", "beelink_gtr9_pro_128gb",
+        "minisforum_ms_s1_max", "corsair_ws300",
         "amd_strix_halo_128gb_india", "apple_refurbished",
+        "rtx_5090_india", "rtx_5090_us",
         "new_moe_models", "new_coding_models", "coding_agents",
+        "strix_halo_deals", "gpu_deals_india",
     }
     for cat, data in checks.items():
         if not isinstance(data, dict):
@@ -1515,9 +1558,15 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
 
     return (
         f"You are a hardware advisor. {today}. "
-        f"User: Budget INR 1.5-3.5L, India, needs 128GB unified memory, 24/7 coding agents, "
-        f"30B+ models 25+ tok/s, Apple Silicon or AMD Strix Halo, buys from India/USA/Canada. "
-        f"Wants fine-tuning too.{prev_text} "
+        f"User: Budget INR 1.5-5L, buys from India/USA/Canada. "
+        f"Goal: 24/7 YOLO coding agents. Inference 30B-70B at 25+ tok/s on 48-128GB unified memory. "
+        f"Fine-tuning 7B-14B. MoE models (Qwen3-30B-A3B) are a game-changer. "
+        f"Current plan: wait for Mac Studio M5 Max 128GB (WWDC Jun 2026, ship ~Oct 2026). "
+        f"Ruled out: RTX 4090 (discontinued), 4070 Ti Super/5080 (16GB too small), dual GPU (unreliable). "
+        f"Key facts: Mac Studio M4 Max 128GB India=INR 3.65L, Mac Mini 48GB=INR 1.9L, "
+        f"Bosgame M5 128GB=$1699-2599, Framework Desktop 128GB=$1999. "
+        f"Qwen3-30B-A3B: ~160 tok/s M4 Max, ~70 tok/s Strix Halo. "
+        f"Sonnet 4.6 cloud 24/7=INR 1.32Cr/yr. Apple warranty works globally.{prev_text} "
         f"Market: {context} "
         "Search web for latest. Return ONLY JSON: "
         '{"recommendation": "buy_now or wait or consider_alternative", '
@@ -1526,7 +1575,7 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         '"reasoning": "2-3 paragraphs: why, price INR, availability, tok/s, alternatives, fine-tuning, wait?", '
         '"best_model": "best LLM for this HW", '
         '"model_config": "quant, ctx window, tok/s", '
-        '"fine_tuning": "feasibility+approach", '
+        '"fine_tuning": "feasibility+approach on this HW", '
         '"cost_estimate_inr": "total INR", '
         '"buy_links": [{"url": "link", "title": "name", "desc": "brief"}], '
         '"wait_for": "what+timeline if wait", '
