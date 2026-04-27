@@ -1,0 +1,7 @@
+# Core dependencies (Python 3.10+ stdlib only for base functionality)
+# No core pip dependencies required — monitor.py uses only stdlib + Copilot CLI
+
+# Optional: Direct Apple Store availability checking via headless browser
+# Provides Playwright-verified stock status, prices, and delivery estimates
+# Without this, the monitor falls back to Copilot CLI web search prompts only
+playwright>=1.40.0

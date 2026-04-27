@@ -9,3 +9,7 @@ raw_*.txt
 __pycache__/
 *.pyc
 *.pyo
+
+check_*.png
+apple-store-check.png
+check_availability.py

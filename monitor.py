@@ -25,9 +25,17 @@ import sys
 import re
 import hashlib
 import logging
+import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
+
+# Optional: Playwright for direct Apple Store scraping
+try:
+    from playwright.async_api import async_playwright
+    HAS_PLAYWRIGHT = True
+except ImportError:
+    HAS_PLAYWRIGHT = False
 
 # ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -283,6 +291,268 @@ def parse_json_response(text: str) -> dict | None:
 
     logger.warning(f"Could not parse JSON from response ({len(text)} chars)")
     return None
+
+
+# ─── Apple Store Availability Checker (Playwright) ───────────────────────────
+
+APPLE_STORE_CONFIGS = [
+    {
+        "key": "mac_studio_128gb_india",
+        "label": "Mac Studio M4 Max 128GB (India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "currency": "INR",
+    },
+    {
+        "key": "mac_studio_128gb_india_1tb",
+        "label": "Mac Studio M4 Max 128GB/1TB (India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-1tb-storage",
+        "currency": "INR",
+    },
+    {
+        "key": "mac_studio_128gb_us",
+        "label": "Mac Studio M4 Max 128GB (US)",
+        "url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "currency": "USD",
+    },
+]
+
+
+async def _check_single_store_page(page, config: dict) -> dict:
+    """Check a single Apple Store config page using Playwright.
+
+    Returns a result dict with availability signals and metadata.
+    """
+    result = {
+        "key": config["key"],
+        "label": config["label"],
+        "url": config["url"],
+        "page_reachable": False,
+        "sku_present": False,
+        "price": None,
+        "currency": config["currency"],
+        "target_config_selectable": False,
+        "continue_enabled": False,
+        "availability_signal": "unreachable",
+        "playwright_status": "pending",
+        "delivery_info": None,
+    }
+
+    try:
+        resp = await page.goto(config["url"], wait_until="networkidle", timeout=45000)
+        await page.wait_for_timeout(4000)
+
+        if not resp or resp.status >= 400:
+            result["playwright_status"] = "http_error"
+            return result
+
+        result["page_reachable"] = True
+
+        # Extract schema.org JSON for price/SKU from page HTML source
+        html_content = await page.content()
+        ld_scripts = re.findall(
+            r'<script\s+type="application/ld\+json">\s*([\s\S]*?)</script>',
+            html_content
+        )
+        for script_text in ld_scripts:
+            try:
+                schema = json.loads(script_text.strip())
+                if schema.get("@type") == "Product" and "offers" in schema:
+                    offers = schema["offers"]
+                    if isinstance(offers, list) and offers:
+                        result["price"] = offers[0].get("price")
+                        result["sku_present"] = bool(offers[0].get("sku"))
+                    elif isinstance(offers, dict):
+                        result["price"] = offers.get("price")
+                        result["sku_present"] = bool(offers.get("sku"))
+                    break
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue
+
+        # Check if target config options are present and selectable
+        # The URL pre-selects the config but we verify radio buttons exist
+        config_check = await page.evaluate("""() => {
+            const radios = document.querySelectorAll('input[type=radio]');
+            let has16core = false, has128gb = false, core16checked = false, mem128checked = false;
+            for (const r of radios) {
+                const val = r.value || '';
+                const name = r.name || '';
+                if (val.includes('16-40') || (name.includes('cpuCoreCount') && val.includes('16'))) {
+                    has16core = true;
+                    if (r.checked) core16checked = true;
+                }
+                if (val.includes('128gb') || (name.includes('Memory') && val.includes('128'))) {
+                    has128gb = true;
+                    if (r.checked) mem128checked = true;
+                }
+            }
+            // Check Continue button state
+            const btns = document.querySelectorAll('button');
+            let continueEnabled = false;
+            for (const b of btns) {
+                if (b.textContent.trim() === 'Continue' && b.offsetParent !== null) {
+                    continueEnabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true';
+                    break;
+                }
+            }
+            return {has16core, has128gb, core16checked, mem128checked, continueEnabled};
+        }""")
+
+        result["target_config_selectable"] = (
+            config_check.get("has16core", False) and
+            config_check.get("has128gb", False)
+        )
+        result["continue_enabled"] = config_check.get("continueEnabled", False)
+
+        # If 16-core isn't checked, try clicking it
+        if config_check.get("has16core") and not config_check.get("core16checked"):
+            await page.evaluate("""() => {
+                const radios = document.querySelectorAll('input[type=radio]');
+                for (const r of radios) {
+                    const val = r.value || '';
+                    if (val.includes('16-40') || (r.name.includes('cpuCoreCount') && val.includes('16'))) {
+                        const label = r.closest('label') || r.parentElement;
+                        if (label) label.click(); else r.click();
+                        break;
+                    }
+                }
+            }""")
+            await page.wait_for_timeout(2000)
+            # Re-check continue
+            cont_state = await page.evaluate("""() => {
+                const btns = document.querySelectorAll('button');
+                for (const b of btns) {
+                    if (b.textContent.trim() === 'Continue' && b.offsetParent !== null) {
+                        return !b.disabled;
+                    }
+                }
+                return false;
+            }""")
+            result["continue_enabled"] = cont_state
+
+        # Check for delivery/shipping text and out-of-stock indicators
+        body = await page.inner_text("body")
+        for phrase in ["Currently Unavailable", "Out of Stock", "Sold Out", "not currently available"]:
+            if phrase.lower() in body.lower():
+                result["availability_signal"] = "out_of_stock"
+                result["playwright_status"] = "ok"
+                return result
+
+        # Look for delivery info
+        for kw in ["Delivers", "Get it by", "Ships by", "delivery by"]:
+            idx = body.find(kw)
+            if idx >= 0:
+                result["delivery_info"] = body[idx:idx+80].replace("\n", " ").strip()
+                break
+
+        # Determine availability signal level
+        if result["continue_enabled"]:
+            result["availability_signal"] = "config_validated"
+        elif result["target_config_selectable"] and result["sku_present"]:
+            result["availability_signal"] = "metadata_only"
+        elif result["page_reachable"] and result["sku_present"]:
+            result["availability_signal"] = "metadata_only"
+        else:
+            result["availability_signal"] = "page_only"
+
+        result["playwright_status"] = "ok"
+
+    except Exception as e:
+        result["playwright_status"] = f"error: {str(e)[:100]}"
+        logger.warning(f"Playwright check failed for {config['label']}: {e}")
+
+    return result
+
+
+async def _check_apple_store_availability() -> list[dict]:
+    """Check all Apple Store configs using a single browser instance."""
+    results = []
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        ctx = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+            viewport={"width": 1440, "height": 900},
+            locale="en-IN",
+        )
+        page = await ctx.new_page()
+
+        for config in APPLE_STORE_CONFIGS:
+            logger.info(f"Playwright: checking {config['label']}...")
+            result = await _check_single_store_page(page, config)
+            results.append(result)
+            logger.info(
+                f"  → signal={result['availability_signal']} "
+                f"price={result['price']} "
+                f"status={result['playwright_status']}"
+            )
+
+        await browser.close()
+
+    return results
+
+
+def check_apple_store_availability() -> list[dict]:
+    """Sync wrapper for Apple Store availability check via Playwright.
+
+    Returns list of result dicts, or empty list if Playwright unavailable.
+    """
+    if not HAS_PLAYWRIGHT:
+        logger.warning(
+            "Playwright not installed — skipping direct store check. "
+            "Install with: pip install playwright && python -m playwright install chromium"
+        )
+        return []
+
+    try:
+        return asyncio.run(_check_apple_store_availability())
+    except Exception as e:
+        logger.error(f"Apple Store availability check failed: {e}")
+        return []
+
+
+def merge_playwright_results(hardware_checks: dict, store_results: list[dict]) -> dict:
+    """Merge Playwright store results into the hardware check data."""
+    if not store_results:
+        return hardware_checks
+
+    for result in store_results:
+        key = result["key"]
+        if key not in hardware_checks:
+            continue
+
+        existing = hardware_checks[key]
+        if not isinstance(existing, dict):
+            continue
+
+        # Add Playwright-verified fields
+        existing["playwright_verified"] = result["playwright_status"] == "ok"
+        existing["availability_signal"] = result["availability_signal"]
+        existing["playwright_status"] = result["playwright_status"]
+
+        if result["price"] is not None:
+            price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
+            existing[price_key] = result["price"]
+
+        if result["delivery_info"]:
+            existing["delivery_info"] = result["delivery_info"]
+
+        # Override orderable based on Playwright signal
+        if result["availability_signal"] == "out_of_stock":
+            existing["orderable"] = False
+            existing["in_stock"] = False
+        elif result["availability_signal"] == "config_validated":
+            existing["orderable"] = True
+
+        existing["store_url"] = result["url"]
+
+    # Also update the 1TB India result into a sub-key if present
+    for result in store_results:
+        if result["key"] == "mac_studio_128gb_india_1tb" and "mac_studio_128gb_india" in hardware_checks:
+            hw = hardware_checks["mac_studio_128gb_india"]
+            if isinstance(hw, dict):
+                hw["alt_1tb_price_inr"] = result.get("price")
+                hw["alt_1tb_signal"] = result.get("availability_signal")
+
+    return hardware_checks
 
 
 def run_enrichment(old_enrichment: dict, today: str) -> dict:
@@ -1380,6 +1650,19 @@ def main():
             # Keep old data
             if category in old_checks:
                 new_checks[category] = old_checks[category]
+
+    # Verify Apple Store availability via Playwright (direct scraping)
+    logger.info("--- Playwright: Direct Apple Store check ---")
+    store_results = check_apple_store_availability()
+    if store_results and "hardware" in new_checks:
+        new_checks["hardware"] = merge_playwright_results(new_checks["hardware"], store_results)
+        state["store_check"] = {
+            "timestamp": datetime.now().isoformat(),
+            "results": store_results,
+        }
+        logger.info(f"Playwright: verified {len(store_results)} store pages")
+    elif not store_results:
+        logger.info("Playwright: skipped (not installed or failed)")
 
     # Detect changes
     changes = detect_changes(old_checks, new_checks) if old_checks else []

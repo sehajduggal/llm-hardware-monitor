@@ -18,6 +18,7 @@ Built with [GitHub Copilot CLI](https://github.com/features/copilot) as the rese
 - **Timeline Dashboard** — Grouped by date, incremental (only shows changes), searchable with category filters
 - **Side-Pane Modal** — Click any card for detailed analysis, enrichment data, and a reference links table
 - **Daily Recommendation Card** — AI-generated buy/wait advice based on all current data + your constraints
+- **Playwright Store Checker** — Direct Apple Store scraping via headless Chromium; verifies config availability, prices, and delivery estimates
 - **Windows Toast Notifications** — With severity levels, app icon, click-to-open dashboard
 - **Portable State** — `monitor_state.json` is git-tracked; clone on a new machine and continue from where you left off
 - **Enrichment Prompts** — Deeper analysis for model updates (benchmarks, tok/s, quantization details)
@@ -36,12 +37,24 @@ Built with [GitHub Copilot CLI](https://github.com/features/copilot) as the rese
 ### Prerequisites
 
 - **Windows 10/11** with PowerShell 7+
-- **Python 3.10+** (no pip dependencies — stdlib only)
+- **Python 3.10+**
 - **GitHub Copilot CLI** installed and authenticated (`copilot login`)
 - **BurntToast** PowerShell module for toast notifications:
   ```powershell
   Install-Module -Name BurntToast -Scope CurrentUser
   ```
+
+### Install Dependencies
+
+```bash
+# Install Python dependencies (Playwright for store checking)
+pip install -r requirements.txt
+
+# Install Chromium browser for Playwright (one-time)
+python -m playwright install chromium
+```
+
+> **Note:** Playwright is optional. Without it, the monitor still works using Copilot CLI web search prompts. With it, you get Playwright-verified store availability, exact prices, and delivery estimates directly from Apple's website.
 
 ### Quick Start
 
@@ -78,16 +91,19 @@ setup-task.bat
 
 1. Clone this repo (state file carries over your full timeline history)
 2. Install prerequisites (Python, Copilot CLI, BurntToast)
-3. Run `python monitor.py` or register the scheduled task
-4. It picks up from the last tracked state automatically
+3. Run `pip install -r requirements.txt && python -m playwright install chromium`
+4. Run `python monitor.py` or register the scheduled task
+5. It picks up from the last tracked state automatically
 
 ## Project Structure
 
 ```
 llm-hardware-monitor/
-├── monitor.py                 # Main daemon (~1500 lines)
+├── monitor.py                 # Main daemon (~1700 lines)
 ├── monitor_state.json         # Persistent state (git-tracked, portable)
 ├── LLM-Hardware-Monitor.html  # Dashboard output (git-tracked)
+├── requirements.txt           # Python dependencies (Playwright)
+├── check_availability.py      # Standalone store availability checker
 ├── icon.png                   # Toast notification icon
 ├── run-now.bat                # Quick manual run helper
 ├── setup-task.bat             # Task Scheduler registration
@@ -104,18 +120,24 @@ llm-hardware-monitor/
 └─────────────┘     │  3 category  │     └────────────────┘
                     │  prompts     │
                     │  2 enrichment│     ┌────────────────┐
-                    │  1 recommend │────▶│  Dashboard HTML │
-                    │              │     │  (timeline +   │
-                    │  Change      │     │   side modals)  │
-                    │  detection   │     └────────────────┘
+                    │  1 recommend │────▶│  Playwright     │
+                    │              │     │  (Apple Store   │
+                    │  Playwright  │     │   scraping)     │
+                    │  store check │     └────────────────┘
                     │              │
-                    │  State mgmt  │     ┌────────────────┐
+                    │  Change      │     ┌────────────────┐
+                    │  detection   │────▶│  Dashboard HTML │
+                    │              │     │  (timeline +   │
+                    │  State mgmt  │     │   side modals)  │
+                    │              │     └────────────────┘
+                    │              │
+                    │              │     ┌────────────────┐
                     │              │────▶│  Toast Notif    │
                     └──────────────┘     │  (BurntToast)  │
                                         └────────────────┘
 ```
 
-Each run makes **6 Copilot CLI calls** (3 categories + 2 enrichment + 1 recommendation), costing ~6 premium requests per day.
+Each run makes **6 Copilot CLI calls** (3 categories + 2 enrichment + 1 recommendation) + **Playwright store check** (3 Apple Store pages), costing ~6 premium requests per day.
 
 ## Copilot CLI Integration Notes
 
