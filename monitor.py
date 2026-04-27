@@ -26,6 +26,9 @@ import re
 import hashlib
 import logging
 import asyncio
+import urllib.request
+import urllib.error
+import ssl
 from datetime import datetime, timedelta
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
@@ -77,27 +80,36 @@ PROMPTS = {
     "hardware": (
         "You are a hardware monitoring agent. Today is {date}. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
-        "Check each of these 7 items and return exactly this structure: "
-        '{{"mac_studio_m5": {{"announced": false, "info": "summary"}}, '
+        "Check each of these items and return exactly this structure: "
+        '{{"mac_studio_m5": {{"announced": false, "info": "summary of Mac Studio M5 rumors/announcements"}}, '
         '"mac_studio_128gb_india": {{"in_stock": false, "orderable": false, "delivery_days": "unknown", "price_inr": "unknown", '
-        '"info": "Check apple.com/in/shop/buy-mac/mac-studio for Mac Studio M4 Max 16-core CPU 40-core GPU 128GB unified memory config. Is it orderable or out of stock? What delivery estimate?"}}, '
+        '"info": "Check apple.com/in/shop/buy-mac/mac-studio for Mac Studio M4 Max 16-core CPU 40-core GPU 128GB. Is it orderable?"}}, '
         '"mac_studio_128gb_us": {{"in_stock": false, "orderable": false, "delivery_days": "unknown", "price_usd": "unknown", '
-        '"info": "Check apple.com/shop/buy-mac/mac-studio for Mac Studio M4 Max 16-core CPU 40-core GPU 128GB unified memory config in US store. Is it orderable or out of stock?"}}, '
+        '"info": "Check apple.com/shop/buy-mac/mac-studio for Mac Studio M4 Max 128GB in US store"}}, '
+        '"mac_mini_48gb_india": {{"in_stock": false, "orderable": false, "price_inr": "unknown", '
+        '"info": "Mac Mini M4 Pro 48GB on apple.com/in — orderable? Price?"}}, '
+        '"mac_mini_48gb_us": {{"in_stock": false, "orderable": false, "price_usd": "unknown", '
+        '"info": "Mac Mini M4 Pro 48GB on apple.com — orderable? Price?"}}, '
         '"apple_refurbished": {{"available": false, "info": "summary"}}, '
         '"wwdc_apple_event": {{"date": "TBD", "info": "summary"}}, '
-        '"corsair_ws300_india": {{"available": false, "info": "summary"}}, '
-        '"amd_strix_halo_128gb_india": {{"available": false, "info": "summary"}}}} '
-        "For mac_studio_128gb_india and mac_studio_128gb_us: search specifically for the EXACT config (M4 Max, 16-core CPU, 40-core GPU, 128GB RAM). "
-        "Report orderable=true only if add-to-bag works. Include delivery estimate and price. Return ONLY the JSON."
+        '"framework_desktop_128gb": {{"available": false, "price_usd": "unknown", "info": "Framework Desktop Strix Halo 128GB — orderable on frame.work? ETA?"}}, '
+        '"bosgame_m5_128gb": {{"available": false, "price_usd": "unknown", "info": "Bosgame M5 Strix Halo 128GB — in stock? Price?"}}, '
+        '"beelink_gtr9_pro_128gb": {{"available": false, "price_usd": "unknown", "info": "Beelink GTR9 Pro Strix Halo 128GB — shipping? Price?"}}, '
+        '"minisforum_ms_s1_max": {{"available": false, "price_usd": "unknown", "info": "Minisforum MS-S1 Max Strix Halo 128GB — orderable? Price?"}}, '
+        '"corsair_ws300": {{"available": false, "price_usd": "unknown", "info": "Corsair AI Workstation 300 Strix Halo 128GB — orderable? Price?"}}, '
+        '"amd_strix_halo_128gb_india": {{"available": false, "info": "ASUS ProArt PX13 Strix Halo 128GB in India — available? Price?"}}, '
+        '"rtx_5090_india": {{"available": false, "price_inr": "unknown", "info": "RTX 5090 FE or AIB in India — Amazon/Flipkart availability and price?"}}, '
+        '"rtx_5090_us": {{"available": false, "price_usd": "unknown", "info": "RTX 5090 availability in US — any store?"}}}} '
+        "For Mac configs: report orderable=true only if add-to-bag works. Include delivery estimate and price. Return ONLY the JSON."
     ),
 
     "models_and_agents": (
         "You are an AI model monitoring agent. Today is {date}. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these 4 items and return exactly this structure: "
-        '{{"new_moe_models": {{"found": false, "info": "any MoE model better than Qwen3-30B-A3B for coding on Apple Silicon"}}, '
+        '{{"new_moe_models": {{"found": false, "info": "any MoE model better than Qwen3-30B-A3B for coding on Apple Silicon or Strix Halo"}}, '
         '"new_coding_models": {{"found": false, "info": "new local coding models released in last 30 days"}}, '
-        '"mlx_llama_cpp": {{"info": "latest MLX and llama.cpp updates for Apple Silicon"}}, '
+        '"mlx_llama_cpp": {{"info": "latest MLX and llama.cpp updates for Apple Silicon and AMD iGPU"}}, '
         '"coding_agents": {{"info": "updates to OpenHands, Aider, SWE-agent, Copilot CLI, or new YOLO coding agent frameworks"}}}} '
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
@@ -105,8 +117,10 @@ PROMPTS = {
     "deals_and_blogs": (
         "You are a deals and tech news monitoring agent. Today is {date}. "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
-        "Check each of these 4 items and return exactly this structure: "
-        '{{"apple_india_deals": {{"has_deals": false, "info": "Mac Studio deals, education discount, card offers on apple.com/in"}}, '
+        "Check each of these items and return exactly this structure: "
+        '{{"apple_india_deals": {{"has_deals": false, "info": "Mac Studio/Mac Mini deals, education discount, card offers on apple.com/in"}}, '
+        '"strix_halo_deals": {{"has_deals": false, "info": "deals or price drops on Strix Halo mini PCs (Framework, Bosgame, Beelink, Minisforum, Corsair)"}}, '
+        '"gpu_deals_india": {{"has_deals": false, "info": "RTX 5090/5080 deals or price drops in India"}}, '
         '"mac_studio_marketplace": {{"info": "Mac Studio availability and prices on Amazon India, Flipkart"}}, '
         '"latest_local_llm_news": {{"info": "top 3 developments from r/LocalLLaMA, Hacker News about local LLM hardware in last 7 days"}}, '
         '"trending_models": {{"info": "top 3 trending models on HuggingFace relevant to local coding agents"}}}} '
@@ -296,7 +310,7 @@ def parse_json_response(text: str) -> dict | None:
 # ─── Store Availability Checker (Playwright) ─────────────────────────────────
 
 STORE_CHECK_CONFIGS = [
-    # ── Apple Store (India) ──
+    # ── Apple Mac Studio (HIGHEST PRIORITY) ──
     {
         "key": "mac_studio_128gb_india",
         "label": "Mac Studio M4 Max 128GB/512GB (Apple India)",
@@ -311,7 +325,6 @@ STORE_CHECK_CONFIGS = [
         "store": "apple",
         "currency": "INR",
     },
-    # ── Apple Store (US) ──
     {
         "key": "mac_studio_128gb_us",
         "label": "Mac Studio M4 Max 128GB/512GB (Apple US)",
@@ -319,7 +332,22 @@ STORE_CHECK_CONFIGS = [
         "store": "apple",
         "currency": "USD",
     },
-    # ── Apple Refurbished (India) ──
+    # ── Apple Mac Mini (budget option) ──
+    {
+        "key": "mac_mini_48gb_india",
+        "label": "Mac Mini M4 Pro 48GB/512GB (Apple India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
+        "store": "apple",
+        "currency": "INR",
+    },
+    {
+        "key": "mac_mini_48gb_us",
+        "label": "Mac Mini M4 Pro 48GB/512GB (Apple US)",
+        "url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
+        "store": "apple",
+        "currency": "USD",
+    },
+    # ── Apple Refurbished ──
     {
         "key": "apple_refurbished_india",
         "label": "Mac Studio Refurbished (Apple India)",
@@ -329,7 +357,6 @@ STORE_CHECK_CONFIGS = [
         "search_terms": ["Mac Studio", "128GB"],
         "out_of_stock_phrases": ["no products", "0 results", "no items"],
     },
-    # ── Apple Refurbished (US) ──
     {
         "key": "apple_refurbished_us",
         "label": "Mac Studio Refurbished (Apple US)",
@@ -339,7 +366,52 @@ STORE_CHECK_CONFIGS = [
         "search_terms": ["Mac Studio", "128GB"],
         "out_of_stock_phrases": ["no products", "0 results", "no items"],
     },
-    # ── ASUS ProArt PX13 Strix Halo 128GB (Amazon India) ──
+    # ── AMD Strix Halo: Framework Desktop (best value, modular) ──
+    {
+        "key": "framework_desktop_128gb",
+        "label": "Framework Desktop Strix Halo 128GB (Framework US)",
+        "url": "https://frame.work/desktop",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["128GB", "Max+ 395", "Desktop"],
+    },
+    # ── AMD Strix Halo: Bosgame M5 (cheapest Strix Halo) ──
+    {
+        "key": "bosgame_m5_128gb",
+        "label": "Bosgame M5 Strix Halo 128GB (Bosgame Official)",
+        "url": "https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["128GB", "Max+ 395", "M5"],
+    },
+    # ── AMD Strix Halo: Beelink GTR9 Pro ──
+    {
+        "key": "beelink_gtr9_pro_128gb",
+        "label": "Beelink GTR9 Pro Strix Halo 128GB (Beelink Official)",
+        "url": "https://www.bee-link.com/products/beelink-gtr9-pro-amd-ryzen-ai-max-395-processor-openclaw",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["128GB", "GTR9", "Max+ 395"],
+    },
+    # ── AMD Strix Halo: Minisforum MS-S1 Max ──
+    {
+        "key": "minisforum_ms_s1_max",
+        "label": "Minisforum MS-S1 Max Strix Halo 128GB (Minisforum Store)",
+        "url": "https://store.minisforum.com/products/minisforum-ms-s1-max-mini-pc",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["128GB", "MS-S1", "Max+ 395"],
+    },
+    # ── AMD Strix Halo: Corsair AI Workstation 300 ──
+    {
+        "key": "corsair_ws300",
+        "label": "Corsair AI WS 300 Strix Halo 128GB (Corsair US)",
+        "url": "https://www.corsair.com/us/en/p/gaming-computers/cs-9080003-na/corsair-ai-workstation-300-amd-ryzen-ai-max-395-processor-amd-radeon-8060s-igpu-up-to-96gb-vram-128gb-lpddr5x-memory-4tb-2tb-2tb-m2-ssd-win11-home-cs-9080003-na",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["AI Workstation", "128GB", "Max+ 395"],
+    },
+    # ── AMD Strix Halo: ASUS ProArt PX13 (Amazon India) ──
     {
         "key": "amd_strix_halo_128gb_india",
         "label": "ASUS ProArt PX13 Strix Halo 128GB (Amazon India)",
@@ -348,32 +420,23 @@ STORE_CHECK_CONFIGS = [
         "currency": "INR",
         "search_terms": ["128 GB", "Strix", "ProArt"],
     },
-    # ── ASUS ProArt PX13 (ASUS India Store) ──
+    # ── GPU: RTX 5090 (Amazon India — Founders Edition) ──
     {
-        "key": "amd_strix_halo_128gb_asus",
-        "label": "ASUS ProArt PX13 Strix Halo 128GB (ASUS India)",
-        "url": "https://in.store.asus.com/asus-proart-px13-go-pro-edition-hn7306eac-lx052ws-creator-laptop.html",
+        "key": "rtx_5090_india",
+        "label": "NVIDIA RTX 5090 Founders Edition (Amazon India)",
+        "url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
+        "store": "amazon",
+        "currency": "INR",
+        "search_terms": ["RTX 5090", "GeForce", "32 GB"],
+    },
+    # ── GPU: RTX 5090 (Flipkart India — MSI Vanguard) ──
+    {
+        "key": "rtx_5090_flipkart",
+        "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
+        "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
         "store": "generic",
         "currency": "INR",
-        "search_terms": ["128", "ProArt", "PX13"],
-    },
-    # ── Corsair AI WS 300 ──
-    {
-        "key": "corsair_ws300",
-        "label": "Corsair AI WS 300 (Corsair US)",
-        "url": "https://www.corsair.com/us/en/p/ai-workstation/cc-a300-cw300/corsair-ai-workstation-300-cc-a300-cw300",
-        "store": "generic",
-        "currency": "USD",
-        "search_terms": ["WS 300", "AI Workstation", "Strix Halo"],
-    },
-    # ── Minisforum AI370 Strix Halo ──
-    {
-        "key": "minisforum_strix_halo",
-        "label": "Minisforum AI370 Strix Halo 128GB",
-        "url": "https://www.minisforum.com/products/AI370.html",
-        "store": "generic",
-        "currency": "USD",
-        "search_terms": ["AI370", "128GB", "Strix Halo"],
+        "search_terms": ["RTX 5090", "MSI", "32 GB"],
     },
 ]
 
@@ -697,33 +760,208 @@ def _check_body_signals(result: dict, body: str, extra_oos_phrases: list = None)
                 break
 
 
-async def _check_all_stores() -> list[dict]:
-    """Check all store pages using a single browser instance."""
+# ─── Fallback: Simple HTTP check (no Playwright) ────────────────────────────
+
+# User-agent rotation for HTTP fallback
+_FALLBACK_USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0",
+]
+
+
+def _http_fallback_check(config: dict, ua_index: int = 0) -> dict:
+    """Lightweight HTTP GET fallback for when Playwright fails on a store.
+
+    Parses schema.org JSON-LD and basic HTML signals from raw HTML.
+    Won't work for JS-rendered pages (Apple configurator) but can catch
+    schema.org metadata, price patterns, and out-of-stock keywords.
+    """
+    result = _make_result_template(config)
+    result["fallback_used"] = "http"
+
+    ua = _FALLBACK_USER_AGENTS[ua_index % len(_FALLBACK_USER_AGENTS)]
+    headers = {
+        "User-Agent": ua,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "identity",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache",
+    }
+
+    try:
+        ctx = ssl.create_default_context()
+        req = urllib.request.Request(config["url"], headers=headers)
+        with urllib.request.urlopen(req, timeout=20, context=ctx) as resp:
+            if resp.status >= 400:
+                result["playwright_status"] = "http_fallback_error"
+                return result
+
+            raw = resp.read(500_000)  # limit to 500KB
+            html = raw.decode("utf-8", errors="replace")
+
+        result["page_reachable"] = True
+
+        # Try schema.org JSON-LD
+        ld_scripts = re.findall(
+            r'<script\s+type="application/ld\+json">\s*([\s\S]*?)</script>', html
+        )
+        for script_text in ld_scripts:
+            try:
+                schema = json.loads(script_text.strip())
+                target = schema
+                if isinstance(schema, list):
+                    target = next((s for s in schema if s.get("@type") == "Product"), None)
+                if target and target.get("@type") == "Product":
+                    offers = target.get("offers", {})
+                    if isinstance(offers, list) and offers:
+                        offers = offers[0]
+                    if isinstance(offers, dict):
+                        result["price"] = offers.get("price")
+                        result["sku_present"] = True
+                        avail = offers.get("availability", "")
+                        if "InStock" in avail:
+                            result["availability_signal"] = "in_stock_schema"
+                        elif "OutOfStock" in avail:
+                            result["availability_signal"] = "out_of_stock"
+                    break
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue
+
+        # Fallback price regex from HTML
+        if result["price"] is None:
+            currency = config.get("currency", "USD")
+            if currency == "INR":
+                price_match = re.search(r'[\u20B9₹]\s*([\d,]+(?:\.\d{2})?)', html)
+            else:
+                price_match = re.search(r'\$\s*([\d,]+(?:\.\d{2})?)', html)
+            if price_match:
+                try:
+                    result["price"] = float(price_match.group(1).replace(",", ""))
+                except ValueError:
+                    pass
+
+        # Strip HTML tags for body text analysis
+        body_text = re.sub(r'<[^>]+>', ' ', html)
+        body_text = re.sub(r'\s+', ' ', body_text)
+
+        _check_body_signals(result, body_text, config.get("out_of_stock_phrases"))
+
+        # Determine signal if not already set by out_of_stock
+        if result["availability_signal"] not in ("out_of_stock", "in_stock_schema"):
+            if result["price"] and result["sku_present"]:
+                result["availability_signal"] = "metadata_only"
+            elif result["page_reachable"]:
+                result["availability_signal"] = "page_only"
+
+        result["playwright_status"] = "http_fallback_ok"
+
+    except urllib.error.HTTPError as e:
+        result["playwright_status"] = f"http_fallback_error_{e.code}"
+        logger.debug(f"HTTP fallback {e.code} for {config['label']}: {e.reason}")
+    except Exception as e:
+        result["playwright_status"] = f"http_fallback_error"
+        logger.debug(f"HTTP fallback failed for {config['label']}: {e}")
+
+    return result
+
+
+def _get_stale_cache_result(config: dict, state: dict) -> dict | None:
+    """Return the last successful result for this store from state, marked stale."""
+    prev = state.get("store_check", {}).get("results", [])
+    for r in prev:
+        if r.get("key") == config["key"] and r.get("playwright_status", "").startswith(("ok", "http_fallback_ok")):
+            stale = dict(r)
+            stale["fallback_used"] = "stale_cache"
+            stale["stale_from"] = state.get("store_check", {}).get("timestamp", "unknown")
+            stale["playwright_status"] = "stale_cache"
+            return stale
+    return None
+
+
+async def _check_all_stores(state: dict = None) -> list[dict]:
+    """Check all store pages with retry, HTTP fallback, and stale cache.
+
+    Fallback chain per store:
+      1. Playwright with primary context
+      2. Playwright retry with alternate user-agent + stealth headers
+      3. Simple HTTP GET (urllib) — works for non-JS pages
+      4. Stale cache from last successful run
+    """
+    state = state or {}
     results = []
+
+    # Alternate stealth context settings for retry
+    _STEALTH_UA = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15"
+    )
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
-        ctx = await browser.new_context(
+
+        # Primary context
+        ctx_primary = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             viewport={"width": 1440, "height": 900},
             locale="en-IN",
         )
-        page = await ctx.new_page()
+        page_primary = await ctx_primary.new_page()
 
-        for config in STORE_CHECK_CONFIGS:
-            logger.info(f"Playwright: checking {config['label']}...")
+        # Stealth context (different UA, locale, viewport) for retries
+        ctx_stealth = await browser.new_context(
+            user_agent=_STEALTH_UA,
+            viewport={"width": 1920, "height": 1080},
+            locale="en-US",
+            extra_http_headers={
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+            },
+        )
+        page_stealth = await ctx_stealth.new_page()
+
+        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+            label = config["label"]
+            logger.info(f"Playwright: checking {label}...")
+
             store_type = config.get("store", "generic")
-            if store_type == "apple":
-                result = await _check_apple_store_page(page, config)
-            elif store_type == "amazon":
-                result = await _check_amazon_page(page, config)
-            else:
-                result = await _check_generic_page(page, config)
+            handler = {
+                "apple": _check_apple_store_page,
+                "amazon": _check_amazon_page,
+            }.get(store_type, _check_generic_page)
+
+            # ── Attempt 1: Playwright primary context ──
+            result = await handler(page_primary, config)
+
+            # ── Attempt 2: Playwright stealth context (on failure) ──
+            if result["playwright_status"] not in ("ok",):
+                logger.info(f"  ↻ Retry with stealth context for {label}...")
+                result = await handler(page_stealth, config)
+                if result["playwright_status"] == "ok":
+                    result["fallback_used"] = "stealth_retry"
+
+            # ── Attempt 3: Simple HTTP fallback (on failure) ──
+            if result["playwright_status"] not in ("ok",):
+                logger.info(f"  ↻ HTTP fallback for {label}...")
+                result = _http_fallback_check(config, ua_index=idx)
+
+            # ── Attempt 4: Stale cache (on total failure) ──
+            if result["availability_signal"] == "unreachable":
+                cached = _get_stale_cache_result(config, state)
+                if cached:
+                    logger.info(f"  ↻ Using stale cache from {cached.get('stale_from', '?')} for {label}")
+                    result = cached
 
             results.append(result)
+            fallback_tag = f" [fallback={result.get('fallback_used', 'none')}]" if result.get("fallback_used") else ""
             logger.info(
                 f"  → signal={result['availability_signal']} "
                 f"price={result['price']} "
-                f"status={result['playwright_status']}"
+                f"status={result['playwright_status']}{fallback_tag}"
             )
 
         await browser.close()
@@ -731,23 +969,44 @@ async def _check_all_stores() -> list[dict]:
     return results
 
 
-def check_store_availability() -> list[dict]:
-    """Sync wrapper for all store availability checks via Playwright.
+def check_store_availability(state: dict = None) -> list[dict]:
+    """Sync wrapper for all store availability checks.
 
+    Fallback chain: Playwright → Playwright stealth retry → HTTP GET → stale cache.
     Returns list of result dicts, or empty list if Playwright unavailable.
     """
     if not HAS_PLAYWRIGHT:
         logger.warning(
-            "Playwright not installed — skipping direct store checks. "
+            "Playwright not installed — falling back to HTTP-only store checks. "
             "Install with: pip install playwright && python -m playwright install chromium"
         )
-        return []
+        # Even without Playwright, try HTTP fallback for all stores
+        results = []
+        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+            logger.info(f"HTTP check: {config['label']}...")
+            result = _http_fallback_check(config, ua_index=idx)
+            if result["availability_signal"] == "unreachable" and state:
+                cached = _get_stale_cache_result(config, state)
+                if cached:
+                    result = cached
+            results.append(result)
+        return results
 
     try:
-        return asyncio.run(_check_all_stores())
+        return asyncio.run(_check_all_stores(state=state or {}))
     except Exception as e:
         logger.error(f"Store availability check failed: {e}")
-        return []
+        # Last resort: HTTP fallback for everything
+        logger.info("Attempting HTTP-only fallback for all stores...")
+        results = []
+        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+            result = _http_fallback_check(config, ua_index=idx)
+            if result["availability_signal"] == "unreachable" and state:
+                cached = _get_stale_cache_result(config, state or {})
+                if cached:
+                    result = cached
+            results.append(result)
+        return results
 
 
 def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
@@ -757,15 +1016,26 @@ def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
 
     # Map from store result key → which category + check key it maps to
     key_to_category = {
+        # Mac Studio (highest priority)
         "mac_studio_128gb_india": ("hardware", "mac_studio_128gb_india"),
         "mac_studio_128gb_india_1tb": ("hardware", "mac_studio_128gb_india"),  # merge as alt
         "mac_studio_128gb_us": ("hardware", "mac_studio_128gb_us"),
+        # Mac Mini (budget option)
+        "mac_mini_48gb_india": ("hardware", "mac_mini_48gb_india"),
+        "mac_mini_48gb_us": ("hardware", "mac_mini_48gb_us"),
+        # Apple Refurbished
         "apple_refurbished_india": ("hardware", "apple_refurbished"),
         "apple_refurbished_us": ("hardware", "apple_refurbished"),
+        # Strix Halo mini PCs
+        "framework_desktop_128gb": ("hardware", "framework_desktop_128gb"),
+        "bosgame_m5_128gb": ("hardware", "bosgame_m5_128gb"),
+        "beelink_gtr9_pro_128gb": ("hardware", "beelink_gtr9_pro_128gb"),
+        "minisforum_ms_s1_max": ("hardware", "minisforum_ms_s1_max"),
+        "corsair_ws300": ("hardware", "corsair_ws300"),
         "amd_strix_halo_128gb_india": ("hardware", "amd_strix_halo_128gb_india"),
-        "amd_strix_halo_128gb_asus": ("hardware", "amd_strix_halo_128gb_india"),  # merge as alt
-        "corsair_ws300": ("hardware", "corsair_ws300_india"),
-        "minisforum_strix_halo": ("hardware", "amd_strix_halo_128gb_india"),  # merge as alt
+        # GPUs
+        "rtx_5090_india": ("hardware", "rtx_5090_india"),
+        "rtx_5090_flipkart": ("hardware", "rtx_5090_india"),  # merge as alt
     }
 
     for result in store_results:
@@ -1916,18 +2186,23 @@ def main():
                 new_checks[category] = old_checks[category]
 
     # Verify store availability via Playwright (direct scraping across all stores)
-    logger.info("--- Playwright: Direct store availability checks ---")
-    store_results = check_store_availability()
+    logger.info("--- Store availability checks (Playwright + HTTP fallbacks) ---")
+    store_results = check_store_availability(state=state)
     if store_results:
         new_checks = merge_playwright_results(new_checks, store_results)
         state["store_check"] = {
             "timestamp": datetime.now().isoformat(),
             "results": store_results,
         }
-        ok_count = sum(1 for r in store_results if r["playwright_status"] == "ok")
-        logger.info(f"Playwright: checked {len(store_results)} stores, {ok_count} successful")
+        ok_count = sum(1 for r in store_results if r.get("playwright_status", "").startswith("ok"))
+        fb_count = sum(1 for r in store_results if r.get("fallback_used"))
+        stale_count = sum(1 for r in store_results if r.get("fallback_used") == "stale_cache")
+        logger.info(
+            f"Store checks: {len(store_results)} total, {ok_count} primary OK, "
+            f"{fb_count} used fallback ({stale_count} stale cache)"
+        )
     else:
-        logger.info("Playwright: skipped (not installed or failed)")
+        logger.info("Store checks: no results (all methods failed)")
 
     # Detect changes
     changes = detect_changes(old_checks, new_checks) if old_checks else []
