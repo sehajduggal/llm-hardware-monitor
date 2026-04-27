@@ -293,49 +293,94 @@ def parse_json_response(text: str) -> dict | None:
     return None
 
 
-# ─── Apple Store Availability Checker (Playwright) ───────────────────────────
+# ─── Store Availability Checker (Playwright) ─────────────────────────────────
 
-APPLE_STORE_CONFIGS = [
+STORE_CHECK_CONFIGS = [
+    # ── Apple Store (India) ──
     {
         "key": "mac_studio_128gb_india",
-        "label": "Mac Studio M4 Max 128GB (India)",
+        "label": "Mac Studio M4 Max 128GB/512GB (Apple India)",
         "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "store": "apple",
         "currency": "INR",
     },
     {
         "key": "mac_studio_128gb_india_1tb",
-        "label": "Mac Studio M4 Max 128GB/1TB (India)",
+        "label": "Mac Studio M4 Max 128GB/1TB (Apple India)",
         "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-1tb-storage",
+        "store": "apple",
         "currency": "INR",
     },
+    # ── Apple Store (US) ──
     {
         "key": "mac_studio_128gb_us",
-        "label": "Mac Studio M4 Max 128GB (US)",
+        "label": "Mac Studio M4 Max 128GB/512GB (Apple US)",
         "url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "store": "apple",
         "currency": "USD",
+    },
+    # ── Apple Refurbished (India) ──
+    {
+        "key": "apple_refurbished_india",
+        "label": "Mac Studio Refurbished (Apple India)",
+        "url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+        "store": "generic",
+        "currency": "INR",
+        "search_terms": ["Mac Studio", "128GB"],
+        "out_of_stock_phrases": ["no products", "0 results", "no items"],
+    },
+    # ── Apple Refurbished (US) ──
+    {
+        "key": "apple_refurbished_us",
+        "label": "Mac Studio Refurbished (Apple US)",
+        "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["Mac Studio", "128GB"],
+        "out_of_stock_phrases": ["no products", "0 results", "no items"],
+    },
+    # ── ASUS ProArt PX13 Strix Halo 128GB (Amazon India) ──
+    {
+        "key": "amd_strix_halo_128gb_india",
+        "label": "ASUS ProArt PX13 Strix Halo 128GB (Amazon India)",
+        "url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL",
+        "store": "amazon",
+        "currency": "INR",
+        "search_terms": ["128 GB", "Strix", "ProArt"],
+    },
+    # ── ASUS ProArt PX13 (ASUS India Store) ──
+    {
+        "key": "amd_strix_halo_128gb_asus",
+        "label": "ASUS ProArt PX13 Strix Halo 128GB (ASUS India)",
+        "url": "https://in.store.asus.com/asus-proart-px13-go-pro-edition-hn7306eac-lx052ws-creator-laptop.html",
+        "store": "generic",
+        "currency": "INR",
+        "search_terms": ["128", "ProArt", "PX13"],
+    },
+    # ── Corsair AI WS 300 ──
+    {
+        "key": "corsair_ws300",
+        "label": "Corsair AI WS 300 (Corsair US)",
+        "url": "https://www.corsair.com/us/en/p/ai-workstation/cc-a300-cw300/corsair-ai-workstation-300-cc-a300-cw300",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["WS 300", "AI Workstation", "Strix Halo"],
+    },
+    # ── Minisforum AI370 Strix Halo ──
+    {
+        "key": "minisforum_strix_halo",
+        "label": "Minisforum AI370 Strix Halo 128GB",
+        "url": "https://www.minisforum.com/products/AI370.html",
+        "store": "generic",
+        "currency": "USD",
+        "search_terms": ["AI370", "128GB", "Strix Halo"],
     },
 ]
 
 
-async def _check_single_store_page(page, config: dict) -> dict:
-    """Check a single Apple Store config page using Playwright.
-
-    Returns a result dict with availability signals and metadata.
-    """
-    result = {
-        "key": config["key"],
-        "label": config["label"],
-        "url": config["url"],
-        "page_reachable": False,
-        "sku_present": False,
-        "price": None,
-        "currency": config["currency"],
-        "target_config_selectable": False,
-        "continue_enabled": False,
-        "availability_signal": "unreachable",
-        "playwright_status": "pending",
-        "delivery_info": None,
-    }
+async def _check_apple_store_page(page, config: dict) -> dict:
+    """Apple Store-specific checks: schema.org JSON, configurator radio buttons."""
+    result = _make_result_template(config)
 
     try:
         resp = await page.goto(config["url"], wait_until="networkidle", timeout=45000)
@@ -347,7 +392,7 @@ async def _check_single_store_page(page, config: dict) -> dict:
 
         result["page_reachable"] = True
 
-        # Extract schema.org JSON for price/SKU from page HTML source
+        # Extract schema.org JSON for price/SKU
         html_content = await page.content()
         ld_scripts = re.findall(
             r'<script\s+type="application/ld\+json">\s*([\s\S]*?)</script>',
@@ -368,8 +413,7 @@ async def _check_single_store_page(page, config: dict) -> dict:
             except (json.JSONDecodeError, KeyError, TypeError):
                 continue
 
-        # Check if target config options are present and selectable
-        # The URL pre-selects the config but we verify radio buttons exist
+        # Check configurator radio buttons
         config_check = await page.evaluate("""() => {
             const radios = document.querySelectorAll('input[type=radio]');
             let has16core = false, has128gb = false, core16checked = false, mem128checked = false;
@@ -385,7 +429,6 @@ async def _check_single_store_page(page, config: dict) -> dict:
                     if (r.checked) mem128checked = true;
                 }
             }
-            // Check Continue button state
             const btns = document.querySelectorAll('button');
             let continueEnabled = false;
             for (const b of btns) {
@@ -403,7 +446,7 @@ async def _check_single_store_page(page, config: dict) -> dict:
         )
         result["continue_enabled"] = config_check.get("continueEnabled", False)
 
-        # If 16-core isn't checked, try clicking it
+        # Try clicking 16-core if not checked
         if config_check.get("has16core") and not config_check.get("core16checked"):
             await page.evaluate("""() => {
                 const radios = document.querySelectorAll('input[type=radio]');
@@ -417,41 +460,192 @@ async def _check_single_store_page(page, config: dict) -> dict:
                 }
             }""")
             await page.wait_for_timeout(2000)
-            # Re-check continue
             cont_state = await page.evaluate("""() => {
                 const btns = document.querySelectorAll('button');
                 for (const b of btns) {
-                    if (b.textContent.trim() === 'Continue' && b.offsetParent !== null) {
+                    if (b.textContent.trim() === 'Continue' && b.offsetParent !== null)
                         return !b.disabled;
-                    }
                 }
                 return false;
             }""")
             result["continue_enabled"] = cont_state
 
-        # Check for delivery/shipping text and out-of-stock indicators
+        # Out-of-stock and delivery checks
         body = await page.inner_text("body")
-        for phrase in ["Currently Unavailable", "Out of Stock", "Sold Out", "not currently available"]:
-            if phrase.lower() in body.lower():
-                result["availability_signal"] = "out_of_stock"
-                result["playwright_status"] = "ok"
-                return result
+        _check_body_signals(result, body)
 
-        # Look for delivery info
-        for kw in ["Delivers", "Get it by", "Ships by", "delivery by"]:
-            idx = body.find(kw)
-            if idx >= 0:
-                result["delivery_info"] = body[idx:idx+80].replace("\n", " ").strip()
-                break
+        # Signal level
+        if result["availability_signal"] != "out_of_stock":
+            if result["continue_enabled"]:
+                result["availability_signal"] = "config_validated"
+            elif result["target_config_selectable"] and result["sku_present"]:
+                result["availability_signal"] = "metadata_only"
+            elif result["page_reachable"] and result["sku_present"]:
+                result["availability_signal"] = "metadata_only"
+            else:
+                result["availability_signal"] = "page_only"
 
-        # Determine availability signal level
-        if result["continue_enabled"]:
-            result["availability_signal"] = "config_validated"
-        elif result["target_config_selectable"] and result["sku_present"]:
-            result["availability_signal"] = "metadata_only"
-        elif result["page_reachable"] and result["sku_present"]:
+        result["playwright_status"] = "ok"
+
+    except Exception as e:
+        result["playwright_status"] = f"error: {str(e)[:100]}"
+        logger.warning(f"Playwright check failed for {config['label']}: {e}")
+
+    return result
+
+
+async def _check_amazon_page(page, config: dict) -> dict:
+    """Amazon product page: price, in-stock, delivery, buy-box."""
+    result = _make_result_template(config)
+
+    try:
+        resp = await page.goto(config["url"], wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_timeout(3000)
+
+        if not resp or resp.status >= 400:
+            result["playwright_status"] = "http_error"
+            return result
+
+        result["page_reachable"] = True
+
+        # Extract Amazon data via JS
+        amazon_data = await page.evaluate("""() => {
+            const title = document.getElementById('productTitle');
+            const price = document.querySelector('.a-price .a-offscreen, #priceblock_ourprice, #priceblock_dealprice, .reinventPricePriceToPayMargin .a-offscreen');
+            const avail = document.getElementById('availability');
+            const buyBox = document.getElementById('add-to-cart-button');
+            const delivery = document.querySelector('#deliveryBlockMessage, [data-csa-c-delivery-price], .a-text-bold[data-csa-c-type="element"]');
+            const outOfStock = document.querySelector('#outOfStock, .a-color-price.a-text-bold');
+
+            return {
+                title: title ? title.textContent.trim() : null,
+                price: price ? price.textContent.trim() : null,
+                availability: avail ? avail.textContent.trim() : null,
+                hasBuyBox: !!buyBox && !buyBox.disabled,
+                deliveryText: delivery ? delivery.textContent.trim().substring(0, 100) : null,
+                hasOutOfStock: !!outOfStock && outOfStock.textContent.toLowerCase().includes('unavailable'),
+            };
+        }""")
+
+        if amazon_data.get("price"):
+            price_str = re.sub(r'[^\d.]', '', amazon_data["price"].replace(",", ""))
+            try:
+                result["price"] = float(price_str)
+            except ValueError:
+                pass
+
+        result["sku_present"] = bool(amazon_data.get("title"))
+
+        body = await page.inner_text("body")
+        _check_body_signals(result, body, config.get("out_of_stock_phrases"))
+
+        if amazon_data.get("hasOutOfStock"):
+            result["availability_signal"] = "out_of_stock"
+        elif amazon_data.get("hasBuyBox"):
+            result["availability_signal"] = "add_to_cart"
+            result["target_config_selectable"] = True
+        elif result["price"]:
             result["availability_signal"] = "metadata_only"
         else:
+            result["availability_signal"] = "page_only"
+
+        if amazon_data.get("deliveryText"):
+            result["delivery_info"] = amazon_data["deliveryText"][:100]
+
+        result["playwright_status"] = "ok"
+
+    except Exception as e:
+        result["playwright_status"] = f"error: {str(e)[:100]}"
+        logger.warning(f"Playwright check failed for {config['label']}: {e}")
+
+    return result
+
+
+async def _check_generic_page(page, config: dict) -> dict:
+    """Generic store page: look for price, add-to-cart, stock signals."""
+    result = _make_result_template(config)
+
+    try:
+        resp = await page.goto(config["url"], wait_until="domcontentloaded", timeout=30000)
+        await page.wait_for_timeout(4000)
+
+        if not resp or resp.status >= 400:
+            result["playwright_status"] = "http_error"
+            return result
+
+        result["page_reachable"] = True
+
+        html_content = await page.content()
+        body = await page.inner_text("body")
+
+        # Try schema.org for price
+        ld_scripts = re.findall(
+            r'<script\s+type="application/ld\+json">\s*([\s\S]*?)</script>',
+            html_content
+        )
+        for script_text in ld_scripts:
+            try:
+                schema = json.loads(script_text.strip())
+                target = schema
+                if isinstance(schema, list):
+                    target = next((s for s in schema if s.get("@type") == "Product"), None)
+                if target and target.get("@type") == "Product":
+                    offers = target.get("offers", {})
+                    if isinstance(offers, list) and offers:
+                        offers = offers[0]
+                    if isinstance(offers, dict):
+                        result["price"] = offers.get("price")
+                        result["sku_present"] = True
+                        avail = offers.get("availability", "")
+                        if "InStock" in avail:
+                            result["availability_signal"] = "in_stock_schema"
+                        elif "OutOfStock" in avail:
+                            result["availability_signal"] = "out_of_stock"
+                    break
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue
+
+        # Fallback: search for price patterns in body text
+        if result["price"] is None:
+            currency = config.get("currency", "USD")
+            if currency == "INR":
+                price_match = re.search(r'[\u20B9₹]\s*([\d,]+(?:\.\d{2})?)', body)
+            else:
+                price_match = re.search(r'\$\s*([\d,]+(?:\.\d{2})?)', body)
+            if price_match:
+                try:
+                    result["price"] = float(price_match.group(1).replace(",", ""))
+                except ValueError:
+                    pass
+
+        # Check buy/cart buttons
+        buy_data = await page.evaluate("""() => {
+            const btns = document.querySelectorAll('button, a.btn, [class*=add-to-cart], [class*=buy-now], [class*=addToCart]');
+            let hasBuy = false;
+            for (const b of btns) {
+                const txt = (b.textContent || '').toLowerCase().trim();
+                if ((txt.includes('add to cart') || txt.includes('buy now') || txt.includes('add to bag')
+                     || txt.includes('pre-order') || txt.includes('order now')) && b.offsetParent !== null) {
+                    hasBuy = !b.disabled;
+                    break;
+                }
+            }
+            return {hasBuy};
+        }""")
+
+        # Out-of-stock and delivery
+        _check_body_signals(result, body, config.get("out_of_stock_phrases"))
+
+        if result["availability_signal"] == "out_of_stock":
+            pass  # already set
+        elif result.get("availability_signal") == "in_stock_schema":
+            result["target_config_selectable"] = True
+        elif buy_data.get("hasBuy"):
+            result["availability_signal"] = "add_to_cart"
+            result["target_config_selectable"] = True
+        elif result["price"]:
+            result["availability_signal"] = "metadata_only"
+        elif result["page_reachable"]:
             result["availability_signal"] = "page_only"
 
         result["playwright_status"] = "ok"
@@ -463,8 +657,48 @@ async def _check_single_store_page(page, config: dict) -> dict:
     return result
 
 
-async def _check_apple_store_availability() -> list[dict]:
-    """Check all Apple Store configs using a single browser instance."""
+def _make_result_template(config: dict) -> dict:
+    """Create a blank result dict for a store check."""
+    return {
+        "key": config["key"],
+        "label": config["label"],
+        "url": config["url"],
+        "page_reachable": False,
+        "sku_present": False,
+        "price": None,
+        "currency": config.get("currency", "USD"),
+        "target_config_selectable": False,
+        "continue_enabled": False,
+        "availability_signal": "unreachable",
+        "playwright_status": "pending",
+        "delivery_info": None,
+    }
+
+
+def _check_body_signals(result: dict, body: str, extra_oos_phrases: list = None):
+    """Check body text for out-of-stock and delivery signals."""
+    oos_phrases = ["Currently Unavailable", "Out of Stock", "Sold Out",
+                   "not currently available", "Temporarily unavailable"]
+    if extra_oos_phrases:
+        oos_phrases.extend(extra_oos_phrases)
+
+    body_lower = body.lower()
+    for phrase in oos_phrases:
+        if phrase.lower() in body_lower:
+            result["availability_signal"] = "out_of_stock"
+            break
+
+    if not result.get("delivery_info"):
+        for kw in ["Delivers", "Get it by", "Ships by", "delivery by", "FREE Delivery",
+                    "Estimated delivery", "Expected delivery"]:
+            idx = body.find(kw)
+            if idx >= 0:
+                result["delivery_info"] = body[idx:idx+80].replace("\n", " ").strip()
+                break
+
+
+async def _check_all_stores() -> list[dict]:
+    """Check all store pages using a single browser instance."""
     results = []
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -475,9 +709,16 @@ async def _check_apple_store_availability() -> list[dict]:
         )
         page = await ctx.new_page()
 
-        for config in APPLE_STORE_CONFIGS:
+        for config in STORE_CHECK_CONFIGS:
             logger.info(f"Playwright: checking {config['label']}...")
-            result = await _check_single_store_page(page, config)
+            store_type = config.get("store", "generic")
+            if store_type == "apple":
+                result = await _check_apple_store_page(page, config)
+            elif store_type == "amazon":
+                result = await _check_amazon_page(page, config)
+            else:
+                result = await _check_generic_page(page, config)
+
             results.append(result)
             logger.info(
                 f"  → signal={result['availability_signal']} "
@@ -490,69 +731,92 @@ async def _check_apple_store_availability() -> list[dict]:
     return results
 
 
-def check_apple_store_availability() -> list[dict]:
-    """Sync wrapper for Apple Store availability check via Playwright.
+def check_store_availability() -> list[dict]:
+    """Sync wrapper for all store availability checks via Playwright.
 
     Returns list of result dicts, or empty list if Playwright unavailable.
     """
     if not HAS_PLAYWRIGHT:
         logger.warning(
-            "Playwright not installed — skipping direct store check. "
+            "Playwright not installed — skipping direct store checks. "
             "Install with: pip install playwright && python -m playwright install chromium"
         )
         return []
 
     try:
-        return asyncio.run(_check_apple_store_availability())
+        return asyncio.run(_check_all_stores())
     except Exception as e:
-        logger.error(f"Apple Store availability check failed: {e}")
+        logger.error(f"Store availability check failed: {e}")
         return []
 
 
-def merge_playwright_results(hardware_checks: dict, store_results: list[dict]) -> dict:
-    """Merge Playwright store results into the hardware check data."""
+def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
+    """Merge Playwright store results into the check data across categories."""
     if not store_results:
-        return hardware_checks
+        return checks
+
+    # Map from store result key → which category + check key it maps to
+    key_to_category = {
+        "mac_studio_128gb_india": ("hardware", "mac_studio_128gb_india"),
+        "mac_studio_128gb_india_1tb": ("hardware", "mac_studio_128gb_india"),  # merge as alt
+        "mac_studio_128gb_us": ("hardware", "mac_studio_128gb_us"),
+        "apple_refurbished_india": ("hardware", "apple_refurbished"),
+        "apple_refurbished_us": ("hardware", "apple_refurbished"),
+        "amd_strix_halo_128gb_india": ("hardware", "amd_strix_halo_128gb_india"),
+        "amd_strix_halo_128gb_asus": ("hardware", "amd_strix_halo_128gb_india"),  # merge as alt
+        "corsair_ws300": ("hardware", "corsair_ws300_india"),
+        "minisforum_strix_halo": ("hardware", "amd_strix_halo_128gb_india"),  # merge as alt
+    }
 
     for result in store_results:
-        key = result["key"]
-        if key not in hardware_checks:
+        mapping = key_to_category.get(result["key"])
+        if not mapping:
             continue
 
-        existing = hardware_checks[key]
+        category, check_key = mapping
+        if category not in checks or check_key not in checks[category]:
+            continue
+
+        existing = checks[category][check_key]
         if not isinstance(existing, dict):
             continue
 
-        # Add Playwright-verified fields
-        existing["playwright_verified"] = result["playwright_status"] == "ok"
-        existing["availability_signal"] = result["availability_signal"]
-        existing["playwright_status"] = result["playwright_status"]
+        is_primary = result["key"] == check_key
+        is_alt = not is_primary
 
-        if result["price"] is not None:
-            price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
-            existing[price_key] = result["price"]
+        if is_primary:
+            # Primary match — overlay verified fields
+            existing["playwright_verified"] = result["playwright_status"] == "ok"
+            existing["availability_signal"] = result["availability_signal"]
+            existing["playwright_status"] = result["playwright_status"]
+            existing["store_url"] = result["url"]
 
-        if result["delivery_info"]:
-            existing["delivery_info"] = result["delivery_info"]
+            if result["price"] is not None:
+                price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
+                existing[price_key] = result["price"]
 
-        # Override orderable based on Playwright signal
-        if result["availability_signal"] == "out_of_stock":
-            existing["orderable"] = False
-            existing["in_stock"] = False
-        elif result["availability_signal"] == "config_validated":
-            existing["orderable"] = True
+            if result["delivery_info"]:
+                existing["delivery_info"] = result["delivery_info"]
 
-        existing["store_url"] = result["url"]
+            if result["availability_signal"] == "out_of_stock":
+                existing["orderable"] = False
+                existing["in_stock"] = False
+            elif result["availability_signal"] in ("config_validated", "add_to_cart", "in_stock_schema"):
+                existing["orderable"] = True
 
-    # Also update the 1TB India result into a sub-key if present
-    for result in store_results:
-        if result["key"] == "mac_studio_128gb_india_1tb" and "mac_studio_128gb_india" in hardware_checks:
-            hw = hardware_checks["mac_studio_128gb_india"]
-            if isinstance(hw, dict):
-                hw["alt_1tb_price_inr"] = result.get("price")
-                hw["alt_1tb_signal"] = result.get("availability_signal")
+        else:
+            # Alternative source — store as extra data
+            alt_key = f"alt_{result['key']}"
+            existing[alt_key] = {
+                "label": result["label"],
+                "url": result["url"],
+                "signal": result["availability_signal"],
+                "price": result["price"],
+                "currency": result["currency"],
+                "delivery": result.get("delivery_info"),
+            }
 
-    return hardware_checks
+    return checks
 
 
 def run_enrichment(old_enrichment: dict, today: str) -> dict:
@@ -1651,17 +1915,18 @@ def main():
             if category in old_checks:
                 new_checks[category] = old_checks[category]
 
-    # Verify Apple Store availability via Playwright (direct scraping)
-    logger.info("--- Playwright: Direct Apple Store check ---")
-    store_results = check_apple_store_availability()
-    if store_results and "hardware" in new_checks:
-        new_checks["hardware"] = merge_playwright_results(new_checks["hardware"], store_results)
+    # Verify store availability via Playwright (direct scraping across all stores)
+    logger.info("--- Playwright: Direct store availability checks ---")
+    store_results = check_store_availability()
+    if store_results:
+        new_checks = merge_playwright_results(new_checks, store_results)
         state["store_check"] = {
             "timestamp": datetime.now().isoformat(),
             "results": store_results,
         }
-        logger.info(f"Playwright: verified {len(store_results)} store pages")
-    elif not store_results:
+        ok_count = sum(1 for r in store_results if r["playwright_status"] == "ok")
+        logger.info(f"Playwright: checked {len(store_results)} stores, {ok_count} successful")
+    else:
         logger.info("Playwright: skipped (not installed or failed)")
 
     # Detect changes
