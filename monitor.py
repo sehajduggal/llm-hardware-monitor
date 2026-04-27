@@ -71,13 +71,16 @@ PROMPTS = {
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these 7 items and return exactly this structure: "
         '{{"mac_studio_m5": {{"announced": false, "info": "summary"}}, '
-        '"mac_studio_128gb_india": {{"in_stock": false, "info": "summary"}}, '
-        '"mac_studio_128gb_us": {{"in_stock": false, "info": "summary"}}, '
+        '"mac_studio_128gb_india": {{"in_stock": false, "orderable": false, "delivery_days": "unknown", "price_inr": "unknown", '
+        '"info": "Check apple.com/in/shop/buy-mac/mac-studio for Mac Studio M4 Max 16-core CPU 40-core GPU 128GB unified memory config. Is it orderable or out of stock? What delivery estimate?"}}, '
+        '"mac_studio_128gb_us": {{"in_stock": false, "orderable": false, "delivery_days": "unknown", "price_usd": "unknown", '
+        '"info": "Check apple.com/shop/buy-mac/mac-studio for Mac Studio M4 Max 16-core CPU 40-core GPU 128GB unified memory config in US store. Is it orderable or out of stock?"}}, '
         '"apple_refurbished": {{"available": false, "info": "summary"}}, '
         '"wwdc_apple_event": {{"date": "TBD", "info": "summary"}}, '
         '"corsair_ws300_india": {{"available": false, "info": "summary"}}, '
         '"amd_strix_halo_128gb_india": {{"available": false, "info": "summary"}}}} '
-        "Replace each summary with real current info. Return ONLY the JSON."
+        "For mac_studio_128gb_india and mac_studio_128gb_us: search specifically for the EXACT config (M4 Max, 16-core CPU, 40-core GPU, 128GB RAM). "
+        "Report orderable=true only if add-to-bag works. Include delivery estimate and price. Return ONLY the JSON."
     ),
 
     "models_and_agents": (
