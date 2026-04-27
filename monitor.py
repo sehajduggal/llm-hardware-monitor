@@ -12,7 +12,7 @@ Daily monitoring script that uses GitHub Copilot CLI to check:
 
 Outputs:
 - Windows toast notification (via BurntToast PowerShell module)
-- HTML dashboard on Desktop
+- HTML dashboard in project folder
 - Log file
 
 Scheduled via Windows Task Scheduler to run daily at 9 AM.
@@ -34,15 +34,7 @@ from logging.handlers import RotatingFileHandler
 MONITOR_DIR = Path(__file__).parent
 STATE_FILE = MONITOR_DIR / "monitor_state.json"
 LOG_FILE = MONITOR_DIR / "monitor.log"
-
-# Primary dashboard lives in the project folder (tracked in git)
 DASHBOARD_FILE = MONITOR_DIR / "LLM-Hardware-Monitor.html"
-
-# Also copy to Desktop for quick access (best-effort, machine-specific)
-_desktop_onedrive = Path.home() / "OneDrive - Microsoft" / "Desktop"
-_desktop_direct = Path.home() / "Desktop"
-DESKTOP_DIR = _desktop_onedrive if _desktop_onedrive.exists() else _desktop_direct
-DESKTOP_DASHBOARD = DESKTOP_DIR / "LLM-Hardware-Monitor.html"
 
 # Use .cmd wrapper so subprocess can find it (not .ps1)
 COPILOT_CMD = r"C:\ProgramData\global-npm\copilot.cmd"
@@ -458,7 +450,9 @@ def send_toast(title: str, message: str, severity: str = "info"):
     safe_msg = message.replace("'", "''").replace('"', '`"')
     safe_title = full_title.replace("'", "''")
 
-    dashboard_path = str(DASHBOARD_FILE).replace("\\", "\\\\")
+    # Build file:// URI so click-to-open works in any browser
+    dashboard_uri = "file:///" + str(DASHBOARD_FILE).replace("\\", "/")
+    dashboard_path = dashboard_uri.replace("'", "''")
     logo_path = str(MONITOR_DIR / "icon.png").replace("\\", "\\\\")
 
     # Use BurntToast with click action to open dashboard, and app logo
@@ -466,12 +460,12 @@ def send_toast(title: str, message: str, severity: str = "info"):
     Import-Module BurntToast -ErrorAction SilentlyContinue
 
     $logoPath = '{logo_path}'
-    $dashPath = '{dashboard_path}'
+    $dashUri = '{dashboard_path}'
 
     $textBinding = New-BTText -Text '{safe_title}'
     $textBinding2 = New-BTText -Text '{safe_msg}'
 
-    $btnOpen = New-BTButton -Content 'Open Dashboard' -Arguments $dashPath -ActivationType Protocol
+    $btnOpen = New-BTButton -Content 'Open Dashboard' -Arguments $dashUri -ActivationType Protocol
     $actions = New-BTAction -Buttons $btnOpen
 
     $bindingParams = @{{
@@ -486,7 +480,7 @@ def send_toast(title: str, message: str, severity: str = "info"):
     $binding = New-BTBinding @bindingParams
     $visual = New-BTVisual -BindingGeneric $binding
 
-    $content = New-BTContent -Visual $visual -Actions $actions -Launch $dashPath -ActivationType Protocol
+    $content = New-BTContent -Visual $visual -Actions $actions -Launch $dashUri -ActivationType Protocol
 
     Submit-BTNotification -Content $content -UniqueIdentifier 'llm-monitor'
     """
@@ -1341,14 +1335,6 @@ document.addEventListener('keydown', (e) => {{
     DASHBOARD_FILE.write_text(html, encoding="utf-8")
     logger.info(f"Dashboard updated: {DASHBOARD_FILE}")
 
-    # Also copy to Desktop for quick access
-    try:
-        import shutil
-        shutil.copy2(DASHBOARD_FILE, DESKTOP_DASHBOARD)
-        logger.info(f"Desktop copy updated: {DESKTOP_DASHBOARD}")
-    except Exception as e:
-        logger.warning(f"Could not copy to Desktop (non-critical): {e}")
-
 
 # ─── Main Execution ─────────────────────────────────────────────────────────
 
@@ -1433,7 +1419,7 @@ def main():
             logger.info("No changes detected since last run")
         else:
             logger.info("First run — establishing baseline")
-            send_toast("✅ Monitor Started", "LLM Hardware Monitor is now active! Dashboard on Desktop.", "info")
+            send_toast("✅ Monitor Started", "LLM Hardware Monitor is now active!", "info")
 
     # Update state
     state["last_run"] = datetime.now().isoformat()

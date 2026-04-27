@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Hardware Monitor</title>
+<style>
+  :root {
+    --bg: #0a0e14; --surface: #131920; --card: #1a2029; --border: #262f3d;
+    --text: #e6edf3; --dim: #6b7b8d; --accent: #58a6ff; --accent2: #a371f7;
+    --green: #3fb950; --red: #f85149; --yellow: #d29922; --orange: #db6d28;
+    --radius: 12px; --pane-bg: #0d1117;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,14,20,0.92); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 16px 24px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header h1 {
+    font-size: 1.4em; font-weight: 700;
+    background: linear-gradient(135deg, #58a6ff 0%, #a371f7 50%, #f778ba 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .meta { font-size: 0.8em; color: var(--dim); }
+  .header .meta b { color: var(--accent); font-weight: 500; }
+
+  /* ── Search ── */
+  .search-wrap {
+    padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 65px; z-index: 99; display: flex; flex-direction: column;
+  }
+  .search-row { position: relative; }
+  .search-box {
+    width: 100%; max-width: 600px; padding: 10px 16px 10px 40px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-size: 0.95em; outline: none; transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--dim); }
+  .search-row .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; }
+  .filter-bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 5px 14px; border-radius: 20px; font-size: 0.8em;
+    background: var(--card); border: 1px solid var(--border); color: var(--dim);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: rgba(88,166,255,0.15); color: var(--accent); border-color: var(--accent);
+  }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px;
+    background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto;
+  }
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.78em;
+    background: var(--card); border: 1px solid var(--border); white-space: nowrap;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+  /* ── Content ── */
+  .content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .run-status { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .run-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.78em; }
+  .run-badge.success { background: rgba(63,185,80,0.12); color: var(--green); }
+  .run-badge.error { background: rgba(248,81,73,0.12); color: var(--red); }
+
+  /* ── Timeline ── */
+  .timeline { position: relative; }
+  .timeline::before {
+    content: ''; position: absolute; left: 18px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent2), var(--border));
+  }
+  .timeline-group { margin-bottom: 32px; position: relative; }
+  .timeline-date {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0; margin-left: 40px; margin-bottom: 12px;
+  }
+  .date-dot {
+    position: absolute; left: 12px; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent); border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .date-text { font-weight: 700; font-size: 1.1em; }
+  .date-time { color: var(--dim); font-size: 0.8em; }
+  .date-count {
+    padding: 2px 10px; border-radius: 12px; font-size: 0.75em;
+    background: rgba(88,166,255,0.12); color: var(--accent);
+  }
+
+  /* ── Cards ── */
+  .timeline-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px; margin-left: 40px;
+  }
+  .timeline-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; transition: all 0.25s ease;
+    border-left: 3px solid var(--border); position: relative; overflow: hidden;
+    cursor: pointer;
+  }
+  .timeline-card:hover {
+    transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    border-color: var(--accent);
+  }
+  .timeline-card::after {
+    content: '→'; position: absolute; top: 12px; right: 14px;
+    color: var(--dim); font-size: 1.1em; transition: all 0.2s;
+  }
+  .timeline-card:hover::after { color: var(--accent); transform: translateX(3px); }
+  .timeline-card.sev-critical {
+    border-left-color: var(--red);
+    background: linear-gradient(135deg, rgba(248,81,73,0.06), var(--card));
+    animation: glow-red 3s ease-in-out infinite;
+  }
+  .timeline-card.sev-important {
+    border-left-color: var(--yellow);
+    background: linear-gradient(135deg, rgba(210,153,34,0.06), var(--card));
+  }
+  @keyframes glow-red {
+    0%, 100% { box-shadow: 0 0 0 rgba(248,81,73,0); }
+    50% { box-shadow: 0 0 20px rgba(248,81,73,0.15); }
+  }
+  .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .card-icon { font-size: 1.1em; }
+  .card-cat { font-size: 0.75em; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge {
+    padding: 2px 8px; border-radius: 10px; font-size: 0.65em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge.new { background: rgba(63,185,80,0.2); color: var(--green); }
+  .badge.update { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .card-title { font-weight: 700; font-size: 1.05em; margin-bottom: 6px; }
+  .card-flags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .flag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.78em; font-weight: 500;
+  }
+  .card-info {
+    font-size: 0.85em; color: var(--dim); line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .detail-hint {
+    display: block; margin-top: 8px; font-size: 0.75em; color: var(--accent);
+    opacity: 0.7; transition: opacity 0.2s;
+  }
+  .timeline-card:hover .detail-hint { opacity: 1; }
+
+  /* ── Modal (Side Pane) ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+    opacity: 0; visibility: hidden; transition: all 0.3s ease;
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+  .modal-pane {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    width: 560px; max-width: 92vw;
+    background: var(--pane-bg); border-left: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+    transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -12px 0 48px rgba(0,0,0,0.5);
+  }
+  .modal-overlay.open .modal-pane { transform: translateX(0); }
+  .modal-close {
+    position: sticky; top: 0; float: right; z-index: 10;
+    width: 40px; height: 40px; margin: 12px 12px 0 0;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--dim); font-size: 1.2em; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .modal-close:hover { color: var(--text); background: var(--surface); }
+  .modal-body { padding: 20px 28px 40px; }
+  .modal-header {
+    display: flex; align-items: flex-start; gap: 14px;
+    margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  }
+  .modal-icon { font-size: 2em; line-height: 1; }
+  .modal-title { font-size: 1.3em; font-weight: 700; margin-bottom: 4px; }
+  .modal-cat {
+    font-size: 0.8em; color: var(--accent); text-transform: uppercase;
+    letter-spacing: 0.5px; font-weight: 500;
+  }
+  .modal-flags {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
+  }
+  .modal-flag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 8px; font-size: 0.85em; font-weight: 600;
+    background: var(--card); border: 1px solid var(--border);
+  }
+  .modal-section { margin-bottom: 24px; }
+  .modal-section h3 {
+    font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--accent); margin-bottom: 10px; font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .modal-section h3::before {
+    content: ''; display: inline-block; width: 3px; height: 14px;
+    background: var(--accent); border-radius: 2px;
+  }
+  .modal-summary {
+    font-size: 0.95em; line-height: 1.7; color: var(--text);
+    background: var(--surface); padding: 14px 18px; border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .modal-analysis {
+    font-size: 0.92em; line-height: 1.8; color: #c9d1d9;
+    background: var(--surface); padding: 16px 20px; border-radius: 10px;
+    border: 1px solid var(--border); white-space: pre-wrap;
+  }
+  .modal-analysis:empty { display: none; }
+
+  /* ── Links Table ── */
+  .links-table {
+    width: 100%; border-collapse: collapse; font-size: 0.88em;
+    background: var(--surface); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .links-table th {
+    text-align: left; padding: 10px 14px; font-size: 0.78em;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim);
+    background: var(--card); border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  .links-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .links-table tr:last-child td { border-bottom: none; }
+  .links-table tr:hover td { background: rgba(88,166,255,0.04); }
+  .links-table a {
+    color: var(--accent); text-decoration: none; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .links-table a:hover { text-decoration: underline; }
+  .links-table a::after { content: '↗'; font-size: 0.8em; opacity: 0.6; }
+  .links-table .link-desc { color: var(--dim); font-size: 0.9em; margin-top: 2px; }
+  .no-links { color: var(--dim); font-style: italic; font-size: 0.9em; padding: 12px; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--dim); font-size: 1.1em; }
+  .hidden { display: none !important; }
+
+  /* ── Recommendation Hero Card ── */
+  .rec-card {
+    background: linear-gradient(135deg, rgba(88,166,255,0.08) 0%, rgba(163,113,247,0.08) 50%, rgba(247,120,186,0.06) 100%);
+    border: 1px solid rgba(88,166,255,0.25); border-radius: 16px;
+    padding: 24px 28px; margin-bottom: 28px; position: relative; overflow: hidden; cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .rec-card:hover {
+    border-color: var(--accent); box-shadow: 0 8px 40px rgba(88,166,255,0.12);
+    transform: translateY(-2px);
+  }
+  .rec-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), #f778ba);
+  }
+  .rec-card::after {
+    content: '→'; position: absolute; top: 20px; right: 20px;
+    color: var(--dim); font-size: 1.3em; transition: all 0.2s;
+  }
+  .rec-card:hover::after { color: var(--accent); transform: translateX(4px); }
+  .rec-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .rec-badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .rec-badge.buy_now { background: rgba(63,185,80,0.2); color: var(--green); }
+  .rec-badge.wait { background: rgba(210,153,34,0.2); color: var(--yellow); }
+  .rec-badge.consider_alternative { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .rec-title { font-size: 1.2em; font-weight: 700; margin-bottom: 6px; }
+  .rec-summary { font-size: 0.95em; color: #c9d1d9; line-height: 1.7; margin-bottom: 14px; }
+  .rec-meta {
+    display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.82em; color: var(--dim);
+  }
+  .rec-meta-item { display: flex; align-items: center; gap: 6px; }
+  .rec-meta-item b { color: var(--text); font-weight: 600; }
+  .rec-hint {
+    display: block; margin-top: 12px; font-size: 0.75em; color: var(--accent); opacity: 0.7;
+  }
+
+  /* ── Recommendation Modal extras ── */
+  .rec-section { margin-bottom: 20px; }
+  .rec-section h4 {
+    font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--accent2); margin-bottom: 8px; font-weight: 600;
+  }
+  .rec-section-body {
+    font-size: 0.92em; line-height: 1.8; color: #c9d1d9;
+    background: var(--surface); padding: 14px 18px; border-radius: 10px;
+    border: 1px solid var(--border); white-space: pre-wrap;
+  }
+  .rec-confidence {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 12px; font-size: 0.78em; font-weight: 600;
+  }
+  .rec-confidence.high { background: rgba(63,185,80,0.15); color: var(--green); }
+  .rec-confidence.medium { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .rec-confidence.low { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; padding: 30px; color: var(--dim); font-size: 0.78em;
+    border-top: 1px solid var(--border); margin-top: 40px;
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .timeline-cards { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.1em; }
+    .content { padding: 16px; }
+    .modal-pane { width: 100vw; max-width: 100vw; }
+    .modal-body { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>🖥️ LLM Hardware Monitor</h1>
+    <div class="meta">Last check: <b>2026-04-27 17:06:16</b> · 2 runs tracked</div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-row">
+    <span class="icon">🔍</span>
+    <input type="text" class="search-box" id="search" placeholder="Search updates... (e.g. Mac Studio, Qwen, WWDC, deals)" autocomplete="off">
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="hardware">🖥️ Hardware</button>
+    <button class="filter-btn" data-filter="models_and_agents">🧠 Models</button>
+    <button class="filter-btn" data-filter="deals_and_blogs">💰 Deals</button>
+    <button class="filter-btn" data-filter="critical">🚨 Critical Only</button>
+  </div>
+</div>
+
+<div class="status-bar"><span class="status-pill" style="border-color:var(--red)"><span class="dot" style="background:var(--red)"></span>Mac Studio M5</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>Mac Studio 128Gb India</span> <span class="status-pill" style="border-color:var(--red)"><span class="dot" style="background:var(--red)"></span>Mac Studio 128Gb Us</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>Apple Refurbished</span> <span class="status-pill" style="border-color:var(--red)"><span class="dot" style="background:var(--red)"></span>Corsair Ws300 India</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>Amd Strix Halo 128Gb India</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>New Moe Models</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>New Coding Models</span> <span class="status-pill" style="border-color:var(--green)"><span class="dot" style="background:var(--green)"></span>Apple India Deals</span></div>
+
+<div class="content">
+  <div class="run-status"><span class="run-badge success">✅ hardware</span> <span class="run-badge success">✅ models and agents</span> <span class="run-badge success">✅ deals and blogs</span> </div>
+  
+    <div class="rec-card" onclick="openRecModal()">
+      <div class="rec-top">
+        <span style="font-size:1.4em">🎯</span>
+        <span style="font-weight:700;font-size:0.85em;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Today's Recommendation</span>
+        <span class="rec-badge buy_now">buy now</span>
+        <span class="rec-confidence high">high confidence</span>
+      </div>
+      <div class="rec-title">Mac Studio M4 Max – 128GB Unified Memory / 512GB SSD (Apple India Store, CTO)</div>
+      <div class="rec-summary">The Mac Studio M4 Max 128GB is available now on Apple India, fits within the upper end of budget (~₹2.9–3.1L estimated), and delivers ~87 tok/s on Qwen3-30B-A3B (4-bit MLX) — far exceeding the 25 tok/s target. The M5 Mac Studio is rumoured for June–October 2026 but unconfirmed; the wait risk is high given potential DRAM supply delays. The ASUS ProArt PX13 Strix Halo at ₹3,34,990 exceeds budget, runs Windows (Linux headaches), and scores ~69 tok/s — competitive but inferior value here.</div>
+      <div class="rec-meta">
+        <span class="rec-meta-item">🧠 <b>Qwen3-30B-A3B (MoE, Apache 2.0) — best coding/agent quality per tok/s on Apple Silicon 128GB</b></span>
+        <span class="rec-meta-item">💰 <b>Mac Studio M4 Max 128GB / 512GB SSD: ~₹2,85,000–₹3,10,000 (Apple India CTO, verify live at apple.com/in/shop). Optional: upgrade to 1TB SSD adds ~₹20,000. Total with 1TB: ~₹3,05,000–₹3,30,000. All within ₹3.5L budget.</b></span>
+        <span class="rec-meta-item">⏳ <b>Mac Studio M5 Max (128GB config) — rumoured WWDC June 2026 announcement, possibl</b></span>
+      </div>
+      <span class="rec-hint">📖 Click for full analysis, model config, fine-tuning guide & buy links</span>
+    </div>
+  <div class="timeline" id="timeline">
+        <div class="timeline-group" data-date="2026-04-27 17:06">
+          <div class="timeline-date">
+            <span class="date-dot"></span>
+            <span class="date-text">April 27, 2026</span>
+            <span class="date-time">2026-04-27 17:06</span>
+            <span class="date-count">15 updates</span>
+          </div>
+          <div class="timeline-cards">
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_m5')"
+                 data-search="Mac Studio M5 Not officially announced as of April 27, 2026. Strong rumors point to M5 Max and M5 Ultra models launching at WWDC June 2026, but global DRAM shortages may delay release to fall 2026. Hardware" data-item="mac_studio_m5">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Mac Studio M5</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Announced: No</span></div>
+              <div class="card-info">Not officially announced as of April 27, 2026. Strong rumors point to M5 Max and M5 Ultra models launching at WWDC June 2026, but global DRAM shortage…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-critical clickable" onclick="openModal('mac_studio_128gb_india')"
+                 data-search="Mac Studio 128Gb India Mac Studio M4 Max with 128GB RAM is configurable/available via Apple India store and authorized resellers like Imagine and iSense. High-RAM BTO configs may have wait times due to global memory shortages. Pricing likely exceeds ₹5,00,000. Hardware" data-item="mac_studio_128gb_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Mac Studio 128Gb India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>In Stock: Yes</span></div>
+              <div class="card-info">Mac Studio M4 Max with 128GB RAM is configurable/available via Apple India store and authorized resellers like Imagine and iSense. High-RAM BTO config…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_128gb_us')"
+                 data-search="Mac Studio 128Gb Us 128GB and 256GB Mac Studio configs disappeared from Apple US Store around April 11, 2026. Currently shows &#x27;unavailable&#x27; — cannot even place orders. Likely cleared ahead of M5 refresh at WWDC June 2026. Hardware" data-item="mac_studio_128gb_us">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Mac Studio 128Gb Us</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>In Stock: No</span></div>
+              <div class="card-info">128GB and 256GB Mac Studio configs disappeared from Apple US Store around April 11, 2026. Currently shows &#x27;unavailable&#x27; — cannot even place orders. Li…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('apple_refurbished')"
+                 data-search="Apple Refurbished Apple Certified Refurbished store lists Mac Studio M3 Ultra and M4 Max models. M4 Max starts ~$1,699, M3 Ultra ~$3,399 in the US. High-RAM refurb configs may be limited. Third-party sellers (B&amp;H, OWC, Adorama) also carry stock. Hardware" data-item="apple_refurbished">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Apple Refurbished</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Available: Yes</span></div>
+              <div class="card-info">Apple Certified Refurbished store lists Mac Studio M3 Ultra and M4 Max models. M4 Max starts ~$1,699, M3 Ultra ~$3,399 in the US. High-RAM refurb conf…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('wwdc_apple_event')"
+                 data-search="Wwdc Apple Event Apple officially announced WWDC 2026 for June 8–12, 2026. Keynote on June 8 at 10am PT at Apple Park. Expected: iOS 27, macOS 27, Siri AI updates, and likely M5 Mac hardware announcements. Hardware" data-item="wwdc_apple_event">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Wwdc Apple Event</div>
+              
+              <div class="card-info">Apple officially announced WWDC 2026 for June 8–12, 2026. Keynote on June 8 at 10am PT at Apple Park. Expected: iOS 27, macOS 27, Siri AI updates, and…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('corsair_ws300_india')"
+                 data-search="Corsair Ws300 India Corsair ONE i500 is listed on Amazon India and Ubuy India but shows &#x27;Currently unavailable — we don&#x27;t know when or if this item will be back in stock.&#x27; No confirmed WS300 model found. High-end imports face sporadic availability. Hardware" data-item="corsair_ws300_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Corsair Ws300 India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Available: No</span></div>
+              <div class="card-info">Corsair ONE i500 is listed on Amazon India and Ubuy India but shows &#x27;Currently unavailable — we don&#x27;t know when or if this item will be back in stock.…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('amd_strix_halo_128gb_india')"
+                 data-search="Amd Strix Halo 128Gb India ASUS ProArt PX13 GoPro Edition (Ryzen AI Max+ 395, 128GB LPDDR5X) is available in India on Amazon, Flipkart, and ASUS India store for ~₹3,34,990–₹4,01,990. HP ZBook Ultra G1a (128GB) also expected. Lenovo Yoga Pro 7a mid/late 2026. Hardware" data-item="amd_strix_halo_128gb_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Amd Strix Halo 128Gb India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Available: Yes</span></div>
+              <div class="card-info">ASUS ProArt PX13 GoPro Edition (Ryzen AI Max+ 395, 128GB LPDDR5X) is available in India on Amazon, Flipkart, and ASUS India store for ~₹3,34,990–₹4,01…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('new_moe_models')"
+                 data-search="New Moe Models Yes — multiple MoE models now surpass Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.6-35B-A3B (released Apr 16, 2026, Apache 2.0, ~3B active params, 1M context via YaRN, best for 24GB+ Macs); (2) Gemma 4 26B-A4B (Google, 4B active, 256K context, strong code/STEM, fits &lt;30GB at Q4); (3) DeepSeek V4-Flash (MIT, 284B/13B active, 1M context, top-tier coding, needs 64GB+ Mac Studio); (4) Kimi K2.6 (1T/32B active, 80.2% SWE-bench, best for agentic coding). Recommended Q5_K_M quant for best accuracy/speed balance on Apple Silicon. Models &amp; Agents" data-item="new_moe_models">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">New Moe Models</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
+              <div class="card-info">Yes — multiple MoE models now surpass Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.6-35B-A3B (released Apr 16, 2026, Apache 2.0, ~3B active pa…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('new_coding_models')"
+                 data-search="New Coding Models Major releases in last 30 days: Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench, 262K context, GGUF ready); DeepSeek V4-Flash (Apr 24, MIT, 284B/13B active MoE, 1M context); Kimi K2.6 (Apr 20, 1T/32B active, 80.2% SWE-bench, agentic swarm); Llama 4 Scout/Maverick (Apr 5, Meta open source, 10M context); GLM-5.1 (Apr 7, Zhipu AI, MIT, 754B MoE, agentic coding). All support GGUF/Ollama/llama.cpp deployment. Models &amp; Agents" data-item="new_coding_models">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">New Coding Models</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
+              <div class="card-info">Major releases in last 30 days: Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench, 262K context, GGUF ready); DeepSeek V4-Flash (Apr 24, MIT, 284…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mlx_llama_cpp')"
+                 data-search="Mlx Llama Cpp Ollama 0.19 (Mar-Apr 2026) introduced native MLX backend — up to 93% faster decode speed on Apple Silicon with env variable switch (e.g. Qwen3.5 on M4 Max: 58→112 tok/s). MLX achieves 20-87% higher throughput than llama.cpp Metal for &lt;14B models due to unified memory architecture. llama.cpp April 2026 builds added tighter Metal GPU reporting in llama-server logs, fixed prefix caching for Anthropic-compatible clients, expanded tensor parallelism, and better tool-calling parser. Q4_K_M remains sweet spot quantization (~3.3% quality loss, 75% size reduction). Models &amp; Agents" data-item="mlx_llama_cpp">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Mlx Llama Cpp</div>
+              
+              <div class="card-info">Ollama 0.19 (Mar-Apr 2026) introduced native MLX backend — up to 93% faster decode speed on Apple Silicon with env variable switch (e.g. Qwen3.5 on M4…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('coding_agents')"
+                 data-search="Coding Agents OpenHands (AllHands): 71k+ GitHub stars, 77.6% SWE-bench verified pass@1 with Opus 4.5 — best open scaffold; lightweight binary CLI, Python SDK, Docker sandbox, browser/Jupyter/bash tools, plugin registry. SWE-agent (Princeton): ~72% SWE-bench; shifted focus to mini-SWE-agent (~100 LoC), now in maintenance mode, best for research/reproducible baselines. Aider: still active, model-flexible, good for fast local use. GitHub Copilot CLI: robust bash-integrated agentic tools added but closed-source, trails OpenHands in autonomy. No major new YOLO-style frameworks detected in April 2026. Models &amp; Agents" data-item="coding_agents">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Coding Agents</div>
+              
+              <div class="card-info">OpenHands (AllHands): 71k+ GitHub stars, 77.6% SWE-bench verified pass@1 with Opus 4.5 — best open scaffold; lightweight binary CLI, Python SDK, Docke…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('apple_india_deals')"
+                 data-search="Apple India Deals Mac Studio starts at ₹2,14,900 on apple.com/in with up to 6 months No Cost EMI and up to ₹10,000 instant cashback on select cards. Education discount available via Apple Education Store (up to ₹20,000 off). Apple Back to School 2026 expected June–September with free AirPods and student discounts. Certified Refurbished store offers ₹17,000–₹50,000 off. Reseller MacStation offers up to 28% education/professional discount. Deals &amp; News" data-item="apple_india_deals">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Apple India Deals</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
+              <div class="card-info">Mac Studio starts at ₹2,14,900 on apple.com/in with up to 6 months No Cost EMI and up to ₹10,000 instant cashback on select cards. Education discount …</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_marketplace')"
+                 data-search="Mac Studio Marketplace Mac Studio M4 Max (36GB RAM, 512GB SSD) listed at ₹2,14,900 on Flipkart with card/cashback deals potentially bringing it to ~₹2,10,900; EMI available. M3 Ultra config starts at ₹4,29,900. Amazon India has listings but stock of latest M4 Max/M3 Ultra models is inconsistent — Apple Store and Flipkart are more reliable for current-gen availability and full customization. Deals &amp; News" data-item="mac_studio_marketplace">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Mac Studio Marketplace</div>
+              
+              <div class="card-info">Mac Studio M4 Max (36GB RAM, 512GB SSD) listed at ₹2,14,900 on Flipkart with card/cashback deals potentially bringing it to ~₹2,10,900; EMI available.…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('latest_local_llm_news')"
+                 data-search="Latest Local Llm News 1. Qwen 3.6 dominates r/LocalLLaMA in April 2026 — the 27B dense and 35B-A3B MoE variants are praised as the best all-around local models, beating Gemma 4 26B on coding/agent benchmarks and running on 16–24GB VRAM. 2. Llama 4, Gemma 4, and DeepSeek V3.2 all run on consumer hardware via aggressive quantization (Q4); 16GB VRAM is now the minimum entry point per community consensus, 24GB (RTX 3090) is the &#x27;daily driver&#x27; sweet spot. 3. &#x27;LocalLLM: The Open Cookbook&#x27; project launched April 23 — an open-source, hardware-specific configuration guide for reproducible local inference setups, gaining traction on both r/LocalLLaMA and Hacker News. DRAM shortage warnings (prices up ~80%) are a recurring community concern. Deals &amp; News" data-item="latest_local_llm_news">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Latest Local Llm News</div>
+              
+              <div class="card-info">1. Qwen 3.6 dominates r/LocalLLaMA in April 2026 — the 27B dense and 35B-A3B MoE variants are praised as the best all-around local models, beating Gem…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('trending_models')"
+                 data-search="Trending Models 1. Qwen/Qwen3.6-35B-A3B (MoE, 3B active params, Apache 2.0) — top pick for agentic coding, repo-level reasoning, 262K context, efficient on consumer GPUs. 2. MoonshotAI/Kimi-K2.6 — open weights, supports 300-agent swarms and 12-hour autonomous coding runs, outperforms GPT-5.4 on coding benchmarks. 3. meta-llama/Llama-4-Scout-17B (MoE, 17B active, up to 10M token context) — ideal for whole-codebase analysis on a single ~48GB GPU. Honorable mention: mistralai/Codestral-2-22B for fast inline completion on 16GB+ VRAM. Deals &amp; News" data-item="trending_models">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge update">UPDATED</span>
+              </div>
+              <div class="card-title">Trending Models</div>
+              
+              <div class="card-info">1. Qwen/Qwen3.6-35B-A3B (MoE, 3B active params, Apache 2.0) — top pick for agentic coding, repo-level reasoning, 262K context, efficient on consumer G…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div></div>
+        </div>
+        <div class="timeline-group" data-date="2026-04-27 13:38">
+          <div class="timeline-date">
+            <span class="date-dot"></span>
+            <span class="date-text">April 27, 2026</span>
+            <span class="date-time">2026-04-27 13:38</span>
+            <span class="date-count">15 updates</span>
+          </div>
+          <div class="timeline-cards">
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_m5')"
+                 data-search="Mac Studio M5 Mac Studio M5 Max/Ultra not yet announced as of April 27, 2026. Expected to ship ~October 2026 due to global RAM/NAND shortages pushing it past the earlier WWDC June window. Design likely unchanged; major CPU/GPU/AI improvements expected. Hardware" data-item="mac_studio_m5">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Mac Studio M5</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Announced: No</span></div>
+              <div class="card-info">Mac Studio M5 Max/Ultra not yet announced as of April 27, 2026. Expected to ship ~October 2026 due to global RAM/NAND shortages pushing it past the ea…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_128gb_india')"
+                 data-search="Mac Studio 128Gb India Mac Studio 128GB (M4 Max/M3 Ultra) is intermittently available on Apple India and authorized dealers (Reliance Digital, iSense). Higher RAM configs are constrained by global DRAM shortage; price estimated ₹3,00,000–₹3,50,000+. Check Apple India store frequently. Hardware" data-item="mac_studio_128gb_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Mac Studio 128Gb India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>In Stock: No</span></div>
+              <div class="card-info">Mac Studio 128GB (M4 Max/M3 Ultra) is intermittently available on Apple India and authorized dealers (Reliance Digital, iSense). Higher RAM configs ar…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_128gb_us')"
+                 data-search="Mac Studio 128Gb Us Mac Studio 128GB and 256GB configs are out of stock at the US Apple Store as of mid-April 2026. Apple removed these options from the storefront due to AI-driven global DRAM shortage and likely pre-refresh inventory wind-down ahead of M5 models. Hardware" data-item="mac_studio_128gb_us">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Mac Studio 128Gb Us</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>In Stock: No</span></div>
+              <div class="card-info">Mac Studio 128GB and 256GB configs are out of stock at the US Apple Store as of mid-April 2026. Apple removed these options from the storefront due to…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('apple_refurbished')"
+                 data-search="Apple Refurbished Apple Certified Refurbished store has some Mac Studio models (M2 Max era) with up to $270 off, but stock is limited and sells out quickly. High-RAM configs (128GB+) are largely unavailable. Use Refurb Tracker alerts. Third-party options (Best Buy, Mac of All Trades) also limited. Hardware" data-item="apple_refurbished">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Apple Refurbished</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Available: Yes</span></div>
+              <div class="card-info">Apple Certified Refurbished store has some Mac Studio models (M2 Max era) with up to $270 off, but stock is limited and sells out quickly. High-RAM co…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('wwdc_apple_event')"
+                 data-search="Wwdc Apple Event WWDC 2026 officially confirmed for June 8–12, 2026. Keynote on June 8 at 10am PT at Apple Park. Hybrid event (online + select in-person). Expected: iOS 27, macOS 27, iPadOS 27, AI/Siri updates. Mac Studio M5 hardware announcement now less likely here due to October shipping estimate. Hardware" data-item="wwdc_apple_event">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Wwdc Apple Event</div>
+              
+              <div class="card-info">WWDC 2026 officially confirmed for June 8–12, 2026. Keynote on June 8 at 10am PT at Apple Park. Hybrid event (online + select in-person). Expected: iO…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('corsair_ws300_india')"
+                 data-search="Corsair Ws300 India Corsair AI Workstation 300 (Ryzen AI Max+ 395, up to 128GB LPDDR5X) is listed on Amazon India but shows &#x27;Currently unavailable&#x27;. Global price is $1,999–$2,299; Indian imported price estimated ₹1,70,000–₹3,00,000+. No official Indian retail launch; available via importers with markup. Hardware" data-item="corsair_ws300_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Corsair Ws300 India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Available: No</span></div>
+              <div class="card-info">Corsair AI Workstation 300 (Ryzen AI Max+ 395, up to 128GB LPDDR5X) is listed on Amazon India but shows &#x27;Currently unavailable&#x27;. Global price is $1,99…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('amd_strix_halo_128gb_india')"
+                 data-search="Amd Strix Halo 128Gb India AMD Strix Halo (Ryzen AI Max+ 395) 128GB devices not yet widely available in India as of April 2026. Laptops (Lenovo Legion 7a, Asus TUF A14) and mini-PCs (Framework, Beelink SER8, AMD Ryzen Halo) expected in India Q2/Q3 2026. Currently obtainable only via import/premium resellers. Hardware" data-item="amd_strix_halo_128gb_india">
+              <div class="card-top">
+                <span class="card-icon">🖥️</span>
+                <span class="card-cat">Hardware</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Amd Strix Halo 128Gb India</div>
+              <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Available: No</span></div>
+              <div class="card-info">AMD Strix Halo (Ryzen AI Max+ 395) 128GB devices not yet widely available in India as of April 2026. Laptops (Lenovo Legion 7a, Asus TUF A14) and mini…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('new_moe_models')"
+                 data-search="New Moe Models Several MoE models outperform or compete with Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.5/3.6-35B-A3B (released Apr 22-24, 2026, Apache 2.0) — 3B active params, 262K+ context, SWE-bench Verified 77.2%, fits 32-48GB RAM, new benchmark king for agentic coding on Mac; (2) GLM-4.7-Flash (MIT, ~30B/3B active) — SWE-bench 59.2%, MIT license, runs on 24GB+ Mac, competitive for dedicated coding/tool-use workflows; (3) Gemma 4 26B-A4B (Google MoE, 4B active, 256K context) — strong coding/math, fits 32-48GB Mac; (4) DeepSeek V4-Flash (284B/13B active, MIT, released Apr 23, 2026) — flagship coding/tool-calling performance but requires 64-96GB+ RAM (Mac Studio Ultra territory) Models &amp; Agents" data-item="new_moe_models">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">New Moe Models</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
+              <div class="card-info">Several MoE models outperform or compete with Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.5/3.6-35B-A3B (released Apr 22-24, 2026, Apache 2.0…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-important clickable" onclick="openModal('new_coding_models')"
+                 data-search="New Coding Models Major releases in last 30 days: Qwen 3.6-27B dense (Apr 22, Apache 2.0, SWE-bench 77.2%, fits 24GB GPU at Q4); Qwen 3.6-35B-A3B MoE (Apr 24, Apache 2.0); DeepSeek V4-Flash (Apr 23, MIT, 284B/13B active MoE, top tool-calling); Llama 4 Scout and Maverick (Meta, early Apr, up to 10M token context, open weights); Gemma 4 (Google, Apr 2, MoE, outperforms Llama 4 Maverick in coding/math at smaller sizes); Codestral 22B updated (Mistral, Apr 2026, fast inference, 16GB VRAM, strong inline completions) Models &amp; Agents" data-item="new_coding_models">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">New Coding Models</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
+              <div class="card-info">Major releases in last 30 days: Qwen 3.6-27B dense (Apr 22, Apache 2.0, SWE-bench 77.2%, fits 24GB GPU at Q4); Qwen 3.6-35B-A3B MoE (Apr 24, Apache 2.…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mlx_llama_cpp')"
+                 data-search="Mlx Llama Cpp Ollama 0.19 (Mar/Apr 2026) ships preview MLX backend for Apple Silicon — on M4 Max, decode speed nearly doubles from 58 to 112 tok/sec vs llama.cpp Metal backend; enable via env variable. MLX outperforms llama.cpp Metal by 20-87% on models under 14B params due to zero-copy unified memory. llama.cpp April 2026 updates focus on Metal runtime fixes, prefix caching fixes (critical for tool-calling/agents), and new GPU family + unified memory identification at llama-server startup. Recommended stack: Ollama+MLX backend for max throughput; llama.cpp for large models near RAM limits or cross-platform GGUF needs. Models &amp; Agents" data-item="mlx_llama_cpp">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Mlx Llama Cpp</div>
+              
+              <div class="card-info">Ollama 0.19 (Mar/Apr 2026) ships preview MLX backend for Apple Silicon — on M4 Max, decode speed nearly doubles from 58 to 112 tok/sec vs llama.cpp Me…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('coding_agents')"
+                 data-search="Coding Agents OpenHands (Apr 2026): CLI enhancements with new hooks, /clear commands, task list/status tabs, planning agent for multi-step tasks, support for Claude Opus 4.6, GLM-4.7, Qwen3, Gemini-3.1; achieves ~77% SWE-bench Verified with Opus 4.5; 40k+ GitHub stars; multiple CVE fixes. Aider (Apr 2026): added support for GPT-5, Gemini 2.5, Grok-4, Kimi-k2; improved chat history summarization, codebase mapping, voice-to-code, auto-lint/test on AI changes, 44k+ stars. SWE-agent: mini-SWE-agent (&lt;100 LOC) is now recommended successor, supports multimodal coding tasks, ~74%+ SWE-bench Verified. Copilot CLI: positioned as assistant/completion tool, not autonomous agent. New entrant: Claude Code (Anthropic) now supports scheduled routines, background pipelines, and Mac desktop integration, emerging as top agentic CLI tool in Apr 2026. Models &amp; Agents" data-item="coding_agents">
+              <div class="card-top">
+                <span class="card-icon">🧠</span>
+                <span class="card-cat">Models &amp; Agents</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Coding Agents</div>
+              
+              <div class="card-info">OpenHands (Apr 2026): CLI enhancements with new hooks, /clear commands, task list/status tabs, planning agent for multi-step tasks, support for Claude…</div>
+              <span class="detail-hint">📖 Click for details</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('apple_india_deals')"
+                 data-search="Apple India Deals Mac Studio starts at ₹2,14,900 on apple.com/in. Active offers: up to ₹10,000 instant cashback with eligible bank cards, No Cost EMI up to 6 months (≈₹34,150/mo), free shipping, free setup assistance from Apple Specialist. Education Store pricing available: base M4 Max model at ₹1,94,900 for students/educators. Deals &amp; News" data-item="apple_india_deals">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Apple India Deals</div>
+              <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
+              <div class="card-info">Mac Studio starts at ₹2,14,900 on apple.com/in. Active offers: up to ₹10,000 instant cashback with eligible bank cards, No Cost EMI up to 6 months (≈₹…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('mac_studio_marketplace')"
+                 data-search="Mac Studio Marketplace Mac Studio M4 Max (36GB/512GB) listed at ₹2,14,900 on Flipkart with card cashback and EMI options. Amazon India lists Mac Studio via third-party sellers with varying stock; check individual listings for current pricing. M3 Ultra (96GB/1TB) available at ₹4,29,900 primarily via Apple India direct; limited third-party marketplace availability. Deals &amp; News" data-item="mac_studio_marketplace">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Mac Studio Marketplace</div>
+              
+              <div class="card-info">Mac Studio M4 Max (36GB/512GB) listed at ₹2,14,900 on Flipkart with card cashback and EMI options. Amazon India lists Mac Studio via third-party selle…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('latest_local_llm_news')"
+                 data-search="Latest Local Llm News 1) Qwen3.6-27B gaining major traction on HN and r/LocalLLaMA — dense 27B model beating 397B models on coding benchmarks, runnable locally on ~20GB RAM with Q4_K_M quant. 2) Apple M4 Max/Ultra silicon dominating local inference discussions; Mac Studio M4 Max with 128GB unified memory now considered the top consumer hardware for running 70B quantized models at interactive speeds. 3) Ollama surpassed 169K GitHub stars and billions of model pulls — community consensus that it is now the default one-liner deployment path for local LLMs on Mac, Windows, and Linux. Deals &amp; News" data-item="latest_local_llm_news">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Latest Local Llm News</div>
+              
+              <div class="card-info">1) Qwen3.6-27B gaining major traction on HN and r/LocalLLaMA — dense 27B model beating 397B models on coding benchmarks, runnable locally on ~20GB RAM…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div>
+            <div class="timeline-card sev-info clickable" onclick="openModal('trending_models')"
+                 data-search="Trending Models 1) Qwen3.6-27B (Alibaba, Apache 2.0) — dense 27B, 262K–1M context, top coding/agentic benchmark scores, highly practical for local coding agents. 2) Moonshot Kimi K2.6 — 1T param MoE (32B active), 256K context, native tool-use and agent-swarm support, SOTA on agentic coding benchmarks. 3) HuggingFace ml-intern — open-source autonomous agent (smolagents-based) that automates LLM post-training workflows; outperforms Claude Code on ML automation tasks, fully local-runnable. Deals &amp; News" data-item="trending_models">
+              <div class="card-top">
+                <span class="card-icon">💰</span>
+                <span class="card-cat">Deals &amp; News</span>
+                <span class="badge new">NEW</span>
+              </div>
+              <div class="card-title">Trending Models</div>
+              
+              <div class="card-info">1) Qwen3.6-27B (Alibaba, Apache 2.0) — dense 27B, 262K–1M context, top coding/agentic benchmark scores, highly practical for local coding agents. 2) M…</div>
+              <span class="detail-hint">↗ Click for info</span>
+            </div></div>
+        </div></div>
+</div>
+
+<!-- Side Pane Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal-pane" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-body">
+      <div class="modal-header">
+        <span class="modal-icon" id="modalIcon"></span>
+        <div>
+          <div class="modal-title" id="modalTitle"></div>
+          <div class="modal-cat" id="modalCat"></div>
+        </div>
+      </div>
+      <div class="modal-flags" id="modalFlags"></div>
+
+      <div class="modal-section">
+        <h3>Summary</h3>
+        <div class="modal-summary" id="modalSummary"></div>
+      </div>
+
+      <div class="modal-section" id="analysisSection">
+        <h3>Detailed Analysis</h3>
+        <div class="modal-analysis" id="modalAnalysis"></div>
+      </div>
+
+      <div class="modal-section" id="linksSection">
+        <h3>Reference Links</h3>
+        <table class="links-table" id="modalLinksTable">
+          <thead><tr><th>Source</th><th>Description</th></tr></thead>
+          <tbody id="modalLinksBody"></tbody>
+        </table>
+        <div class="no-links" id="noLinks" style="display:none">No reference links available for this item.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Powered by <a href="https://github.com/features/copilot">GitHub Copilot CLI</a> ·
+  Checks daily at 9 AM via Windows Task Scheduler ·
+  <a href="file:///C:/Work/Personal/llm-hardware-monitor/monitor.log">View Log</a> ·
+  <a href="file:///C:/Work/Personal/llm-hardware-monitor/monitor_state.json">View State</a>
+</div>
+
+<script>
+// ── Modal Data ──
+const modalData = {"mac_studio_m5": {"label": "Mac Studio M5", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "Not officially announced as of April 27, 2026. Strong rumors point to M5 Max and M5 Ultra models launching at WWDC June 2026, but global DRAM shortages may delay release to fall 2026.", "flags": {"announced": false}, "analysis": "", "links": [{"url": "https://www.macrumors.com/roundup/mac-studio/", "title": "Mac Studio M5", "desc": "Default tracking link"}]}, "mac_studio_128gb_india": {"label": "Mac Studio 128Gb India", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "Mac Studio M4 Max with 128GB RAM is configurable/available via Apple India store and authorized resellers like Imagine and iSense. High-RAM BTO configs may have wait times due to global memory shortages. Pricing likely exceeds ₹5,00,000.", "flags": {"in_stock": true}, "analysis": "", "links": [{"url": "https://www.apple.com/in/shop/buy-mac/mac-studio", "title": "Mac Studio 128Gb India", "desc": "Default tracking link"}]}, "mac_studio_128gb_us": {"label": "Mac Studio 128Gb Us", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "128GB and 256GB Mac Studio configs disappeared from Apple US Store around April 11, 2026. Currently shows 'unavailable' — cannot even place orders. Likely cleared ahead of M5 refresh at WWDC June 2026.", "flags": {"in_stock": false}, "analysis": "", "links": [{"url": "https://www.apple.com/shop/buy-mac/mac-studio", "title": "Mac Studio 128Gb Us", "desc": "Default tracking link"}]}, "apple_refurbished": {"label": "Apple Refurbished", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "Apple Certified Refurbished store lists Mac Studio M3 Ultra and M4 Max models. M4 Max starts ~$1,699, M3 Ultra ~$3,399 in the US. High-RAM refurb configs may be limited. Third-party sellers (B&H, OWC, Adorama) also carry stock.", "flags": {"available": true}, "analysis": "", "links": [{"url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio", "title": "Apple Refurbished", "desc": "Default tracking link"}]}, "wwdc_apple_event": {"label": "Wwdc Apple Event", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "Apple officially announced WWDC 2026 for June 8–12, 2026. Keynote on June 8 at 10am PT at Apple Park. Expected: iOS 27, macOS 27, Siri AI updates, and likely M5 Mac hardware announcements.", "flags": {"date": "June 8–12, 2026"}, "analysis": "", "links": [{"url": "https://developer.apple.com/wwdc26/", "title": "Wwdc Apple Event", "desc": "Default tracking link"}]}, "corsair_ws300_india": {"label": "Corsair Ws300 India", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "Corsair ONE i500 is listed on Amazon India and Ubuy India but shows 'Currently unavailable — we don't know when or if this item will be back in stock.' No confirmed WS300 model found. High-end imports face sporadic availability.", "flags": {"available": false}, "analysis": "", "links": [{"url": "https://www.amazon.in/s?k=Corsair+AI+Workstation", "title": "Corsair Ws300 India", "desc": "Default tracking link"}]}, "amd_strix_halo_128gb_india": {"label": "Amd Strix Halo 128Gb India", "category": "hardware", "categoryLabel": "Hardware", "icon": "🖥️", "info": "ASUS ProArt PX13 GoPro Edition (Ryzen AI Max+ 395, 128GB LPDDR5X) is available in India on Amazon, Flipkart, and ASUS India store for ~₹3,34,990–₹4,01,990. HP ZBook Ultra G1a (128GB) also expected. Lenovo Yoga Pro 7a mid/late 2026.", "flags": {"available": true}, "analysis": "", "links": [{"url": "https://www.amazon.in/s?k=AMD+Strix+Halo+128GB", "title": "Amd Strix Halo 128Gb India", "desc": "Default tracking link"}]}, "new_moe_models": {"label": "New Moe Models", "category": "models_and_agents", "categoryLabel": "Models & Agents", "icon": "🧠", "info": "Yes — multiple MoE models now surpass Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.6-35B-A3B (released Apr 16, 2026, Apache 2.0, ~3B active params, 1M context via YaRN, best for 24GB+ Macs); (2) Gemma 4 26B-A4B (Google, 4B active, 256K context, strong code/STEM, fits <30GB at Q4); (3) DeepSeek V4-Flash (MIT, 284B/13B active, 1M context, top-tier coding, needs 64GB+ Mac Studio); (4) Kimi K2.6 (1T/32B active, 80.2% SWE-bench, best for agentic coding). Recommended Q5_K_M quant for best accuracy/speed balance on Apple Silicon.", "flags": {"found": true}, "analysis": "As of April 2026, the leading MoE models for local coding on Apple Silicon and AMD are Qwen3-30B-A3B and its successor Qwen3.6-35B-A3B from Alibaba. Qwen3-30B-A3B has 30.5B total parameters but only ~3.3B active per token, making it extremely efficient. On Apple Silicon with MLX backend and Q4_K_M quantization, it achieves ~87.6 tok/s on M4 Max, ~76.3 tok/s on M3 Ultra, and ~68.5 tok/s on M2 Ultra at 8K context with 128GB unified memory. A 128GB Mac provides full headroom for 128K context windows — even 256K with further optimizations — while a 64GB system is sufficient for 1–32K context. Qwen3-30B-A3B scores 0.80 on AIME-2024 and 0.91 on Arena-Hard, outperforming the dense QwQ-32B at half the compute cost. The newer Qwen3.6-35B-A3B (April 2026, Apache 2.0) raises the bar to 73.4% on SWE-bench Verified and 83% on LiveCodeBench, still using just ~3B active params per token. On AMD, the MI300/MI325X stack benefits from PyTorch TorchTitan FP8 kernels that deliver near-linear (96%) scaling across 1,024 AMD GPUs, plus a 10x MoE routing speedup via optimized Radix Sort and Group GEMM kernels. For 128GB Apple Silicon systems, Q4_K_M is the recommended sweet spot for memory/speed/quality, while mixed-precision (2/4/8-bit per expert) quantization enables running even 397B-class sparse MoEs with <1% perplexity degradation. The mlx-od-moe project enables on-demand expert loading from NVMe, making 100B+ MoEs like Kimi-K2.5 (375GB) feasible even on systems with less than full model capacity. Compared to Qwen3-30B-A3B, the denser Qwen3.6-27B achieves 77.2% SWE-bench but requires more active compute; the 30B-A3B MoE variant remains the best performance-per-watt choice for local coding on 128GB Apple Silicon hardware.", "links": [{"url": "https://deepnewz.com/ai-modeling/qwen3-30b-a3b-model-mlx-weights-shows-m4-max-m3-ultra-lead-tokens-per-second-32k-380e5584", "title": "Qwen3-30B-A3B Model with MLX Weights Shows M4 Max, M3 Ultra Lead in Tokens Per Second", "desc": "Benchmark comparison of Qwen3-30B-A3B with MLX weights across Apple Silicon chips (M4 Max, M3 Ultra, M2 Ultra), showing tok/s at various context lengths up to 32K"}, {"url": "https://www.buildfastwithai.com/blogs/qwen3-6-35b-a3b-review", "title": "Qwen3.6-35B-A3B: 73.4% SWE-Bench, Runs Locally", "desc": "Review of Qwen3.6-35B-A3B MoE model covering SWE-bench scores, local hardware requirements, quantization options, and coding benchmarks"}, {"url": "https://github.com/kqb/mlx-od-moe", "title": "GitHub - kqb/mlx-od-moe: On-Demand Mixture of Experts for Apple Silicon", "desc": "Project enabling gigantic MoE models (e.g., 375GB Kimi-K2.5) to run on consumer Macs by memory-mapping experts on NVMe and loading only active experts per token"}]}, "new_coding_models": {"label": "New Coding Models", "category": "models_and_agents", "categoryLabel": "Models & Agents", "icon": "🧠", "info": "Major releases in last 30 days: Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench, 262K context, GGUF ready); DeepSeek V4-Flash (Apr 24, MIT, 284B/13B active MoE, 1M context); Kimi K2.6 (Apr 20, 1T/32B active, 80.2% SWE-bench, agentic swarm); Llama 4 Scout/Maverick (Apr 5, Meta open source, 10M context); GLM-5.1 (Apr 7, Zhipu AI, MIT, 754B MoE, agentic coding). All support GGUF/Ollama/llama.cpp deployment.", "flags": {"found": true}, "analysis": "The April 2026 local coding model landscape is led by Qwen3.6-27B (dense, Apache 2.0), which achieves 77.2% SWE-bench Verified and 83% LiveCodeBench, fitting comfortably on 128GB RAM with Q4 quantization. Kimi K2.5 (MIT license, 109B total / 17B active MoE) posts 76.8% SWE-bench and HumanEval in the low-90s; at INT4 it requires roughly 64–128GB RAM depending on context. GLM-5.1 from Zhipu AI leads on SWE-bench Pro with 80%+ and supports 128K context at INT4 on 128GB systems. DeepSeek V4-Flash (MIT, 284B total / 13B active) delivers 75%+ SWE-bench and 91% HumanEval at INT4, though it demands careful hardware setup. MiniMax M2.5 hits ~80% SWE-bench and is among the most RAM-efficient for its benchmark tier. Llama 4 Scout (Meta, 109B/17B active MoE) achieves ~72% SWE-bench and ~88% HumanEval — solid for multilingual work. For 128GB Apple Silicon or RAM-heavy workstations, Q4_K_M (4-bit) quantization is the standard: all models above run within this envelope, with MoE architectures only activating a fraction of weights per token. On HumanEval, most frontier open-weight models now exceed 90% pass@1, making SWE-bench Verified the primary differentiator. The recommended toolchain for local evaluation is Ollama or llama.cpp with GGUF Q4_K_M weights; MLX-format weights are preferred on Apple Silicon for peak throughput. For pure coding-agent performance on a 128GB Mac, Qwen3.6-27B or Kimi K2.5 (Q4) represents the current best local option as of April 2026.", "links": [{"url": "https://insiderllm.com/guides/best-local-coding-models-2026/", "title": "Best Local Coding Models Ranked: Every VRAM Tier, Every Benchmark (2026)", "desc": "Comprehensive 2026 ranking of local coding LLMs by SWE-bench/HumanEval scores, VRAM tiers, quantization requirements, and 128GB RAM compatibility"}, {"url": "https://www.oflight.co.jp/en/columns/local-llm-landscape-2026-april-comprehensive-comparison", "title": "Local LLM Landscape April 2026 — Top 10 Open-Source Models Comprehensive Comparison", "desc": "April 2026 comparative analysis of top open-source LLMs including benchmark scores, parameter counts, license, and INT4/128GB RAM feasibility"}, {"url": "https://www.swebench.com/", "title": "SWE-bench Leaderboards", "desc": "Official SWE-bench leaderboard tracking verified scores for all submitted coding models including open-weight and closed-source systems"}]}, "mlx_llama_cpp": {"label": "Mlx Llama Cpp", "category": "models_and_agents", "categoryLabel": "Models & Agents", "icon": "🧠", "info": "Ollama 0.19 (Mar-Apr 2026) introduced native MLX backend — up to 93% faster decode speed on Apple Silicon with env variable switch (e.g. Qwen3.5 on M4 Max: 58→112 tok/s). MLX achieves 20-87% higher throughput than llama.cpp Metal for <14B models due to unified memory architecture. llama.cpp April 2026 builds added tighter Metal GPU reporting in llama-server logs, fixed prefix caching for Anthropic-compatible clients, expanded tensor parallelism, and better tool-calling parser. Q4_K_M remains sweet spot quantization (~3.3% quality loss, 75% size reduction).", "flags": {}, "analysis": "MLX has reached v0.31.1 as of early 2026, with major milestones at 0.21.x (late 2024: mixed-precision kernels, MoE first-class support, Gemma 4 compatibility) and 0.22–0.23 (2025: expanded MoE utilities, memory-pinning improvements, multimodal transformer support). On Apple Silicon, MLX achieves 20–87% higher generation throughput than llama.cpp for models under 14B parameters, exploiting zero-copy unified memory so CPU and GPU share model weights without PCIe transfers. The MLX backend in Ollama delivers ~93% faster decode versus previous defaults. MoE models like Qwen3.6-35B-A3B, Gemma4-26B-A4B, and Llama 4 Scout all run natively in MLX with sparse activation efficiently mapped to unified memory. Supported quantization includes Q4, Q8, and mixed-precision scenarios via `mlx_lm.convert`. For models over 14B, the gap between MLX and llama.cpp narrows due to memory bandwidth saturation on both runtimes. llama.cpp (now hosted at github.com/ggml-org/llama.cpp) has also made major strides: Metal GPU offload is now default and stable on macOS, Homebrew installation (`brew install llama.cpp`) automatically enables Metal with no manual CMake flags required. Recent builds (b4000+, 2025–2026) deliver 30–70 tok/s for Q4_K_M 8B models on M3/M4 MacBook Pro, with rewritten Metal kernels supporting 32K–128K context windows without throughput decay. KV cache with prefix caching is GPU-backed and robust for RAG and API chatbot use cases. llama.cpp maintains parity with CUDA performance on comparable memory budgets, and for long-context or RAM-edge workloads it outperforms MLX due to more aggressive quantization (1.5–8 bit GGUF) and efficient batching. The two runtimes are complementary: MLX for maximum throughput on macOS with sub-14B or well-funded memory, llama.cpp for flexibility, cross-platform deployment, and edge-of-RAM large models.", "links": [{"url": "https://groundy.com/articles/mlx-vs-llamacpp-on-apple-silicon-which-runtime-to-use-for-local-llm-inference/", "title": "MLX vs llama.cpp on Apple Silicon: Which Runtime to Use for Local LLM Inference", "desc": "2026 deep-dive comparison of MLX and llama.cpp performance, memory efficiency, supported models, and practical guidance for Apple Silicon users"}, {"url": "https://macgpu.com/en/blog/2026-0402-mac-metalrt-mlx-llamacpp-local-llm-engine-comparison.html", "title": "2026 Apple Silicon Local LLM Engines: MetalRT vs MLX vs llama.cpp", "desc": "April 2026 benchmark matrix comparing MetalRT, MLX, and llama.cpp on M3/M4 chips with throughput numbers, model support, and configuration tips"}, {"url": "https://github.com/ggml-org/llama.cpp", "title": "GitHub - ggml-org/llama.cpp: LLM inference in C/C++", "desc": "Official llama.cpp repository with latest builds, Metal backend support, GGUF quantization updates, and Apple Silicon performance improvements"}]}, "coding_agents": {"label": "Coding Agents", "category": "models_and_agents", "categoryLabel": "Models & Agents", "icon": "🧠", "info": "OpenHands (AllHands): 71k+ GitHub stars, 77.6% SWE-bench verified pass@1 with Opus 4.5 — best open scaffold; lightweight binary CLI, Python SDK, Docker sandbox, browser/Jupyter/bash tools, plugin registry. SWE-agent (Princeton): ~72% SWE-bench; shifted focus to mini-SWE-agent (~100 LoC), now in maintenance mode, best for research/reproducible baselines. Aider: still active, model-flexible, good for fast local use. GitHub Copilot CLI: robust bash-integrated agentic tools added but closed-source, trails OpenHands in autonomy. No major new YOLO-style frameworks detected in April 2026.", "flags": {}, "analysis": "OpenHands (formerly OpenDevin) is the dominant enterprise-grade open-source autonomous coding agent as of April 2026, with 70K+ GitHub stars. It runs agents inside Docker sandboxes, integrates with GitHub/GitLab, and natively supports vLLM and Ollama for fully local inference using open-weight models like DeepSeek, Llama 4, and Qwen3.6. With top cloud LLMs (Claude Opus 4.5, Sonnet 4.5) it achieves 66–77% on SWE-bench Verified, surpassing Devin in independent evals. New 2025–2026 features include a Skills System for domain-specific agent specialization (e.g., vulnerability patching, legacy migration), event-sourced agent memory for replay and fine-tuning, multi-agent delegation with hierarchical sub-agent execution, and Slack/Jira/Linear integrations in OpenHands Cloud. AMD/NVIDIA deployment guides enable local LLM-backed coding agents on Ryzen AI and Radeon workstations. SWE-agent (Princeton/Stanford, 19K+ GitHub stars) remains the research-first scaffold: the new mini-SWE-Agent is a ~100-line Python agent now the default for academic benchmarking, achieving 74%+ patch rate with top LLMs and supporting full multimodal tool APIs. Aider remains the most model-agnostic terminal-based coding assistant, supporting Claude 3+, GPT-4o, DeepSeek, Gemini, and local models via Ollama with a simple config (AIDER_MODEL=ollama/qwen3.6-27b). Its 2025–2026 upgrades include autonomous test-fix loops (run tests → fix failures → commit automatically), full repository mapping for multi-file context, voice/image/web input as context, and tiered model usage mixing local and cloud LLMs for cost/quality optimization. GitHub Copilot has expanded with agent-mode autonomous edits across multi-file repositories. All major frameworks (OpenHands, Aider, SWE-agent) now support YOLO-style fully autonomous runs where the agent iterates without human confirmation until task completion or token budget exhaustion.", "links": [{"url": "https://www.codesota.com/agentic/openhands-vs-swe-agent", "title": "OpenHands vs SWE-agent (2026): Open-Source Coding Scaffolds Compared", "desc": "2026 comparison of OpenHands and SWE-agent covering architecture, SWE-bench scores, local LLM support, enterprise features, and use-case recommendations"}, {"url": "https://www.amd.com/en/developer/resources/technical-articles/2025/OpenHands.html", "title": "Local AI for Developers: OpenHands & AMD — Bringing Coding Agents to Your Workstation", "desc": "AMD developer guide for running OpenHands with local LLMs on Radeon/Ryzen AI hardware, covering setup, model selection, and performance tuning"}, {"url": "https://aifordevelopers.org/tool/github-com-paul-gauthier-aider", "title": "Aider: AI-Powered Coding Tool for Developers in 2026", "desc": "2026 overview of Aider's capabilities including autonomous agentic mode, Ollama/local LLM integration, repository mapping, and multi-model tiered usage"}]}, "apple_india_deals": {"label": "Apple India Deals", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Mac Studio starts at ₹2,14,900 on apple.com/in with up to 6 months No Cost EMI and up to ₹10,000 instant cashback on select cards. Education discount available via Apple Education Store (up to ₹20,000 off). Apple Back to School 2026 expected June–September with free AirPods and student discounts. Certified Refurbished store offers ₹17,000–₹50,000 off. Reseller MacStation offers up to 28% education/professional discount.", "flags": {"has_deals": true}, "analysis": "", "links": [{"url": "https://www.apple.com/in/shop/buy-mac/mac-studio", "title": "Apple India Deals", "desc": "Default tracking link"}]}, "mac_studio_marketplace": {"label": "Mac Studio Marketplace", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Mac Studio M4 Max (36GB RAM, 512GB SSD) listed at ₹2,14,900 on Flipkart with card/cashback deals potentially bringing it to ~₹2,10,900; EMI available. M3 Ultra config starts at ₹4,29,900. Amazon India has listings but stock of latest M4 Max/M3 Ultra models is inconsistent — Apple Store and Flipkart are more reliable for current-gen availability and full customization.", "flags": {}, "analysis": "", "links": [{"url": "https://www.amazon.in/s?k=Mac+Studio", "title": "Mac Studio Marketplace", "desc": "Default tracking link"}]}, "latest_local_llm_news": {"label": "Latest Local Llm News", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Qwen 3.6 dominates r/LocalLLaMA in April 2026 — the 27B dense and 35B-A3B MoE variants are praised as the best all-around local models, beating Gemma 4 26B on coding/agent benchmarks and running on 16–24GB VRAM. 2. Llama 4, Gemma 4, and DeepSeek V3.2 all run on consumer hardware via aggressive quantization (Q4); 16GB VRAM is now the minimum entry point per community consensus, 24GB (RTX 3090) is the 'daily driver' sweet spot. 3. 'LocalLLM: The Open Cookbook' project launched April 23 — an open-source, hardware-specific configuration guide for reproducible local inference setups, gaining traction on both r/LocalLLaMA and Hacker News. DRAM shortage warnings (prices up ~80%) are a recurring community concern.", "flags": {}, "analysis": "", "links": [{"url": "https://www.reddit.com/r/LocalLLaMA/top/?t=week", "title": "Latest Local Llm News", "desc": "Default tracking link"}]}, "trending_models": {"label": "Trending Models", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Qwen/Qwen3.6-35B-A3B (MoE, 3B active params, Apache 2.0) — top pick for agentic coding, repo-level reasoning, 262K context, efficient on consumer GPUs. 2. MoonshotAI/Kimi-K2.6 — open weights, supports 300-agent swarms and 12-hour autonomous coding runs, outperforms GPT-5.4 on coding benchmarks. 3. meta-llama/Llama-4-Scout-17B (MoE, 17B active, up to 10M token context) — ideal for whole-codebase analysis on a single ~48GB GPU. Honorable mention: mistralai/Codestral-2-22B for fast inline completion on 16GB+ VRAM.", "flags": {}, "analysis": "", "links": [{"url": "https://huggingface.co/models?sort=trending", "title": "Trending Models", "desc": "Default tracking link"}]}, "__recommendation__": {"label": "Mac Studio M4 Max – 128GB Unified Memory / 512GB SSD (Apple India Store, CTO)", "category": "recommendation", "categoryLabel": "Daily Recommendation", "icon": "🎯", "info": "The Mac Studio M4 Max 128GB is available now on Apple India, fits within the upper end of budget (~₹2.9–3.1L estimated), and delivers ~87 tok/s on Qwen3-30B-A3B (4-bit MLX) — far exceeding the 25 tok/s target. The M5 Mac Studio is rumoured for June–October 2026 but unconfirmed; the wait risk is high given potential DRAM supply delays. The ASUS ProArt PX13 Strix Halo at ₹3,34,990 exceeds budget, runs Windows (Linux headaches), and scores ~69 tok/s — competitive but inferior value here.", "flags": {"recommendation": "buy_now", "confidence": "high"}, "analysis": "The Mac Studio M4 Max with 128GB unified memory (512GB SSD CTO) is currently configurable on Apple India Store. Estimated price is ₹2.85–3.10L based on Apple's historical upgrade pricing from the ₹2,14,900 base (36GB). This is within budget. It delivers 87.58 tok/s on Qwen3-30B-A3B at Q4 4-bit via Apple MLX — the best local inference speed available in this class today. The 400 GB/s memory bandwidth and tight CPU-GPU unified memory make MLX-based LoRA fine-tuning (up to 30B parameters) fully practical without cloud dependency. Apple's thermal-controlled desktop chassis sustains load 24/7 far better than any laptop.\n\nThe ASUS ProArt PX13 (Ryzen AI Max+ 395, 128GB) scores ~69 tok/s on Qwen3-30B-A3B (Q4_K_M, Vulkan/ROCm) — respectable, but slower than M4 Max MLX, and its retail price of ₹3,34,990 exceeds the stated ₹3.5L budget after accessories. The Windows/ROCm ecosystem for fine-tuning is functional but more fragile than MLX+PyTorch on macOS, and it is a 13-inch laptop — not suited for 24/7 sustained workloads. A desktop Strix Halo mini-PC (e.g., Minisforum AI370) at ~$800 USD could be an alternative but availability in India is unreliable.\n\nWaiting for M5 Mac Studio is a real option but carries risk: WWDC (June 2026) is ~6 weeks away, but Bloomberg/Gurman now cites possible October 2026 delay due to DRAM shortages. The M4 Max 128GB US stock has dried up, suggesting Apple is managing inventory ahead of an M5 refresh. If delivery urgency is low and budget is flexible, waiting until WWDC clarity (late May/early June 2026) is advisable. If agents need to run now, buy the M4 Max 128GB from India today — the performance already exceeds requirements and fine-tuning is fully viable.", "links": [{"url": "https://www.apple.com/in/shop/buy-mac/mac-studio", "title": "Apple India – Mac Studio Configurator", "desc": "Official Apple India Store — configure M4 Max with 128GB RAM and 512GB/1TB SSD; exact live price shown at checkout"}, {"url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL", "title": "ASUS ProArt PX13 128GB – Amazon India (Alternative)", "desc": "Ryzen AI Max+ 395, 128GB LPDDR5X, ₹3,34,990 — over budget but available if Mac Studio stock runs out"}, {"url": "https://in.store.asus.com/asus-proart-px13-go-pro-edition-hn7306eac-lx052ws-creator-laptop.html", "title": "ASUS ProArt PX13 – ASUS India Official Store", "desc": "Direct ASUS India purchase option for Strix Halo 128GB variant"}], "best_model": "Qwen3-30B-A3B (MoE, Apache 2.0) — best coding/agent quality per tok/s on Apple Silicon 128GB", "model_config": "Q4_K_M or Q4 4-bit via Apple MLX; 32K–128K context window; ~87 tok/s decode on M4 Max 128GB; fits in ~17–20GB active memory (MoE sparse activation); full 128K ctx usable with 128GB RAM", "fine_tuning": "Fully feasible. Use Apple MLX LoRA (mlx-lm) for Qwen3-30B-A3B or any 7B–30B model. 128GB RAM allows batch sizes of 4–8 for LoRA with 4-bit base. Full-param fine-tuning feasible up to ~13B; LoRA/QLoRA up to 30B+ dense or 70B+ MoE. Expect ~1–3 tokens/sec training throughput on 30B LoRA — slow but functional overnight. PyTorch via Metal (MPS backend) also works for Hugging Face PEFT pipelines. M4 Max thermal management in desktop chassis sustains multi-hour fine-tuning sessions without throttling.", "wait_for": "Mac Studio M5 Max (128GB config) — rumoured WWDC June 2026 announcement, possible October 2026 actual ship date. M5 Max expected ~30–40% faster inference and PCIe 5 storage. Wait only if: (a) no urgency for next 2–3 months, AND (b) willing to risk October slip. Monitor Mark Gurman / MacRumors by mid-May 2026 for WWDC lineup confirmation.", "changed_since_last": "Key changes since last run: (1) Mac Studio M4 Max 128GB confirmed IN STOCK on Apple India (US stock gone — India is now primary buy channel); (2) ASUS ProArt PX13 Strix Halo 128GB now confirmed available India at ₹3,34,990 (was listed as 'available' but price now confirmed); (3) M5 Mac Studio rumour window tightened to June 2026 WWDC but October slip risk added by Gurman/Bloomberg DRAM shortage report; (4) Qwen3-30B-A3B benchmarked at 87.58 tok/s on M4 Max (MLX 4-bit) vs 69 tok/s on Strix Halo — M4 Max now definitively faster for this specific model; (5) Qwen3.6-27B dense (Apr 22, Apache 2.0) added as alternative model option.", "cost_estimate_inr": "Mac Studio M4 Max 128GB / 512GB SSD: ~₹2,85,000–₹3,10,000 (Apple India CTO, verify live at apple.com/in/shop). Optional: upgrade to 1TB SSD adds ~₹20,000. Total with 1TB: ~₹3,05,000–₹3,30,000. All within ₹3.5L budget."}};
+
+// ── Search & Filter ──
+const searchBox = document.getElementById('search');
+const cards = document.querySelectorAll('.timeline-card');
+const groups = document.querySelectorAll('.timeline-group');
+let activeFilter = 'all';
+
+searchBox.addEventListener('input', () => filterCards(searchBox.value.toLowerCase(), activeFilter));
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    filterCards(searchBox.value.toLowerCase(), activeFilter);
+  });
+});
+
+function filterCards(query, filter) {
+  cards.forEach(card => {
+    const text = (card.dataset.search || '').toLowerCase();
+    const matchesSearch = !query || text.includes(query);
+    let matchesFilter = filter === 'all';
+    if (filter === 'hardware') matchesFilter = text.includes('hardware');
+    if (filter === 'models_and_agents') matchesFilter = text.includes('models');
+    if (filter === 'deals_and_blogs') matchesFilter = text.includes('deals') || text.includes('news');
+    if (filter === 'critical') matchesFilter = card.classList.contains('sev-critical') || card.classList.contains('sev-important');
+    card.classList.toggle('hidden', !(matchesSearch && matchesFilter));
+  });
+  groups.forEach(g => {
+    const vis = g.querySelectorAll('.timeline-card:not(.hidden)').length;
+    g.classList.toggle('hidden', vis === 0);
+  });
+}
+
+// ── Modal ──
+const overlay = document.getElementById('modalOverlay');
+
+function openModal(itemKey) {
+  const item = modalData[itemKey];
+  if (!item) return;
+
+  document.getElementById('modalIcon').textContent = item.icon;
+  document.getElementById('modalTitle').textContent = item.label;
+  document.getElementById('modalCat').textContent = item.categoryLabel;
+
+  // Flags
+  const flagsEl = document.getElementById('modalFlags');
+  flagsEl.innerHTML = '';
+  if (item.flags) {
+    for (const [k, v] of Object.entries(item.flags)) {
+      if (typeof v === 'boolean' || typeof v === 'string') {
+        const color = v === true ? 'var(--green)' : v === false ? 'var(--red)' : 'var(--dim)';
+        const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const val = typeof v === 'boolean' ? (v ? 'Yes ✓' : 'No ✗') : v;
+        flagsEl.innerHTML += `<span class="modal-flag" style="border-color:${color}"><span class="dot" style="background:${color}"></span>${label}: ${val}</span>`;
+      }
+    }
+  }
+
+  // Summary
+  document.getElementById('modalSummary').textContent = item.info || 'No summary available.';
+
+  // Analysis
+  const analysisEl = document.getElementById('modalAnalysis');
+  const analysisSec = document.getElementById('analysisSection');
+  analysisSec.querySelector('h3').textContent = 'Detailed Analysis';
+  if (item.analysis) {
+    analysisEl.innerHTML = '';
+    analysisEl.textContent = item.analysis;
+    analysisSec.style.display = '';
+  } else {
+    analysisSec.style.display = 'none';
+  }
+
+  // Links table
+  const tbody = document.getElementById('modalLinksBody');
+  const table = document.getElementById('modalLinksTable');
+  const noLinks = document.getElementById('noLinks');
+  tbody.innerHTML = '';
+
+  if (item.links && item.links.length > 0) {
+    table.style.display = '';
+    noLinks.style.display = 'none';
+    item.links.forEach(lnk => {
+      const url = lnk.url || '';
+      const title = lnk.title || url.replace(/https?:\/\//, '').split('/')[0];
+      const desc = lnk.desc || lnk.description || '';
+      const row = document.createElement('tr');
+      row.innerHTML = `<td><a href="${url}" target="_blank" rel="noopener">${escH(title)}</a></td><td><span class="link-desc">${escH(desc)}</span></td>`;
+      tbody.appendChild(row);
+    });
+  } else {
+    table.style.display = 'none';
+    noLinks.style.display = '';
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openRecModal() {
+  const rec = modalData['__recommendation__'];
+  if (!rec) return;
+
+  document.getElementById('modalIcon').textContent = '🎯';
+  document.getElementById('modalTitle').textContent = rec.label;
+  document.getElementById('modalCat').textContent = 'Daily Recommendation';
+
+  // Flags as styled badges
+  const flagsEl = document.getElementById('modalFlags');
+  flagsEl.innerHTML = '';
+  const action = rec.flags?.recommendation || '';
+  const conf = rec.flags?.confidence || 'medium';
+  flagsEl.innerHTML = `<span class="rec-badge ${action}">${action.replace(/_/g,' ')}</span>` +
+    `<span class="rec-confidence ${conf}">${conf} confidence</span>`;
+
+  // Summary
+  document.getElementById('modalSummary').textContent = rec.info || '';
+
+  // Build rich analysis with extra sections
+  const analysisEl = document.getElementById('modalAnalysis');
+  const analysisSec = document.getElementById('analysisSection');
+  let analysisHtml = '';
+
+  if (rec.analysis) {
+    analysisHtml += `<div class="rec-section"><h4>💡 Reasoning</h4><div class="rec-section-body">${escH(rec.analysis)}</div></div>`;
+  }
+  if (rec.best_model) {
+    analysisHtml += `<div class="rec-section"><h4>🧠 Best Model</h4><div class="rec-section-body"><b>${escH(rec.best_model)}</b>` +
+      (rec.model_config ? `\n${escH(rec.model_config)}` : '') + `</div></div>`;
+  }
+  if (rec.fine_tuning) {
+    analysisHtml += `<div class="rec-section"><h4>🔧 Fine-Tuning</h4><div class="rec-section-body">${escH(rec.fine_tuning)}</div></div>`;
+  }
+  if (rec.wait_for) {
+    analysisHtml += `<div class="rec-section"><h4>⏳ What to Wait For</h4><div class="rec-section-body">${escH(rec.wait_for)}</div></div>`;
+  }
+  if (rec.cost_estimate_inr) {
+    analysisHtml += `<div class="rec-section"><h4>💰 Cost Estimate</h4><div class="rec-section-body">${escH(rec.cost_estimate_inr)}</div></div>`;
+  }
+  if (rec.changed_since_last) {
+    analysisHtml += `<div class="rec-section"><h4>🔄 What Changed</h4><div class="rec-section-body">${escH(rec.changed_since_last)}</div></div>`;
+  }
+
+  if (analysisHtml) {
+    analysisEl.innerHTML = analysisHtml;
+    analysisSec.style.display = '';
+    analysisSec.querySelector('h3').textContent = 'Full Analysis';
+  } else {
+    analysisSec.style.display = 'none';
+  }
+
+  // Links table (buy links)
+  const tbody = document.getElementById('modalLinksBody');
+  const table = document.getElementById('modalLinksTable');
+  const noLinks = document.getElementById('noLinks');
+  tbody.innerHTML = '';
+
+  if (rec.links && rec.links.length > 0) {
+    table.style.display = '';
+    noLinks.style.display = 'none';
+    rec.links.forEach(lnk => {
+      const url = lnk.url || '';
+      const title = lnk.title || url.replace(/https?:\/\//, '').split('/')[0];
+      const desc = lnk.desc || lnk.description || '';
+      const row = document.createElement('tr');
+      row.innerHTML = `<td><a href="${url}" target="_blank" rel="noopener">${escH(title)}</a></td><td><span class="link-desc">${escH(desc)}</span></td>`;
+      tbody.appendChild(row);
+    });
+  } else {
+    table.style.display = 'none';
+    noLinks.style.display = '';
+  }
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function escH(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (overlay.classList.contains('open')) {
+      closeModal();
+    } else {
+      searchBox.value = '';
+      searchBox.blur();
+      filterCards('', activeFilter);
+    }
+  }
+  if (e.key === '/' && document.activeElement !== searchBox && !overlay.classList.contains('open')) {
+    e.preventDefault();
+    searchBox.focus();
+  }
+});
+</script>
+</body>
+</html>
