@@ -601,10 +601,15 @@ def _get_static_keys() -> set:
 def _is_relevant_to_goal(info_text: str) -> bool:
     """Check if a product mention is relevant to user's LLM inference/fine-tuning goal.
 
-    Must match at least one RELEVANCE_KEYWORD to avoid polluting the tracker
-    with random PCs, laptops, or peripherals.
+    Must match at least one RELEVANCE_KEYWORD and NOT match any ruled-out items.
     """
     text_lower = info_text.lower()
+    # Reject ruled-out items
+    for item in USER_CONSTRAINTS.get("ruled_out", []):
+        # Convert ruled_out keys to search-friendly forms
+        searchable = item.replace("_", " ").replace("-", " ")
+        if searchable in text_lower:
+            return False
     return any(kw in text_lower for kw in RELEVANCE_KEYWORDS)
 
 
@@ -784,55 +789,91 @@ def update_dynamic_stores(state: dict, store_results: list[dict]) -> dict:
     return state
 
 
-def build_dynamic_prompt_context(state: dict) -> str:
-    """Build a context snippet for prompts based on known facts.
+def build_dynamic_prompt_context(state: dict, category: str = "hardware") -> str:
+    """Build a context snippet for prompts based on known facts and discoveries.
 
-    Returns a string like:
-    "KNOWN: Mac Mini 48GB India ₹1,89,900 orderable. Mac Studio India ₹3,64,900 available. ..."
-    "VERIFY these are still current. Focus investigation on UNKNOWN or CHANGED items."
+    For 'hardware': injects confirmed prices/availability so Copilot focuses on unknowns.
+    For 'models_and_agents': injects latest model discoveries so Copilot looks for newer stuff.
+    For 'deals_and_blogs': injects known prices as baseline so Copilot finds actual deals.
     """
+    parts = []
+
+    # --- Store check facts (prices, availability) ---
     store_check = state.get("store_check", {})
     results = store_check.get("results", [])
-    if not results:
-        return ""
-
     timestamp = store_check.get("timestamp", "")
+    age_days = 999
     if timestamp:
         try:
             check_date = datetime.fromisoformat(timestamp)
             age_days = (datetime.now() - check_date).days
         except (ValueError, TypeError):
-            age_days = 999
-    else:
-        age_days = 999
+            pass
 
-    # If data is very fresh (same day), provide condensed known facts
-    if age_days > 7:
-        return ""  # Force full refresh
+    if age_days <= 7 and results:
+        known_facts = []
+        for r in results:
+            if r.get("availability_signal") in ("unreachable",):
+                continue
+            price = r.get("price")
+            cur = r.get("currency", "USD")
+            sig = r.get("availability_signal", "unknown")
+            label = r.get("label", r.get("key", "?"))
 
-    known_facts = []
-    for r in results:
-        if r.get("availability_signal") in ("unreachable",):
-            continue
-        price = r.get("price")
-        cur = r.get("currency", "USD")
-        sig = r.get("availability_signal", "unknown")
-        label = r.get("label", r.get("key", "?"))
+            if price:
+                ps = f"₹{price:,.0f}" if cur == "INR" else f"${price:,.0f}"
+                known_facts.append(f"{label}: {ps} ({sig})")
+            elif sig != "unreachable":
+                known_facts.append(f"{label}: ({sig})")
 
-        if price:
-            ps = f"₹{price:,.0f}" if cur == "INR" else f"${price:,.0f}"
-            known_facts.append(f"{label}: {ps} ({sig})")
-        elif sig != "unreachable":
-            known_facts.append(f"{label}: ({sig})")
+        if known_facts:
+            parts.append(
+                f"CONFIRMED PRICES ({age_days}d ago): " +
+                "; ".join(known_facts[:12])
+            )
 
-    if not known_facts:
+    # --- Dynamic discoveries ---
+    dynamic = state.get("dynamic_stores", {})
+    dyn_stores = dynamic.get("stores", [])
+    tracked = [s for s in dyn_stores if s.get("status") in ("validated", "tracked")]
+    if tracked:
+        disc_items = []
+        for s in tracked[:5]:
+            label = s.get("label", s.get("key", "?"))
+            disc_items.append(label)
+        parts.append("DISCOVERED PRODUCTS: " + "; ".join(disc_items))
+
+    # --- Category-specific context ---
+    checks = state.get("checks", {})
+
+    if category == "hardware":
+        if parts:
+            parts.append("VERIFY these are still current. Focus on items NOT listed or that may have CHANGED.")
+
+    elif category == "models_and_agents":
+        # Inject last known model findings so Copilot looks for NEWER stuff
+        models_data = checks.get("models_and_agents", {})
+        model_facts = []
+        for key in ("new_moe_models", "new_coding_models", "coding_agents"):
+            item = models_data.get(key, {})
+            info = item.get("info", "")[:100]
+            if info:
+                model_facts.append(f"{key}: {info}")
+        if model_facts:
+            parts.append(
+                "LAST KNOWN: " + "; ".join(model_facts) +
+                ". Search for anything NEWER than these."
+            )
+
+    elif category == "deals_and_blogs":
+        # Inject known prices so Copilot can identify actual deals vs normal prices
+        if parts:  # reuse CONFIRMED PRICES from above
+            parts.append("Only report deals that are BELOW these confirmed prices or genuinely new offers.")
+
+    if not parts:
         return ""
 
-    return (
-        f"PREVIOUSLY CONFIRMED ({age_days}d ago): " +
-        "; ".join(known_facts[:10]) +
-        ". VERIFY these are still current. Focus on items NOT listed or that may have CHANGED."
-    )
+    return " ".join(parts)
 
 
 async def _check_apple_store_page(page, config: dict) -> dict:
@@ -2568,12 +2609,12 @@ def main():
     today = datetime.now().strftime("%B %d, %Y")
 
     # Run each category prompt
-    dynamic_context = build_dynamic_prompt_context(state)
     for category, prompt_template in PROMPTS.items():
         logger.info(f"--- Checking: {category} ---")
         prompt = prompt_template.format(date=today)
-        # Inject known-facts context into hardware prompt to avoid redundant checks
-        if category == "hardware" and dynamic_context:
+        # Inject dynamic context (known facts, discoveries, model history) per category
+        dynamic_context = build_dynamic_prompt_context(state, category=category)
+        if dynamic_context:
             prompt = prompt + " " + dynamic_context
         response = run_copilot(prompt)
 
