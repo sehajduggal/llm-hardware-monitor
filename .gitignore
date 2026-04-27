@@ -1,0 +1,12 @@
+# Runtime data (machine-specific)
+monitor_state.json
+monitor.log
+*.log
+
+# Debug artifacts
+raw_*.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
