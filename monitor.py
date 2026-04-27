@@ -441,6 +441,312 @@ STORE_CHECK_CONFIGS = [
 ]
 
 
+# ─── Dynamic Store Discovery & Evolution ─────────────────────────────────────
+
+# Trusted domains for auto-discovered store URLs
+TRUSTED_STORE_DOMAINS = {
+    "apple.com", "amazon.in", "amazon.com", "flipkart.com",
+    "frame.work", "bosgamepc.com", "bee-link.com", "beelink.com",
+    "minisforum.com", "store.minisforum.com", "corsair.com",
+    "in.store.asus.com", "asus.com", "newegg.com", "bestbuy.com",
+    "bhphotovideo.com", "nvidia.com", "mdcomputers.in", "primeabgb.com",
+    "elitehubs.com", "vedantcomputers.com", "theitdepot.com",
+    "croma.com", "reliance.digital", "pcstudio.in",
+}
+
+# Store type inference from domain
+DOMAIN_STORE_TYPE = {
+    "amazon.in": "amazon", "amazon.com": "amazon",
+    "apple.com": "apple",
+    "flipkart.com": "generic",
+}
+
+# Currency inference from domain
+DOMAIN_CURRENCY = {
+    "amazon.in": "INR", "apple.com/in": "INR", "flipkart.com": "INR",
+    "in.store.asus.com": "INR", "croma.com": "INR", "mdcomputers.in": "INR",
+    "primeabgb.com": "INR", "elitehubs.com": "INR", "vedantcomputers.com": "INR",
+    "theitdepot.com": "INR", "pcstudio.in": "INR", "reliance.digital": "INR",
+}
+
+# Tags that indicate relevance to user's use case
+RELEVANT_TAGS = {
+    "unified_memory", "128gb", "96gb", "64gb", "48gb",
+    "strix_halo", "apple_silicon", "m4", "m5", "rtx_5090", "rtx_5080",
+    "mini_pc", "desktop", "workstation", "mac_studio", "mac_mini",
+    "local_llm", "ai_pc", "coding",
+}
+
+
+def _extract_domain(url: str) -> str:
+    """Extract domain from URL."""
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        return parsed.netloc.lower().replace("www.", "")
+    except Exception:
+        return ""
+
+
+def _is_trusted_url(url: str) -> bool:
+    """Check if URL is from a trusted store domain."""
+    domain = _extract_domain(url)
+    return any(trusted in domain for trusted in TRUSTED_STORE_DOMAINS)
+
+
+def _infer_store_type(url: str) -> str:
+    """Infer store type from URL domain."""
+    domain = _extract_domain(url)
+    for pattern, stype in DOMAIN_STORE_TYPE.items():
+        if pattern in domain:
+            return stype
+    return "generic"
+
+
+def _infer_currency(url: str) -> str:
+    """Infer currency from URL domain/path."""
+    full = url.lower()
+    for pattern, cur in DOMAIN_CURRENCY.items():
+        if pattern in full:
+            return cur
+    return "USD"
+
+
+def _normalize_key(name: str) -> str:
+    """Generate a canonical key from a product name."""
+    key = re.sub(r'[^a-z0-9]+', '_', name.lower().strip())
+    key = re.sub(r'_+', '_', key).strip('_')
+    return key[:60]
+
+
+def _get_static_keys() -> set:
+    """Get all keys from the hardcoded STORE_CHECK_CONFIGS."""
+    return {c["key"] for c in STORE_CHECK_CONFIGS}
+
+
+def load_dynamic_stores(state: dict) -> list[dict]:
+    """Load dynamic store configs from state, returning only 'validated' or 'tracked' entries."""
+    dynamic = state.get("dynamic_stores", {})
+    stores = dynamic.get("stores", [])
+    return [s for s in stores if s.get("status") in ("validated", "tracked")]
+
+
+def get_all_store_configs(state: dict) -> list[dict]:
+    """Merge static + dynamic store configs, deduplicating by key."""
+    static_keys = _get_static_keys()
+    all_configs = list(STORE_CHECK_CONFIGS)
+
+    for ds in load_dynamic_stores(state):
+        if ds["key"] not in static_keys:
+            # Convert dynamic entry to store config format
+            all_configs.append({
+                "key": ds["key"],
+                "label": ds["label"],
+                "url": ds["url"],
+                "store": ds.get("store", "generic"),
+                "currency": ds.get("currency", "USD"),
+                "search_terms": ds.get("search_terms", []),
+                "_dynamic": True,
+            })
+
+    return all_configs
+
+
+def extract_discoveries_from_results(checks: dict, state: dict) -> list[dict]:
+    """Extract potential new hardware from monitoring results (no extra API call).
+
+    Scans all check results for product mentions with URLs that could be
+    new store entries. Returns candidate entries for validation.
+    """
+    static_keys = _get_static_keys()
+    existing_dynamic = {s["key"] for s in state.get("dynamic_stores", {}).get("stores", [])}
+    pruned_keys = {p["key"] for p in state.get("dynamic_stores", {}).get("pruned", [])}
+    candidates = []
+
+    # Scan all categories for URLs and product mentions
+    for category, items in checks.items():
+        if not isinstance(items, dict):
+            continue
+        for key, data in items.items():
+            if not isinstance(data, dict):
+                continue
+
+            info = str(data.get("info", ""))
+
+            # Extract URLs from info text
+            urls = re.findall(r'https?://[^\s<>"\']+', info)
+            for url in urls:
+                url = url.rstrip('.,;:)]}')
+                if not _is_trusted_url(url):
+                    continue
+
+                domain = _extract_domain(url)
+                candidate_key = _normalize_key(f"{domain}_{key}")
+
+                if candidate_key in static_keys or candidate_key in existing_dynamic:
+                    continue
+                if candidate_key in pruned_keys:
+                    continue
+
+                candidates.append({
+                    "key": candidate_key,
+                    "label": f"Discovered: {key} ({domain})",
+                    "url": url,
+                    "store": _infer_store_type(url),
+                    "currency": _infer_currency(url),
+                    "status": "candidate",
+                    "discovered_from": f"{category}.{key}",
+                    "discovered_date": datetime.now().strftime("%Y-%m-%d"),
+                    "last_checked": None,
+                    "consecutive_failures": 0,
+                    "failure_types": [],
+                    "successful_checks": 0,
+                    "provenance": info[:200],
+                })
+
+    return candidates
+
+
+def update_dynamic_stores(state: dict, store_results: list[dict]) -> dict:
+    """Update dynamic store statuses based on check results.
+
+    Lifecycle: candidate → validated (1 success) → tracked (2+ successes)
+                          → quarantined (5+ strong failures) → pruned (10+ or 14 days)
+    """
+    dynamic = state.setdefault("dynamic_stores", {"stores": [], "pruned": []})
+    stores = dynamic["stores"]
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # Build lookup of results by key
+    result_by_key = {r["key"]: r for r in store_results}
+
+    for entry in stores:
+        result = result_by_key.get(entry["key"])
+        if not result:
+            continue
+
+        entry["last_checked"] = today
+        status = result.get("playwright_status", "")
+        signal = result.get("availability_signal", "unreachable")
+
+        # Classify failure type
+        is_strong_failure = any(x in status for x in ("404", "410", "content_gone"))
+        is_soft_failure = signal == "unreachable" and not is_strong_failure
+        is_success = signal != "unreachable"
+
+        if is_success:
+            entry["consecutive_failures"] = 0
+            entry["failure_types"] = []
+            entry["successful_checks"] = entry.get("successful_checks", 0) + 1
+
+            # Promote: candidate → validated → tracked
+            if entry["status"] == "candidate" and entry["successful_checks"] >= 1:
+                entry["status"] = "validated"
+                logger.info(f"Dynamic store promoted to validated: {entry['key']}")
+            elif entry["status"] == "validated" and entry["successful_checks"] >= 2:
+                entry["status"] = "tracked"
+                logger.info(f"Dynamic store promoted to tracked: {entry['key']}")
+
+            # Update label with real data if available
+            if result.get("price") and "Discovered:" in entry.get("label", ""):
+                price = result["price"]
+                cur = result.get("currency", entry.get("currency", "USD"))
+                entry["label"] = entry["label"].replace("Discovered: ", "")
+                if cur == "INR":
+                    entry["label"] += f" ~₹{price:,.0f}"
+                else:
+                    entry["label"] += f" ~${price:,.0f}"
+
+        elif is_strong_failure:
+            entry["consecutive_failures"] = entry.get("consecutive_failures", 0) + 1
+            ft = entry.setdefault("failure_types", [])
+            ft.append(status[:50])
+            ft[:] = ft[-5:]  # keep last 5
+
+            if entry["consecutive_failures"] >= 5 and entry["status"] != "quarantined":
+                entry["status"] = "quarantined"
+                entry["quarantined_date"] = today
+                logger.info(f"Dynamic store quarantined: {entry['key']} ({status})")
+
+        elif is_soft_failure:
+            entry["consecutive_failures"] = entry.get("consecutive_failures", 0) + 1
+
+    # Prune quarantined items after 10+ failures or 14 days in quarantine
+    still_active = []
+    for entry in stores:
+        if entry.get("status") == "quarantined":
+            q_date = entry.get("quarantined_date", today)
+            days_quarantined = (datetime.now() - datetime.strptime(q_date, "%Y-%m-%d")).days
+            if entry.get("consecutive_failures", 0) >= 10 or days_quarantined >= 14:
+                dynamic["pruned"].append({
+                    "key": entry["key"],
+                    "url": entry["url"],
+                    "reason": f"failures={entry.get('consecutive_failures')}, days={days_quarantined}",
+                    "pruned_date": today,
+                })
+                logger.info(f"Dynamic store pruned: {entry['key']}")
+                continue
+        still_active.append(entry)
+
+    dynamic["stores"] = still_active
+
+    # Cap pruned list to last 50
+    dynamic["pruned"] = dynamic["pruned"][-50:]
+
+    return state
+
+
+def build_dynamic_prompt_context(state: dict) -> str:
+    """Build a context snippet for prompts based on known facts.
+
+    Returns a string like:
+    "KNOWN: Mac Mini 48GB India ₹1,89,900 orderable. Mac Studio India ₹3,64,900 available. ..."
+    "VERIFY these are still current. Focus investigation on UNKNOWN or CHANGED items."
+    """
+    store_check = state.get("store_check", {})
+    results = store_check.get("results", [])
+    if not results:
+        return ""
+
+    timestamp = store_check.get("timestamp", "")
+    if timestamp:
+        try:
+            check_date = datetime.fromisoformat(timestamp)
+            age_days = (datetime.now() - check_date).days
+        except (ValueError, TypeError):
+            age_days = 999
+    else:
+        age_days = 999
+
+    # If data is very fresh (same day), provide condensed known facts
+    if age_days > 7:
+        return ""  # Force full refresh
+
+    known_facts = []
+    for r in results:
+        if r.get("availability_signal") in ("unreachable",):
+            continue
+        price = r.get("price")
+        cur = r.get("currency", "USD")
+        sig = r.get("availability_signal", "unknown")
+        label = r.get("label", r.get("key", "?"))
+
+        if price:
+            ps = f"₹{price:,.0f}" if cur == "INR" else f"${price:,.0f}"
+            known_facts.append(f"{label}: {ps} ({sig})")
+        elif sig != "unreachable":
+            known_facts.append(f"{label}: ({sig})")
+
+    if not known_facts:
+        return ""
+
+    return (
+        f"PREVIOUSLY CONFIRMED ({age_days}d ago): " +
+        "; ".join(known_facts[:10]) +
+        ". VERIFY these are still current. Focus on items NOT listed or that may have CHANGED."
+    )
+
+
 async def _check_apple_store_page(page, config: dict) -> dict:
     """Apple Store-specific checks: schema.org JSON, configurator radio buttons."""
     result = _make_result_template(config)
@@ -924,7 +1230,11 @@ async def _check_all_stores(state: dict = None) -> list[dict]:
         )
         page_stealth = await ctx_stealth.new_page()
 
-        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+        # Use merged static + dynamic configs
+        store_configs = get_all_store_configs(state)
+        logger.info(f"Checking {len(store_configs)} stores ({len(STORE_CHECK_CONFIGS)} static + {len(store_configs) - len(STORE_CHECK_CONFIGS)} dynamic)")
+
+        for idx, config in enumerate(store_configs):
             label = config["label"]
             logger.info(f"Playwright: checking {label}...")
 
@@ -981,8 +1291,9 @@ def check_store_availability(state: dict = None) -> list[dict]:
             "Install with: pip install playwright && python -m playwright install chromium"
         )
         # Even without Playwright, try HTTP fallback for all stores
+        all_configs = get_all_store_configs(state or {})
         results = []
-        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+        for idx, config in enumerate(all_configs):
             logger.info(f"HTTP check: {config['label']}...")
             result = _http_fallback_check(config, ua_index=idx)
             if result["availability_signal"] == "unreachable" and state:
@@ -998,8 +1309,9 @@ def check_store_availability(state: dict = None) -> list[dict]:
         logger.error(f"Store availability check failed: {e}")
         # Last resort: HTTP fallback for everything
         logger.info("Attempting HTTP-only fallback for all stores...")
+        all_configs = get_all_store_configs(state or {})
         results = []
-        for idx, config in enumerate(STORE_CHECK_CONFIGS):
+        for idx, config in enumerate(all_configs):
             result = _http_fallback_check(config, ua_index=idx)
             if result["availability_signal"] == "unreachable" and state:
                 cached = _get_stale_cache_result(config, state or {})
@@ -2157,9 +2469,13 @@ def main():
     today = datetime.now().strftime("%B %d, %Y")
 
     # Run each category prompt
+    dynamic_context = build_dynamic_prompt_context(state)
     for category, prompt_template in PROMPTS.items():
         logger.info(f"--- Checking: {category} ---")
         prompt = prompt_template.format(date=today)
+        # Inject known-facts context into hardware prompt to avoid redundant checks
+        if category == "hardware" and dynamic_context:
+            prompt = prompt + " " + dynamic_context
         response = run_copilot(prompt)
 
         if not response:
@@ -2201,8 +2517,28 @@ def main():
             f"Store checks: {len(store_results)} total, {ok_count} primary OK, "
             f"{fb_count} used fallback ({stale_count} stale cache)"
         )
+
+        # Update dynamic store lifecycle (promote/quarantine/prune)
+        state = update_dynamic_stores(state, store_results)
     else:
         logger.info("Store checks: no results (all methods failed)")
+
+    # Discover new hardware from monitoring results (zero API cost)
+    logger.info("--- Dynamic discovery: scanning results for new hardware ---")
+    candidates = extract_discoveries_from_results(new_checks, state)
+    if candidates:
+        dynamic = state.setdefault("dynamic_stores", {"stores": [], "pruned": []})
+        existing_keys = {s["key"] for s in dynamic["stores"]}
+        added = 0
+        for c in candidates:
+            if c["key"] not in existing_keys:
+                dynamic["stores"].append(c)
+                existing_keys.add(c["key"])
+                added += 1
+                logger.info(f"  New candidate discovered: {c['key']} from {c['discovered_from']}")
+        logger.info(f"Discovery: {len(candidates)} candidates found, {added} new added")
+    else:
+        logger.info("Discovery: no new candidates found")
 
     # Detect changes
     changes = detect_changes(old_checks, new_checks) if old_checks else []
