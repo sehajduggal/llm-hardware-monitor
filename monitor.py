@@ -1215,7 +1215,7 @@ async def _check_generic_page(page, config: dict) -> dict:
 
 def _make_result_template(config: dict) -> dict:
     """Create a blank result dict for a store check."""
-    return {
+    result = {
         "key": config["key"],
         "label": config["label"],
         "url": config["url"],
@@ -1229,6 +1229,9 @@ def _make_result_template(config: dict) -> dict:
         "playwright_status": "pending",
         "delivery_info": None,
     }
+    if config.get("_dynamic"):
+        result["_dynamic"] = True
+    return result
 
 
 def _check_body_signals(result: dict, body: str, extra_oos_phrases: list = None):
@@ -1539,63 +1542,84 @@ def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
 
     for result in store_results:
         mapping = key_to_category.get(result["key"])
-        if not mapping:
-            continue
+        if mapping:
+            category, check_key = mapping
+            if category not in checks or check_key not in checks[category]:
+                continue
 
-        category, check_key = mapping
-        if category not in checks or check_key not in checks[category]:
-            continue
+            existing = checks[category][check_key]
+            if not isinstance(existing, dict):
+                continue
 
-        existing = checks[category][check_key]
-        if not isinstance(existing, dict):
-            continue
+            is_primary = result["key"] == check_key
+            is_alt = not is_primary
 
-        is_primary = result["key"] == check_key
-        is_alt = not is_primary
+            if is_primary:
+                # Primary match — overlay verified fields
+                existing["playwright_verified"] = result["playwright_status"] == "ok"
+                existing["availability_signal"] = result["availability_signal"]
+                existing["playwright_status"] = result["playwright_status"]
+                existing["store_url"] = result["url"]
 
-        if is_primary:
-            # Primary match — overlay verified fields
-            existing["playwright_verified"] = result["playwright_status"] == "ok"
-            existing["availability_signal"] = result["availability_signal"]
-            existing["playwright_status"] = result["playwright_status"]
-            existing["store_url"] = result["url"]
+                if result["price"] is not None:
+                    price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
+                    existing[price_key] = result["price"]
 
-            if result["price"] is not None:
-                price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
-                existing[price_key] = result["price"]
+                if result["delivery_info"]:
+                    existing["delivery_info"] = result["delivery_info"]
 
-            if result["delivery_info"]:
-                existing["delivery_info"] = result["delivery_info"]
+                if result["availability_signal"] == "out_of_stock":
+                    existing["orderable"] = False
+                    existing["in_stock"] = False
+                elif result["availability_signal"] in ("config_validated", "add_to_cart", "in_stock_schema"):
+                    existing["orderable"] = True
 
-            if result["availability_signal"] == "out_of_stock":
-                existing["orderable"] = False
-                existing["in_stock"] = False
-            elif result["availability_signal"] in ("config_validated", "add_to_cart", "in_stock_schema"):
-                existing["orderable"] = True
+            else:
+                # Alternative source — store as extra data
+                alt_key = f"alt_{result['key']}"
+                existing[alt_key] = {
+                    "label": result["label"],
+                    "url": result["url"],
+                    "signal": result["availability_signal"],
+                    "price": result["price"],
+                    "currency": result["currency"],
+                    "delivery": result.get("delivery_info"),
+                }
 
-        else:
-            # Alternative source — store as extra data
-            alt_key = f"alt_{result['key']}"
-            existing[alt_key] = {
-                "label": result["label"],
-                "url": result["url"],
-                "signal": result["availability_signal"],
-                "price": result["price"],
-                "currency": result["currency"],
-                "delivery": result.get("delivery_info"),
-            }
+        elif result.get("_dynamic"):
+            # Dynamic discovery — inject into hardware checks so it appears on dashboard
+            hw = checks.setdefault("hardware", {})
+            rkey = result["key"]
+            if rkey not in hw:
+                sig = result.get("availability_signal", "unknown")
+                price = result.get("price")
+                cur = result.get("currency", "USD")
+                price_str = f"₹{price:,.0f}" if cur == "INR" and price else (f"${price:,.0f}" if price else "unknown")
+                hw[rkey] = {
+                    "available": sig in ("config_validated", "add_to_cart", "in_stock_schema"),
+                    "info": f"[Discovered] {result.get('label', rkey)} — {sig}, {price_str}",
+                    "playwright_verified": result.get("playwright_status", "") == "ok",
+                    "availability_signal": sig,
+                    "store_url": result.get("url", ""),
+                    "_discovered": True,
+                }
+                if price:
+                    price_key = "price_inr" if cur == "INR" else "price_usd"
+                    hw[rkey][price_key] = price
 
     return checks
 
 
-def run_enrichment(old_enrichment: dict, today: str) -> dict:
+def run_enrichment(old_enrichment: dict, today: str, state: dict = None) -> dict:
     """Run deep-analysis prompts for richer modal content (analysis + links).
     
     Returns merged enrichment dict: {item_key: {analysis: str, links: [{url, title, desc}]}}.
     Falls back to cached data on failure.
+    Also generates analysis for dynamically discovered hardware.
     """
     enrichment = dict(old_enrichment)
 
+    # 1. Run static enrichment prompts
     for prompt_key, prompt_template in ENRICHMENT_PROMPTS.items():
         prompt = prompt_template.format(date=today)
         logger.info(f"--- Enrichment: {prompt_key} ---")
@@ -1619,6 +1643,86 @@ def run_enrichment(old_enrichment: dict, today: str) -> dict:
                     enrichment[key] = val
         else:
             logger.warning(f"Enrichment {prompt_key}: parse failed, keeping cached")
+
+    # 2. Run dynamic enrichment for discovered hardware (if any)
+    if state:
+        enrichment = _run_discovery_enrichment(enrichment, today, state)
+
+    return enrichment
+
+
+def _run_discovery_enrichment(enrichment: dict, today: str, state: dict) -> dict:
+    """Generate deep analysis for dynamically discovered hardware items.
+
+    Only analyzes items that are validated/tracked and don't already have enrichment.
+    Batches up to 4 items per prompt to stay within cmd line limits.
+    """
+    dynamic = state.get("dynamic_stores", {})
+    dyn_stores = dynamic.get("stores", [])
+    tracked = [s for s in dyn_stores if s.get("status") in ("validated", "tracked")]
+
+    # Filter to items without existing enrichment (or stale >7 days)
+    needs_analysis = []
+    for s in tracked:
+        key = s.get("key", "")
+        existing = enrichment.get(key, {})
+        if not existing.get("analysis"):
+            needs_analysis.append(s)
+
+    if not needs_analysis:
+        logger.info("Discovery enrichment: all tracked items already have analysis")
+        return enrichment
+
+    # Batch up to 4 items per prompt (keep under cmd line limit)
+    for batch_start in range(0, len(needs_analysis), 4):
+        batch = needs_analysis[batch_start:batch_start + 4]
+        logger.info(f"--- Discovery enrichment: {len(batch)} items ---")
+
+        # Build dynamic prompt with items to analyze
+        items_desc = []
+        for s in batch:
+            label = s.get("label", s.get("key", "?"))
+            url = s.get("url", "")
+            provenance = s.get("provenance", "")[:100]
+            items_desc.append(
+                f'"{s["key"]}": {{"analysis": "Analyze {label} for local LLM use. '
+                f'URL: {url}. Context: {provenance}. '
+                f'Cover: memory/VRAM specs, estimated tok/s for 30B-70B models, price in INR and USD, '
+                f'availability in India/USA/Canada, comparison with Mac Studio M4 Max 128GB (baseline: ~160 tok/s Qwen3-30B-A3B), '
+                f'fine-tuning feasibility for 7B-14B models, warranty, pros/cons for 24/7 coding agents.", '
+                f'"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}'
+            )
+
+        items_json = "{" + ", ".join(items_desc) + "}"
+        prompt = (
+            f"You are a hardware analyst. Today is {today}. "
+            f"GOAL: Evaluate hardware for 24/7 local LLM coding agents — "
+            f"30B-70B inference at 25+ tok/s, 7B-14B fine-tuning. Budget INR 1.5-5L / USD 1500-5000. "
+            f"Baseline: Mac Studio M4 Max 128GB = ~160 tok/s Qwen3-30B-A3B, ₹3.65L India. "
+            f"Search the web and analyze each item. Return ONLY JSON: "
+            + items_json +
+            " 1-3 REAL URLs per item. ONLY JSON."
+        )
+
+        response = run_copilot(prompt, timeout=240)
+        if not response:
+            logger.warning("Discovery enrichment: empty response")
+            continue
+
+        parsed = parse_json_response(response)
+        if parsed:
+            logger.info(f"Discovery enrichment: parsed ({len(parsed)} items)")
+            for key, val in parsed.items():
+                if isinstance(val, dict):
+                    links = val.get("links", [])
+                    if isinstance(links, list):
+                        val["links"] = [
+                            lnk for lnk in links
+                            if isinstance(lnk, dict) and lnk.get("url", "").startswith("http")
+                        ]
+                    enrichment[key] = val
+        else:
+            logger.warning("Discovery enrichment: parse failed")
 
     return enrichment
 
@@ -2745,7 +2849,7 @@ def main():
 
     # Run enrichment for richer modal content (analysis + links)
     old_enrichment = state.get("enrichment", {})
-    enrichment = run_enrichment(old_enrichment, today)
+    enrichment = run_enrichment(old_enrichment, today, state=state)
     state["enrichment"] = enrichment
 
     # Generate daily recommendation based on all data + user constraints
