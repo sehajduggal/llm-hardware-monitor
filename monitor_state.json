@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-04-27T17:06:16.976990",
+  "last_run": "2026-04-28T09:13:51.402556",
   "checks": {
     "hardware": {
       "mac_studio_m5": {
@@ -8,15 +8,49 @@
       },
       "mac_studio_128gb_india": {
         "in_stock": true,
-        "info": "Mac Studio M4 Max with 128GB RAM is configurable/available via Apple India store and authorized resellers like Imagine and iSense. High-RAM BTO configs may have wait times due to global memory shortages. Pricing likely exceeds \u20b95,00,000."
+        "info": "Mac Studio M4 Max with 128GB RAM is configurable/available via Apple India store and authorized resellers like Imagine and iSense. High-RAM BTO configs may have wait times due to global memory shortages. Pricing likely exceeds \u20b95,00,000.",
+        "playwright_verified": true,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "store_url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "price_inr": 364900.0,
+        "alt_mac_studio_128gb_india_1tb": {
+          "label": "Mac Studio M4 Max 128GB/1TB (Apple India)",
+          "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-1tb-storage",
+          "signal": "metadata_only",
+          "price": 384900.0,
+          "currency": "INR",
+          "delivery": null
+        }
       },
       "mac_studio_128gb_us": {
         "in_stock": false,
-        "info": "128GB and 256GB Mac Studio configs disappeared from Apple US Store around April 11, 2026. Currently shows 'unavailable' \u2014 cannot even place orders. Likely cleared ahead of M5 refresh at WWDC June 2026."
+        "info": "128GB and 256GB Mac Studio configs disappeared from Apple US Store around April 11, 2026. Currently shows 'unavailable' \u2014 cannot even place orders. Likely cleared ahead of M5 refresh at WWDC June 2026.",
+        "playwright_verified": true,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "price_usd": 3499.0
       },
       "apple_refurbished": {
         "available": true,
-        "info": "Apple Certified Refurbished store lists Mac Studio M3 Ultra and M4 Max models. M4 Max starts ~$1,699, M3 Ultra ~$3,399 in the US. High-RAM refurb configs may be limited. Third-party sellers (B&H, OWC, Adorama) also carry stock."
+        "info": "Apple Certified Refurbished store lists Mac Studio M3 Ultra and M4 Max models. M4 Max starts ~$1,699, M3 Ultra ~$3,399 in the US. High-RAM refurb configs may be limited. Third-party sellers (B&H, OWC, Adorama) also carry stock.",
+        "alt_apple_refurbished_india": {
+          "label": "Mac Studio Refurbished (Apple India)",
+          "url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+          "signal": "unreachable",
+          "price": null,
+          "currency": "INR",
+          "delivery": null
+        },
+        "alt_apple_refurbished_us": {
+          "label": "Mac Studio Refurbished (Apple US)",
+          "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
+          "signal": "metadata_only",
+          "price": 6369.0,
+          "currency": "USD",
+          "delivery": null
+        }
       },
       "wwdc_apple_event": {
         "date": "June 8\u201312, 2026",
@@ -28,23 +62,27 @@
       },
       "amd_strix_halo_128gb_india": {
         "available": true,
-        "info": "ASUS ProArt PX13 GoPro Edition (Ryzen AI Max+ 395, 128GB LPDDR5X) is available in India on Amazon, Flipkart, and ASUS India store for ~\u20b93,34,990\u2013\u20b94,01,990. HP ZBook Ultra G1a (128GB) also expected. Lenovo Yoga Pro 7a mid/late 2026."
+        "info": "ASUS ProArt PX13 GoPro Edition (Ryzen AI Max+ 395, 128GB LPDDR5X) is available in India on Amazon, Flipkart, and ASUS India store for ~\u20b93,34,990\u2013\u20b94,01,990. HP ZBook Ultra G1a (128GB) also expected. Lenovo Yoga Pro 7a mid/late 2026.",
+        "playwright_verified": true,
+        "availability_signal": "page_only",
+        "playwright_status": "ok",
+        "store_url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL"
       }
     },
     "models_and_agents": {
       "new_moe_models": {
         "found": true,
-        "info": "Yes \u2014 multiple MoE models now surpass Qwen3-30B-A3B for coding on Apple Silicon: (1) Qwen3.6-35B-A3B (released Apr 16, 2026, Apache 2.0, ~3B active params, 1M context via YaRN, best for 24GB+ Macs); (2) Gemma 4 26B-A4B (Google, 4B active, 256K context, strong code/STEM, fits <30GB at Q4); (3) DeepSeek V4-Flash (MIT, 284B/13B active, 1M context, top-tier coding, needs 64GB+ Mac Studio); (4) Kimi K2.6 (1T/32B active, 80.2% SWE-bench, best for agentic coding). Recommended Q5_K_M quant for best accuracy/speed balance on Apple Silicon."
+        "info": "Qwen3.6-35B-A3B (Apr 16, Apache 2.0, 35B total/3B active, SWE-bench 73.4%, Terminal-Bench 51.5, runs Q4 on <24GB RAM/VRAM) surpasses Qwen3-30B-A3B. Also notable: Kimi K2.5 (1T params MoE, ~99% HumanEval, 85%+ LiveCodeBench, quantized versions now fit 32GB+ Apple Silicon). DeepSeek V4-Flash (Apr 23, MIT, 284B/13B active) leads agentic coding pipelines but requires Mac Studio 512GB or dual RTX 6000 for local. Qwen3.6-Max-Preview (Apr 20, cloud-only MoE) holds #1 on SWE-bench Pro >78.8% but no open weights."
       },
       "new_coding_models": {
         "found": true,
-        "info": "Major releases in last 30 days: Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench, 262K context, GGUF ready); DeepSeek V4-Flash (Apr 24, MIT, 284B/13B active MoE, 1M context); Kimi K2.6 (Apr 20, 1T/32B active, 80.2% SWE-bench, agentic swarm); Llama 4 Scout/Maverick (Apr 5, Meta open source, 10M context); GLM-5.1 (Apr 7, Zhipu AI, MIT, 754B MoE, agentic coding). All support GGUF/Ollama/llama.cpp deployment."
+        "info": "Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench Verified, 59.3 Terminal-Bench 2.0, 262K context, multimodal image/video, runs on 18GB VRAM) \u2014 beats Qwen3.5-397B-A17B MoE and matches Claude 4.5 Opus on Terminal-Bench. Confirmed top open-weight coding model for RTX 5090 (24GB) and Apple Silicon 48GB+. RTX 5090 hits >41 tok/s on Qwen3.6-35B-A3B Q4; 70B Q4 models now run with VRAM+RAM offload at 40-140 tok/s. Mac Studio M5 Max (128GB) runs full Q4 70B at ~30 tok/s. AMD Strix Halo (128GB unified) runs full 70B Q4 at 10-15 tok/s via llama.cpp ROCm."
       },
       "mlx_llama_cpp": {
-        "info": "Ollama 0.19 (Mar-Apr 2026) introduced native MLX backend \u2014 up to 93% faster decode speed on Apple Silicon with env variable switch (e.g. Qwen3.5 on M4 Max: 58\u2192112 tok/s). MLX achieves 20-87% higher throughput than llama.cpp Metal for <14B models due to unified memory architecture. llama.cpp April 2026 builds added tighter Metal GPU reporting in llama-server logs, fixed prefix caching for Anthropic-compatible clients, expanded tensor parallelism, and better tool-calling parser. Q4_K_M remains sweet spot quantization (~3.3% quality loss, 75% size reduction)."
+        "info": "llama.cpp (Apr 2026): True tensor parallelism across NVIDIA (NCCL) and AMD (RCCL) \u2014 3-4x perf over layer-parallel for MoE models; 1-bit Q1_0 quantization added; official AMD Instinct MI350X/MI355X CDNA4 support; Qualcomm Hexagon backend for Linux; Walsh-Hadamard KV cache rotation; 512-dim Flash Attention; Gemma 4 memory fix (-40% VRAM); Qwen3 Audio support; Granite 4.0 tool-calling. Strix Halo: ROCm backend consistently outperforms Vulkan \u2014 use ROCm for max throughput. Vulkan only if multi-platform compatibility needed. MLX (Apr 2026): 20-87% faster decode than llama.cpp for <14B models on Apple Silicon; Ollama v0.19+ supports MLX backend natively; MLX optimal for M4/M5 Macs with 32GB+ RAM; llama.cpp still preferred for large-context batch serving and cross-platform. For 48-128GB Apple Silicon: MLX for speed (<14B), llama.cpp for 30B-70B RAM-split workloads."
       },
       "coding_agents": {
-        "info": "OpenHands (AllHands): 71k+ GitHub stars, 77.6% SWE-bench verified pass@1 with Opus 4.5 \u2014 best open scaffold; lightweight binary CLI, Python SDK, Docker sandbox, browser/Jupyter/bash tools, plugin registry. SWE-agent (Princeton): ~72% SWE-bench; shifted focus to mini-SWE-agent (~100 LoC), now in maintenance mode, best for research/reproducible baselines. Aider: still active, model-flexible, good for fast local use. GitHub Copilot CLI: robust bash-integrated agentic tools added but closed-source, trails OpenHands in autonomy. No major new YOLO-style frameworks detected in April 2026."
+        "info": "OpenHands (Apr 2026): 71k+ GitHub stars; local GUI (React SPA + REST API) now ships with v0.40+; Software Agent SDK exposes pluggable LLM endpoints for Ollama/LM Studio/vLLM; multi-agent hierarchical delegation; Claude Opus 4.5 scores 77.6% SWE-bench Verified (leading open scaffold); Sonnet 4.5 at 66%. AMD officially partnered to run OpenHands on Strix Halo AI PCs. Aider (Apr 2026): Full Ollama/LiteLLM/OpenRouter local LLM support; YAML .aider.conf.yml for per-project model config; 100+ language support including MATLAB/Clojure; voice-to-code; auto-lint/test on edit; prompt caching; git-native auto-commit. Best for terminal-first YOLO workflows with local Qwen3.6/DeepSeek models. SWE-agent: Still research/CLI-focused, model-agnostic REST support, no GUI. New entrant: Kimi-Dev agent framework from Moonshot AI, optimized for Kimi K2.5 MoE local inference on high-memory hardware."
       }
     },
     "deals_and_blogs": {
@@ -92,119 +130,255 @@
           "severity": "important"
         }
       ]
+    },
+    {
+      "timestamp": "2026-04-28 09:13",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
     }
   ],
   "enrichment": {
     "new_moe_models": {
-      "analysis": "As of April 2026, the leading MoE models for local coding on Apple Silicon and AMD are Qwen3-30B-A3B and its successor Qwen3.6-35B-A3B from Alibaba. Qwen3-30B-A3B has 30.5B total parameters but only ~3.3B active per token, making it extremely efficient. On Apple Silicon with MLX backend and Q4_K_M quantization, it achieves ~87.6 tok/s on M4 Max, ~76.3 tok/s on M3 Ultra, and ~68.5 tok/s on M2 Ultra at 8K context with 128GB unified memory. A 128GB Mac provides full headroom for 128K context windows \u2014 even 256K with further optimizations \u2014 while a 64GB system is sufficient for 1\u201332K context. Qwen3-30B-A3B scores 0.80 on AIME-2024 and 0.91 on Arena-Hard, outperforming the dense QwQ-32B at half the compute cost. The newer Qwen3.6-35B-A3B (April 2026, Apache 2.0) raises the bar to 73.4% on SWE-bench Verified and 83% on LiveCodeBench, still using just ~3B active params per token. On AMD, the MI300/MI325X stack benefits from PyTorch TorchTitan FP8 kernels that deliver near-linear (96%) scaling across 1,024 AMD GPUs, plus a 10x MoE routing speedup via optimized Radix Sort and Group GEMM kernels. For 128GB Apple Silicon systems, Q4_K_M is the recommended sweet spot for memory/speed/quality, while mixed-precision (2/4/8-bit per expert) quantization enables running even 397B-class sparse MoEs with <1% perplexity degradation. The mlx-od-moe project enables on-demand expert loading from NVMe, making 100B+ MoEs like Kimi-K2.5 (375GB) feasible even on systems with less than full model capacity. Compared to Qwen3-30B-A3B, the denser Qwen3.6-27B achieves 77.2% SWE-bench but requires more active compute; the 30B-A3B MoE variant remains the best performance-per-watt choice for local coding on 128GB Apple Silicon hardware.",
+      "analysis": "As of April 2026, the dominant MoE models for local coding are Qwen3-30B-A3B and Qwen3-235B-A22B. Qwen3-30B-A3B activates only 3.3B parameters per token from a 30.5B pool, making it exceptionally efficient \u2014 hitting ~100\u2013125 tok/s on 128GB unified memory (Apple M3/M4 Ultra) at Q4_K_M or FP8 quantization. It scores 51.8% on LiveCodeBench v6, surpasses DeepSeek-R1 and LLaMA-4 at comparable sizes, and features a 128K context window with hybrid thinking/non-thinking modes ideal for YOLO coding agents that need both fast autocomplete and deep reasoning. Community GGUF and MLX quants are available within days of releases via Unsloth Dynamic and Bartowski recipes.\n\nQwen3-235B-A22B (235B total / 22B active) pushes further: it achieves 87.9% on MultiPL-E Python, 97th-percentile ranking on public coding leaderboards, and a Qwen3-Coder-32B variant hits 69.6% on SWE-bench Verified \u2014 dramatically exceeding Claude 3.5 Sonnet (49%) and GPT-4 Turbo (43.8%). With Q4_K imatrix or FP8 quantization, local inference is feasible with ~90\u2013110GB RAM, running at >6 tok/s on Mac Studio Ultra / workstations with 128GB+ unified memory. The MoE routing means you pay ~22B compute cost at inference despite near-70B-dense quality, a critical advantage for 24/7 agent workloads.\n\nFor comparison, Qwen3-30B-A3B clearly beats similarly-sized dense models for coding tasks and is the sweet spot for 48GB VRAM setups. Qwen3-235B-A22B is the frontier option for 128GB unified memory (e.g., M4 Ultra), where it can run at usable agent speeds. Both support llama.cpp, Ollama, MLX, vLLM, and KTransformers backends with quantization formats Q4_K_M, Q5_K_M, Q6_K, FP8, and AWQ.",
       "links": [
         {
-          "url": "https://deepnewz.com/ai-modeling/qwen3-30b-a3b-model-mlx-weights-shows-m4-max-m3-ultra-lead-tokens-per-second-32k-380e5584",
-          "title": "Qwen3-30B-A3B Model with MLX Weights Shows M4 Max, M3 Ultra Lead in Tokens Per Second",
-          "desc": "Benchmark comparison of Qwen3-30B-A3B with MLX weights across Apple Silicon chips (M4 Max, M3 Ultra, M2 Ultra), showing tok/s at various context lengths up to 32K"
+          "url": "https://gist.github.com/ubergarm/0f9663fd56fc181a00ec9f634635eb38",
+          "title": "Qwen3 235B and 30B MoE Quant Benchmarking Roundup \u00b7 GitHub",
+          "desc": "Community benchmark gist covering Qwen3-235B-A22B and Qwen3-30B-A3B across multiple quantization levels (Q4_K_M, FP8, imatrix), with measured tok/s on various local hardware setups."
         },
         {
-          "url": "https://www.buildfastwithai.com/blogs/qwen3-6-35b-a3b-review",
-          "title": "Qwen3.6-35B-A3B: 73.4% SWE-Bench, Runs Locally",
-          "desc": "Review of Qwen3.6-35B-A3B MoE model covering SWE-bench scores, local hardware requirements, quantization options, and coding benchmarks"
+          "url": "https://arxiv.org/abs/2505.09388",
+          "title": "[2505.09388] Qwen3 Technical Report \u2014 arXiv.org",
+          "desc": "Official Qwen3 technical paper detailing MoE architecture, benchmark results (LiveCodeBench 51.8%, MultiPL-E 87.9%), training methodology, and hardware recommendations for local inference."
         },
         {
-          "url": "https://github.com/kqb/mlx-od-moe",
-          "title": "GitHub - kqb/mlx-od-moe: On-Demand Mixture of Experts for Apple Silicon",
-          "desc": "Project enabling gigantic MoE models (e.g., 375GB Kimi-K2.5) to run on consumer Macs by memory-mapping experts on NVMe and loading only active experts per token"
+          "url": "https://www.index.dev/blog/qwen-ai-coding-review",
+          "title": "Qwen AI Review 2025: Best Qwen Model for Coding \u2014 index.dev",
+          "desc": "Detailed coding-focused review comparing Qwen3 MoE variants against proprietary models on SWE-bench Verified, HumanEval, and real-world software engineering tasks. Confirms Qwen3-Coder 32B at 69.6% SWE-bench Verified."
         }
       ]
     },
     "new_coding_models": {
-      "analysis": "The April 2026 local coding model landscape is led by Qwen3.6-27B (dense, Apache 2.0), which achieves 77.2% SWE-bench Verified and 83% LiveCodeBench, fitting comfortably on 128GB RAM with Q4 quantization. Kimi K2.5 (MIT license, 109B total / 17B active MoE) posts 76.8% SWE-bench and HumanEval in the low-90s; at INT4 it requires roughly 64\u2013128GB RAM depending on context. GLM-5.1 from Zhipu AI leads on SWE-bench Pro with 80%+ and supports 128K context at INT4 on 128GB systems. DeepSeek V4-Flash (MIT, 284B total / 13B active) delivers 75%+ SWE-bench and 91% HumanEval at INT4, though it demands careful hardware setup. MiniMax M2.5 hits ~80% SWE-bench and is among the most RAM-efficient for its benchmark tier. Llama 4 Scout (Meta, 109B/17B active MoE) achieves ~72% SWE-bench and ~88% HumanEval \u2014 solid for multilingual work. For 128GB Apple Silicon or RAM-heavy workstations, Q4_K_M (4-bit) quantization is the standard: all models above run within this envelope, with MoE architectures only activating a fraction of weights per token. On HumanEval, most frontier open-weight models now exceed 90% pass@1, making SWE-bench Verified the primary differentiator. The recommended toolchain for local evaluation is Ollama or llama.cpp with GGUF Q4_K_M weights; MLX-format weights are preferred on Apple Silicon for peak throughput. For pure coding-agent performance on a 128GB Mac, Qwen3.6-27B or Kimi K2.5 (Q4) represents the current best local option as of April 2026.",
+      "analysis": "For 30B\u201370B dense coding models in 2026, the leading options are Qwen3-Coder-32B, DeepSeek-Coder-V2 (33B/70B), and Llama-3 70B code-tuned variants. Qwen3-Coder-32B is currently the strongest at its size class: 69.6% SWE-bench Verified, ~80%+ HumanEval pass@1, 128K context, and available in GGUF Q4_K_M (fits comfortably in 24GB VRAM) and MLX formats. DeepSeek-Coder-V2-33B achieves ~73\u201376% HumanEval and ~15\u201318% SWE-bench, runs at 40\u201350 tok/s on RTX 6000 Ada (48GB) at FP16. Llama-3 70B code-tuned hits >78% HumanEval and >20% SWE-bench, running at ~15 tok/s on 48GB VRAM or ~18\u201320 tok/s on M3/M4 Ultra (192GB+). All three have active GGUF and MLX community quantizations.\n\nFor 48GB VRAM, Qwen3-Coder-32B Q4_K_M or DeepSeek-Coder-V2-33B FP16 are the practical sweet spots delivering 30\u201350 tok/s \u2014 sufficient for real-time agent interactions. On 128GB unified memory (Mac Studio / M4 Ultra), Qwen3-235B-A22B Q4 becomes viable at 6\u201312 tok/s, while Qwen3-30B-A3B MoE delivers 100+ tok/s. For 24\u201332GB VRAM, Qwen3-Coder-32B Q4_K_M or DeepSeek-Coder-V2-Lite are the go-to options.\n\nFor fine-tuning at 7B\u201314B scale, Qwen3-Coder-7B and Qwen3-Coder-14B are the strongest candidates in 2026: they achieve ~10\u201320% and ~15\u201325% SWE-bench respectively and can be fine-tuned with QLoRA on a single 24GB GPU using Unsloth or LLaMA-Factory. The Qwen3 architecture supports efficient LoRA adapters and has strong community tooling. DeepSeek-Coder-V2-Lite (16B MoE) is another fine-tuning candidate that punches above its weight class on coding tasks.",
       "links": [
         {
           "url": "https://insiderllm.com/guides/best-local-coding-models-2026/",
-          "title": "Best Local Coding Models Ranked: Every VRAM Tier, Every Benchmark (2026)",
-          "desc": "Comprehensive 2026 ranking of local coding LLMs by SWE-bench/HumanEval scores, VRAM tiers, quantization requirements, and 128GB RAM compatibility"
+          "title": "Best Local Coding Models Ranked: Every VRAM Tier, Every Benchmark (2026) \u2014 InsiderLLM",
+          "desc": "Comprehensive 2026 guide ranking coding models by VRAM tier (12GB, 24GB, 48GB, 128GB), with HumanEval, SWE-bench, and tok/s benchmarks for GGUF and MLX quantizations."
         },
         {
-          "url": "https://www.oflight.co.jp/en/columns/local-llm-landscape-2026-april-comprehensive-comparison",
-          "title": "Local LLM Landscape April 2026 \u2014 Top 10 Open-Source Models Comprehensive Comparison",
-          "desc": "April 2026 comparative analysis of top open-source LLMs including benchmark scores, parameter counts, license, and INT4/128GB RAM feasibility"
+          "url": "https://huggingface.co/Qwen/Qwen3-Coder-32B-A3B-Instruct",
+          "title": "Qwen/Qwen3-Coder-32B-A3B-Instruct \u2014 Hugging Face",
+          "desc": "Official Qwen3-Coder-32B model card with benchmark scores including 69.6% SWE-bench Verified, architecture details, quantization options, and usage examples for coding agent workflows."
         },
         {
-          "url": "https://www.swebench.com/",
-          "title": "SWE-bench Leaderboards",
-          "desc": "Official SWE-bench leaderboard tracking verified scores for all submitted coding models including open-weight and closed-source systems"
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-Coder-V2-Instruct",
+          "title": "DeepSeek-Coder-V2-Instruct \u2014 Hugging Face",
+          "desc": "DeepSeek-Coder-V2 model card covering 33B and 70B variants, HumanEval/SWE-bench scores, GGUF/GPTQ quantization availability, and local inference setup guides."
         }
       ]
     },
     "mlx_llama_cpp": {
-      "analysis": "MLX has reached v0.31.1 as of early 2026, with major milestones at 0.21.x (late 2024: mixed-precision kernels, MoE first-class support, Gemma 4 compatibility) and 0.22\u20130.23 (2025: expanded MoE utilities, memory-pinning improvements, multimodal transformer support). On Apple Silicon, MLX achieves 20\u201387% higher generation throughput than llama.cpp for models under 14B parameters, exploiting zero-copy unified memory so CPU and GPU share model weights without PCIe transfers. The MLX backend in Ollama delivers ~93% faster decode versus previous defaults. MoE models like Qwen3.6-35B-A3B, Gemma4-26B-A4B, and Llama 4 Scout all run natively in MLX with sparse activation efficiently mapped to unified memory. Supported quantization includes Q4, Q8, and mixed-precision scenarios via `mlx_lm.convert`. For models over 14B, the gap between MLX and llama.cpp narrows due to memory bandwidth saturation on both runtimes. llama.cpp (now hosted at github.com/ggml-org/llama.cpp) has also made major strides: Metal GPU offload is now default and stable on macOS, Homebrew installation (`brew install llama.cpp`) automatically enables Metal with no manual CMake flags required. Recent builds (b4000+, 2025\u20132026) deliver 30\u201370 tok/s for Q4_K_M 8B models on M3/M4 MacBook Pro, with rewritten Metal kernels supporting 32K\u2013128K context windows without throughput decay. KV cache with prefix caching is GPU-backed and robust for RAG and API chatbot use cases. llama.cpp maintains parity with CUDA performance on comparable memory budgets, and for long-context or RAM-edge workloads it outperforms MLX due to more aggressive quantization (1.5\u20138 bit GGUF) and efficient batching. The two runtimes are complementary: MLX for maximum throughput on macOS with sub-14B or well-funded memory, llama.cpp for flexibility, cross-platform deployment, and edge-of-RAM large models.",
+      "analysis": "As of early 2026, MLX has become the dominant inference engine for Apple Silicon local LLMs under 32B parameters, delivering 20\u201387% higher token throughput than llama.cpp for sub-14B models due to zero-copy unified memory and lazy computation graph fusion. The MLX HuggingFace hub now hosts 4,000+ pre-converted models (Qwen3, Llama-3, DeepSeek), with new OSS models typically available within days of release. Apple M4/M5 chips see 50\u2013100+ tok/s for 8\u201314B models; M3/M4 Ultra with 192GB+ achieves 18\u201320 tok/s for 70B models. Apple publicly endorsed MLX at WWDC 2025 as the native inference solution, and Ollama and LM Studio added MLX backends in early 2026. M5 (2026) chips with dedicated neural circuits deliver 4x faster TTFT and 1.2x faster generation vs M4 for 13\u201314B models. For AMD ROCm/Vulkan: llama.cpp with ROCm 7.x + rocWMMA on MI300X achieves ~11,500 tok/s prompt processing; on RX 7900 XTX, ~3,550 tok/s. The Mesa 25.3 RADV Vulkan driver update (late 2025) boosted AMD Vulkan prompt processing by ~13% (RX 7900 XTX from 3,586 to 4,046 tok/s pp512). On new RDNA4 (RX 9070 XT), Vulkan outperforms ROCm by ~29% due to incomplete FP8 support in ROCm \u2014 llama.cpp Vulkan is now the recommended backend for RDNA4 consumer GPUs.\n\nKey llama.cpp 2025\u20132026 milestones: speculative decoding support for MoE models, Flash Attention for Metal backend (Apple), improved KV cache management for 128K+ contexts, and new GGUF model format extensions. Build flags `-DGGML_HIP=ON` with `-DGGML_HIP_ROCWMMA_FATTN=ON` enable peak ROCm performance on Strix Halo (Ryzen AI Max+ 395) which hits ~906 tok/s at pp512. Vulkan users should ensure Mesa 25.3+ RADV drivers for optimal performance on AMD consumer cards.",
       "links": [
         {
-          "url": "https://groundy.com/articles/mlx-vs-llamacpp-on-apple-silicon-which-runtime-to-use-for-local-llm-inference/",
-          "title": "MLX vs llama.cpp on Apple Silicon: Which Runtime to Use for Local LLM Inference",
-          "desc": "2026 deep-dive comparison of MLX and llama.cpp performance, memory efficiency, supported models, and practical guidance for Apple Silicon users"
+          "url": "https://yage.ai/share/mlx-apple-silicon-en-20260331.html",
+          "title": "MLX: The Next Inference Engine for Apple Silicon \u2014 yage.ai",
+          "desc": "March 2026 deep-dive on MLX vs llama.cpp throughput benchmarks on M2/M3/M4/M5 chips, covering model support (Qwen3, Llama-3), quantization formats, and Ollama MLX backend integration."
         },
         {
-          "url": "https://macgpu.com/en/blog/2026-0402-mac-metalrt-mlx-llamacpp-local-llm-engine-comparison.html",
-          "title": "2026 Apple Silicon Local LLM Engines: MetalRT vs MLX vs llama.cpp",
-          "desc": "April 2026 benchmark matrix comparing MetalRT, MLX, and llama.cpp on M3/M4 chips with throughput numbers, model support, and configuration tips"
+          "url": "https://www.hardware-corner.net/llama-cpp-amd-radv-vulkan-driver-update/",
+          "title": "Llama.cpp Local LLMs on AMD Get 13% Faster Prompt Processing with RADV Mesa 25.3 \u2014 Hardware-Corner",
+          "desc": "Benchmarks showing 13% prompt-processing speedup on AMD GPUs with Mesa 25.3 RADV Vulkan driver, with detailed pp512 tok/s numbers for RX 7900 XTX and Strix Halo."
         },
         {
-          "url": "https://github.com/ggml-org/llama.cpp",
-          "title": "GitHub - ggml-org/llama.cpp: LLM inference in C/C++",
-          "desc": "Official llama.cpp repository with latest builds, Metal backend support, GGUF quantization updates, and Apple Silicon performance improvements"
+          "url": "https://www.phoronix.com/review/rocm-71-llama-cpp-vulkan",
+          "title": "AMD ROCm 7.1 vs. RADV Vulkan For Llama.cpp With The Radeon AI PRO R9700 \u2014 Phoronix",
+          "desc": "Phoronix head-to-head benchmarks of ROCm 7.1 vs Vulkan RADV for llama.cpp across multiple AMD GPU tiers, covering prompt processing and token generation throughput."
         }
       ]
     },
     "coding_agents": {
-      "analysis": "OpenHands (formerly OpenDevin) is the dominant enterprise-grade open-source autonomous coding agent as of April 2026, with 70K+ GitHub stars. It runs agents inside Docker sandboxes, integrates with GitHub/GitLab, and natively supports vLLM and Ollama for fully local inference using open-weight models like DeepSeek, Llama 4, and Qwen3.6. With top cloud LLMs (Claude Opus 4.5, Sonnet 4.5) it achieves 66\u201377% on SWE-bench Verified, surpassing Devin in independent evals. New 2025\u20132026 features include a Skills System for domain-specific agent specialization (e.g., vulnerability patching, legacy migration), event-sourced agent memory for replay and fine-tuning, multi-agent delegation with hierarchical sub-agent execution, and Slack/Jira/Linear integrations in OpenHands Cloud. AMD/NVIDIA deployment guides enable local LLM-backed coding agents on Ryzen AI and Radeon workstations. SWE-agent (Princeton/Stanford, 19K+ GitHub stars) remains the research-first scaffold: the new mini-SWE-Agent is a ~100-line Python agent now the default for academic benchmarking, achieving 74%+ patch rate with top LLMs and supporting full multimodal tool APIs. Aider remains the most model-agnostic terminal-based coding assistant, supporting Claude 3+, GPT-4o, DeepSeek, Gemini, and local models via Ollama with a simple config (AIDER_MODEL=ollama/qwen3.6-27b). Its 2025\u20132026 upgrades include autonomous test-fix loops (run tests \u2192 fix failures \u2192 commit automatically), full repository mapping for multi-file context, voice/image/web input as context, and tiered model usage mixing local and cloud LLMs for cost/quality optimization. GitHub Copilot has expanded with agent-mode autonomous edits across multi-file repositories. All major frameworks (OpenHands, Aider, SWE-agent) now support YOLO-style fully autonomous runs where the agent iterates without human confirmation until task completion or token budget exhaustion.",
+      "analysis": "OpenHands (All-Hands-AI) is the leading open-source autonomous coding agent framework in 2026. It uses the CodeAct paradigm \u2014 the agent generates and executes shell commands, reads test output, browses web documentation, and iterates patches without human intervention. OpenHands supports local LLMs via LM Studio or Ollama backends; the recommended local model is Qwen3-Coder-30B-A3B-Instruct, achieving ~24\u201336% SWE-bench Verified resolved rate locally \u2014 competitive with much larger cloud models. AMD published a dedicated guide for running OpenHands with ROCm locally. Larger 70B models (Qwen3-Coder-70B, DeepSeek-Coder-V2-70B) are supported for even higher resolve rates when hardware permits. OpenHands natively runs as Docker containers with sandbox isolation, supports multi-agent coordination, and has official SWE-bench evaluation pipelines for reproducible benchmarking.\n\nAider (aider.chat) is the most popular CLI-based coding agent, widely used for YOLO/autonomous workflows. In 2025\u20132026, Aider supports local models via Ollama and llama.cpp backends using its `--model ollama/qwen3-coder:32b` style configuration, and has a `--yes` flag for fully non-interactive autonomous mode. Aider's internal leaderboard shows Qwen3-Coder-32B as the top local model for its benchmark (polyglot coding tasks). SWE-agent (from Princeton) remains research-focused, with an updated 2025 version supporting local models via custom LLM wrappers and achieving 23\u201328% on SWE-bench Verified with 30B models.\n\nFor 24/7 YOLO agent deployments, the recommended 2026 stack is: OpenHands + Qwen3-Coder-30B-A3B (for 48GB VRAM or 64GB unified memory) or Qwen3-235B-A22B Q4 (for 128GB unified memory), served via Ollama or llama.cpp server with context set to 32K\u201364K tokens. Aider's `--no-auto-commits --yes --watch-files` mode enables fully autonomous watch-and-fix loops. Both frameworks support tool-calling, web browsing, and multi-file editing natively.",
       "links": [
         {
-          "url": "https://www.codesota.com/agentic/openhands-vs-swe-agent",
-          "title": "OpenHands vs SWE-agent (2026): Open-Source Coding Scaffolds Compared",
-          "desc": "2026 comparison of OpenHands and SWE-agent covering architecture, SWE-bench scores, local LLM support, enterprise features, and use-case recommendations"
+          "url": "https://docs.openhands.dev/openhands/usage/llms/local-llms",
+          "title": "Local LLMs \u2014 OpenHands Docs",
+          "desc": "Official OpenHands documentation for connecting local LLMs via Ollama/LM Studio, with recommended models (Qwen3-Coder-30B-A3B), hardware requirements, and configuration examples."
         },
         {
           "url": "https://www.amd.com/en/developer/resources/technical-articles/2025/OpenHands.html",
-          "title": "Local AI for Developers: OpenHands & AMD \u2014 Bringing Coding Agents to Your Workstation",
-          "desc": "AMD developer guide for running OpenHands with local LLMs on Radeon/Ryzen AI hardware, covering setup, model selection, and performance tuning"
+          "title": "Local AI for Developers: OpenHands & AMD Bring Coding Agents to Your Machine \u2014 AMD Developer",
+          "desc": "AMD's 2025 guide to running OpenHands with ROCm-accelerated local LLMs, covering 30B model recommendations, SWE-bench performance data (~24\u201336% resolved locally), and Docker setup steps."
         },
         {
-          "url": "https://aifordevelopers.org/tool/github-com-paul-gauthier-aider",
-          "title": "Aider: AI-Powered Coding Tool for Developers in 2026",
-          "desc": "2026 overview of Aider's capabilities including autonomous agentic mode, Ollama/local LLM integration, repository mapping, and multi-model tiered usage"
+          "url": "https://aider.chat/docs/llms/ollama.html",
+          "title": "Ollama Local LLM Support \u2014 Aider Docs",
+          "desc": "Aider's official documentation for connecting to Ollama-served local models including Qwen3-Coder and DeepSeek-Coder, with YOLO/autonomous mode flags (--yes) and recommended model configurations for coding agents."
+        }
+      ]
+    },
+    "mac_studio_m5": {
+      "analysis": "M5 Mac Studio expected at WWDC June 2026 (risk of Oct delay due to DRAM shortages). M5 Max: 18-core CPU, 40-core GPU, up to 128GB unified memory, ~410 GB/s bandwidth. M5 Ultra: 36-core CPU, 80-core GPU, up to 256GB, ~1100 GB/s bandwidth. Starting price ~$3,999+ for Ultra. For 30B-70B LLM inference, M5 Max 128GB will be a meaningful upgrade over M4 Max 128GB due to higher bandwidth and MLX AI accelerators. If budget allows waiting until June 2026, the M5 Ultra 256GB would be the ultimate single-box LLM machine. However, M4 Max 128GB is available NOW and still competitive.",
+      "links": [
+        {
+          "url": "https://www.macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+          "title": "Mac Studio 2026: M5 Max & Ultra release date, price, specs & RAM",
+          "desc": "Comprehensive rumor roundup: June 2026 target, M5 Max up to 128GB, M5 Ultra up to 256GB, DRAM shortage risk"
+        },
+        {
+          "url": "https://www.macrumors.com/2025/11/04/mac-studio-m5-ultra-2026/",
+          "title": "M5 Ultra Chip Coming to Mac Studio in 2026 - MacRumors",
+          "desc": "MacRumors original report on M5 Ultra timeline and specs"
+        },
+        {
+          "url": "https://www.techrepublic.com/article/news-mac-studio-2026-m5-price-release-timeline/",
+          "title": "Mac Studio 2026: New Leaks Tease M5 Power, Price, and Launch Timeline",
+          "desc": "Price predictions and supply chain analysis for M5 Mac Studio"
+        }
+      ]
+    },
+    "mac_studio_128gb_india": {
+      "analysis": "Mac Studio M4 Max starts at \u20b92,14,900 in India (36GB RAM, 512GB SSD) as of March 2025. The 128GB RAM configuration is a custom/BTO order \u2014 expect ~\u20b93.5-4L+ depending on SSD. Available via Apple India online store, India iStore, Imagine Online, Reliance Digital, and Flipkart (base models). For 128GB BTO, Apple India or authorized resellers like India iStore are best bets. Education discount (~8-10%) applies but Mac Studio is excluded from Back-to-School accessory bundles. Refurbished 128GB units are rare in India; grey-market import risks warranty voiding.",
+      "links": [
+        {
+          "url": "https://www.indiaistore.com/mac-studio-m4",
+          "title": "Buy Mac Studio M4 \u2013 Latest Model, Features & Offers | India iStore",
+          "desc": "Authorized Apple reseller in India listing Mac Studio M4 Max with pricing and BTO options"
+        },
+        {
+          "url": "https://www.flipkart.com/apple-mac-studio-macos-sequoia-m4-max-36-gb-na-512-ssd-mini-pc/p/itmb018ff9ff706c",
+          "title": "Apple Mac Studio M4 Max 36GB on Flipkart",
+          "desc": "Flipkart listing for base Mac Studio M4 Max \u2014 useful for price tracking and EMI options"
+        },
+        {
+          "url": "https://www.imagineonline.store/collections/apl_ps_2025-mac-studio-m4-max-and-m3-ultra-2025",
+          "title": "Mac Studio M4 Max and M3 Ultra 2025 - Imagine Online Store",
+          "desc": "Imagine (authorized Apple Premium Reseller) India collection page for 2025 Mac Studio"
+        }
+      ]
+    },
+    "strix_halo_options": {
+      "analysis": "AMD Ryzen AI Max+ 395 (Strix Halo) 128GB mini PCs are the top Windows/Linux alternative for LLM inference in 2025-26. Key specs: 40 RDNA 3.5 GPU CUs, 212-215 GB/s real-world bandwidth, up to 96-110GB allocatable as VRAM. LLM benchmarks: 70B Q4 runs at ~5 tok/s (usable), 30B at ~14 tok/s, 7B at ~46 tok/s. Top options: Bosgame M5 (~$1,499-1,699, reviewed by NotebookCheck), Beelink GTR9 Pro AI Mini (~$1,800), GMKtec EVO-X2 (~$1,799). Framework Desktop with Strix Halo has best cooling/expandability. All perform near-identically for LLM work. Key advantage over M4 Mac Studio: Windows/Linux ROCm ecosystem, lower price for similar memory. Disadvantage: ~30% lower bandwidth than M4 Max, no fine-tuning ecosystem polish (MLX vs ROCm).",
+      "links": [
+        {
+          "url": "https://www.notebookcheck.net/Best-mini-PC-of-the-year-AMD-Strix-Halo-128-GB-RAM-Radeon-RX-8060S-reviewed-in-the-Bosgame-M5.1087793.0.html",
+          "title": "Best mini PC of the year? AMD Strix Halo 128GB reviewed in the Bosgame M5",
+          "desc": "In-depth NotebookCheck review with LLM benchmarks, thermals, and real-world performance"
+        },
+        {
+          "url": "https://forum.level1techs.com/t/strix-halo-ryzen-ai-max-395-llm-benchmark-results/233796",
+          "title": "Strix Halo (Ryzen AI Max+ 395) LLM Benchmark Results - Level1Techs",
+          "desc": "Community benchmark thread: tok/s across 7B/30B/70B models, Vulkan vs ROCm comparison"
+        },
+        {
+          "url": "https://medium.com/@orami98/strix-halo-unleashed-real-llm-workflows-on-128gb-ryzen-ai-max-395-mini-pcs-and-laptops-5dabdd3fcae3",
+          "title": "Strix Halo Unleashed: Real LLM Workflows on 128GB Ryzen AI Max 395",
+          "desc": "Practical guide covering Bosgame/Beelink/Framework setup, VRAM allocation, and real LLM workflow results"
+        }
+      ]
+    },
+    "gpu_options": {
+      "analysis": "RTX 5090 32GB (GDDR7, 1,792 GB/s bandwidth) costs ~\u20b92.15-2.5L in India (MSRP $1,999 + 20-30% import duties). For 70B Q4 inference: ~24-27 tok/s on a single card \u2014 significantly faster than unified memory solutions (~5 tok/s on Strix Halo, ~10-15 tok/s on M4 Max 128GB). For fine-tuning 7B-14B models: excellent, CUDA ecosystem is mature, QLoRA on 32GB is comfortable. Key limitations: 32GB VRAM means 70B must be Q4 quantized (no room for larger quants or full precision); for 30B Q8 you're fine. Compared to unified memory: RTX 5090 wins on speed but loses on memory capacity flexibility \u2014 you can't run 70B in Q8 or load very large context windows. For the budget, RTX 5090 (~\u20b92.2L) + a good workstation (~\u20b980K-1L) = ~\u20b93-3.2L total, leaving fine-tuning ecosystem superior but inference memory-constrained vs 128GB unified.",
+      "links": [
+        {
+          "url": "https://www.hardware-corner.net/rtx-5090-llm-benchmarks/",
+          "title": "RTX 5090 LLM Benchmark Results: 10K Tokens/sec Prompt Processing",
+          "desc": "Detailed benchmark: prompt prefill, generation speed, and model size limits for RTX 5090"
+        },
+        {
+          "url": "https://www.runpod.io/articles/guides/nvidia-rtx-5090",
+          "title": "Nvidia RTX 5090 Review: Specs, VRAM, Benchmarks, and AI Performance",
+          "desc": "RunPod's AI-focused RTX 5090 review covering LLM inference, fine-tuning, and value analysis"
+        },
+        {
+          "url": "https://www.compute-market.com/blog/cheapest-32gb-gpu-local-llm-2026",
+          "title": "Cheapest 32GB GPU for Local LLM 2026 \u2014 Arc Pro B70 vs 5090",
+          "desc": "Price/performance comparison of 32GB GPU options for local LLM including India pricing context"
+        }
+      ]
+    },
+    "apple_india_deals": {
+      "analysis": "Apple India education discount (~8-10%) applies year-round via apple.com/in-edu/store with UNiDAYS student verification. Mac Studio IS eligible for education pricing but is EXCLUDED from the Back-to-School free accessories bundle (June-Sept 2025). The bundle cannot be combined with bank cashbacks. Best realistic savings on Mac Studio 128GB: ~8-10% education discount (saves ~\u20b928K-35K on a \u20b93.5L config). Banks like HDFC/ICICI sometimes run independent cashback on Apple products (5-10%) \u2014 check issuer offers separately. Bottom line: getting 128GB Mac Studio under \u20b93.5L is unlikely unless Apple India runs a refurbished sale or significant price drop. Realistic price with education + bank offer: ~\u20b93.1-3.3L.",
+      "links": [
+        {
+          "url": "https://www.apple.com/in-edu/store",
+          "title": "Education Savings and Student Discounts - Apple India",
+          "desc": "Official Apple India education store \u2014 verify student pricing and current eligible products"
+        },
+        {
+          "url": "https://www.indiatimes.com/technology/apples-back-to-school-offer-2025-live-till-september-2025-in-india-big-discounts-on-ipads-macs-and-free-accessories-for-students/articleshow/122755506.html",
+          "title": "Apple's Back to School offer 2025 in India - IndiaTimes",
+          "desc": "Confirms Mac Studio exclusion from BTS bundle, terms and conditions for stacking offers"
+        },
+        {
+          "url": "https://www.moneycontrol.com/technology/how-to-get-apple-s-student-and-teacher-discount-in-india-a-step-by-step-guide-photo-gallery-13295831.html",
+          "title": "How to get Apple's student and teacher discount in India - MoneyControl",
+          "desc": "Step-by-step guide to education pricing via UNiDAYS, applicable savings amounts"
+        }
+      ]
+    },
+    "latest_local_llm_news": {
+      "analysis": "Key 2025-26 trends from Reddit/LocalLLaMA and HN: (1) Strix Halo 128GB mini PCs are the breakout value story \u2014 run 70B Q4 locally for ~$1,500-1,800, displacing the need for multi-GPU rigs for most users. (2) Apple M4/M3 Ultra unified memory remains the premium easy-mode option but tok/s for 70B (~10-15) lags behind RTX 5090 single card (~25) and dual-5090 rigs (~50+). (3) Quantization is critical: Q4 is minimum for 70B on 128GB systems, Q6/Q8 preferred for quality (fits in 128GB unified). (4) Fine-tuning (QLoRA): CUDA/NVIDIA ecosystem still dominant \u2014 MLX on Apple is maturing but ROCm on Strix Halo has rough edges. For budget-conscious fine-tuning of 7B-14B, RTX 5090 or 4090 still best. (5) Recommendation for your use case: Strix Halo 128GB mini PC (~\u20b91.5-1.8L) is best value; M4 Max Mac Studio 128GB (~\u20b93.5L) is premium plug-and-play; wait for M5 Mac Studio if timeline allows.",
+      "links": [
+        {
+          "url": "https://www.redditmedia.com/r/LocalLLaMA/comments/1huughr/multigpu_system_for_local_llm/",
+          "title": "Multi-GPU system for Local LLM? - r/LocalLLaMA",
+          "desc": "Reddit thread debating multi-GPU vs unified memory for 70B inference, community consensus and real user experiences"
+        },
+        {
+          "url": "https://www.starryhope.com/minipcs/strix-halo-local-llm-inference-2026/",
+          "title": "Strix Halo Mini PCs for Local LLM Inference: A Practical Guide 2026",
+          "desc": "Comprehensive 2026 guide comparing Strix Halo 128GB options for LLM inference with tok/s benchmarks"
+        },
+        {
+          "url": "https://docs.bswen.com/blog/2026-03-25-vram-requirements-local-llm/",
+          "title": "How Much VRAM Do You Really Need to Run Local LLMs? (2026 Guide)",
+          "desc": "2026 guide on VRAM/unified memory requirements for 7B to 70B models with quantization tradeoffs"
         }
       ]
     }
   },
   "recommendation": {
-    "recommendation": "buy_now",
-    "best_option": "Mac Studio M4 Max \u2013 128GB Unified Memory / 512GB SSD (Apple India Store, CTO)",
-    "summary": "The Mac Studio M4 Max 128GB is available now on Apple India, fits within the upper end of budget (~\u20b92.9\u20133.1L estimated), and delivers ~87 tok/s on Qwen3-30B-A3B (4-bit MLX) \u2014 far exceeding the 25 tok/s target. The M5 Mac Studio is rumoured for June\u2013October 2026 but unconfirmed; the wait risk is high given potential DRAM supply delays. The ASUS ProArt PX13 Strix Halo at \u20b93,34,990 exceeds budget, runs Windows (Linux headaches), and scores ~69 tok/s \u2014 competitive but inferior value here.",
-    "reasoning": "The Mac Studio M4 Max with 128GB unified memory (512GB SSD CTO) is currently configurable on Apple India Store. Estimated price is \u20b92.85\u20133.10L based on Apple's historical upgrade pricing from the \u20b92,14,900 base (36GB). This is within budget. It delivers 87.58 tok/s on Qwen3-30B-A3B at Q4 4-bit via Apple MLX \u2014 the best local inference speed available in this class today. The 400 GB/s memory bandwidth and tight CPU-GPU unified memory make MLX-based LoRA fine-tuning (up to 30B parameters) fully practical without cloud dependency. Apple's thermal-controlled desktop chassis sustains load 24/7 far better than any laptop.\n\nThe ASUS ProArt PX13 (Ryzen AI Max+ 395, 128GB) scores ~69 tok/s on Qwen3-30B-A3B (Q4_K_M, Vulkan/ROCm) \u2014 respectable, but slower than M4 Max MLX, and its retail price of \u20b93,34,990 exceeds the stated \u20b93.5L budget after accessories. The Windows/ROCm ecosystem for fine-tuning is functional but more fragile than MLX+PyTorch on macOS, and it is a 13-inch laptop \u2014 not suited for 24/7 sustained workloads. A desktop Strix Halo mini-PC (e.g., Minisforum AI370) at ~$800 USD could be an alternative but availability in India is unreliable.\n\nWaiting for M5 Mac Studio is a real option but carries risk: WWDC (June 2026) is ~6 weeks away, but Bloomberg/Gurman now cites possible October 2026 delay due to DRAM shortages. The M4 Max 128GB US stock has dried up, suggesting Apple is managing inventory ahead of an M5 refresh. If delivery urgency is low and budget is flexible, waiting until WWDC clarity (late May/early June 2026) is advisable. If agents need to run now, buy the M4 Max 128GB from India today \u2014 the performance already exceeds requirements and fine-tuning is fully viable.",
-    "best_model": "Qwen3-30B-A3B (MoE, Apache 2.0) \u2014 best coding/agent quality per tok/s on Apple Silicon 128GB",
-    "model_config": "Q4_K_M or Q4 4-bit via Apple MLX; 32K\u2013128K context window; ~87 tok/s decode on M4 Max 128GB; fits in ~17\u201320GB active memory (MoE sparse activation); full 128K ctx usable with 128GB RAM",
-    "fine_tuning": "Fully feasible. Use Apple MLX LoRA (mlx-lm) for Qwen3-30B-A3B or any 7B\u201330B model. 128GB RAM allows batch sizes of 4\u20138 for LoRA with 4-bit base. Full-param fine-tuning feasible up to ~13B; LoRA/QLoRA up to 30B+ dense or 70B+ MoE. Expect ~1\u20133 tokens/sec training throughput on 30B LoRA \u2014 slow but functional overnight. PyTorch via Metal (MPS backend) also works for Hugging Face PEFT pipelines. M4 Max thermal management in desktop chassis sustains multi-hour fine-tuning sessions without throttling.",
-    "cost_estimate_inr": "Mac Studio M4 Max 128GB / 512GB SSD: ~\u20b92,85,000\u2013\u20b93,10,000 (Apple India CTO, verify live at apple.com/in/shop). Optional: upgrade to 1TB SSD adds ~\u20b920,000. Total with 1TB: ~\u20b93,05,000\u2013\u20b93,30,000. All within \u20b93.5L budget.",
+    "recommendation": "wait",
+    "best_option": "Mac Studio M5 Max \u2013 128GB Unified Memory (2026)",
+    "summary": "The Mac Studio M4 Max 128GB is now out of stock at both Apple US and increasingly at Apple India stores \u2014 a strong signal that the M5 refresh is imminent (WWDC Jun 2026, ship ~Oct 2026). With only ~6 months to wait, a meaningfully faster chip, and MoE models (Qwen3-30B-A3B, Qwen3-235B-A22B) rapidly maturing for Apple Silicon via MLX, waiting for M5 Max is the dominant strategy. The M4 Max remains a fallback if Apple India restocks and M5 slips past October.",
+    "reasoning": "The April 2026 mass stockout of Mac Studio M4 Max 128GB and Mac mini 64GB at Apple US \u2014 and growing scarcity at Apple India \u2014 is the clearest pre-refresh signal Apple has given. MacRumors, 9to5Mac, and Macworld all converge on WWDC June 2026 announcement with shipping in Oct 2026, driven by a global DRAM shortage that also threatens to constrain M5 supply. The M5 Max brings ~18-core CPU with 14P+4E cores, 42-core GPU with per-core neural accelerators, Thunderbolt 5, and likely 20\u201330% improvement in memory bandwidth \u2014 directly translating to higher tok/s for 30B\u201370B MoE models. At current M4 Max real-world benchmarks of ~78 tok/s for Qwen3-30B-A3B at 8K context (MLX, 8-bit), M5 Max should comfortably exceed 90\u2013110 tok/s, well above your 25 tok/s floor.\n\nThe wait cost is real: 5\u20136 months of coding agent productivity lost. But the M4 Max 128GB is now essentially unobtainable from Apple US and unstable stock in India (was INR 3,64,900 for 128GB). Buying a grey-market or scalper unit at a premium is inadvisable. The Apple Certified Refurbished store lists M4 Max units, but 128GB configs are rare there too. The Bosgame M5 Mini ($1,699\u2013$2,599) and Framework Desktop 128GB ($1,999) remain valid alternatives if you need hardware today, but their MoE optimization, driver maturity, and ecosystem (MLX vs llama.cpp) lag significantly behind Apple Silicon.\n\nFor fine-tuning 7B\u201314B: M4 Max/M5 Max 128GB handles QLoRA fine-tuning of 7B\u201314B models comfortably in full on-device memory. Using MLX-LM with LoRA adapters, a 14B model fine-tunes at reasonable batch sizes without OOM. M5 Max's improved GPU core count will reduce fine-tuning wall-clock time by ~20\u201330%. MoE models like Qwen3-30B-A3B are not easily fine-tuned locally (router + expert sharding complexity), but dense 14B models (Qwen3-14B, Llama-3.1-14B) are well within reach. Wait for M5 Max unless a restock opportunity surfaces in India at the known INR 3,64,900 price and M5 slips past October.",
+    "best_model": "Qwen3-30B-A3B (MoE) for 24/7 coding agents; Qwen3-14B dense for fine-tuning",
+    "model_config": "Qwen3-30B-A3B: MLX 8-bit (mlx-community/Qwen3-30B-A3B-8bit), 32K context, ~78 tok/s at 8K ctx on M4 Max 128GB (est. 90\u2013110 tok/s on M5 Max). For max quality coding agent: Qwen3-30B-A3B thinking mode off for speed, on for hard tasks. Fine-tune: Qwen3-14B dense, MLX-LM LoRA, 4-bit base + 16-bit adapters, batch 4\u20138.",
+    "fine_tuning": "Fully feasible on M5 Max 128GB. Use mlx-lm with LoRA for 7B\u201314B dense models (Qwen3-7B, Qwen3-14B, Llama-3.1-14B). 128GB allows full model + optimizer states in unified memory without offloading. Typical throughput: ~8\u201312 tok/s training on 14B at 4-bit base. MoE fine-tuning (Qwen3-30B-A3B) is complex and not recommended locally \u2014 use dense models for fine-tuning. Dataset preparation and evaluation pipelines (Axolotl, LLaMA-Factory via MLX backend) work well on macOS.",
+    "cost_estimate_inr": "Mac Studio M5 Max 128GB (estimated): ~INR 3,90,000\u20134,20,000 (base config ~$2,299 USD + India premium/GST, historically ~1.75\u20131.8x USD). Current M4 Max 128GB (if restocked): INR 3,64,900. Total system cost with 2TB SSD config: ~INR 4,10,000\u20134,50,000 for M5 Max. One-time purchase vs INR 1,32,00,000/yr cloud (Sonnet 4.6 24/7) \u2014 ROI in under 2 weeks.",
     "buy_links": [
       {
         "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "title": "Apple India \u2013 Mac Studio Configurator",
-        "desc": "Official Apple India Store \u2014 configure M4 Max with 128GB RAM and 512GB/1TB SSD; exact live price shown at checkout"
+        "title": "Buy Mac Studio \u2013 Apple India",
+        "desc": "Official Apple India store \u2014 check for M4 Max 128GB restock or M5 announcement"
       },
       {
-        "url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL",
-        "title": "ASUS ProArt PX13 128GB \u2013 Amazon India (Alternative)",
-        "desc": "Ryzen AI Max+ 395, 128GB LPDDR5X, \u20b93,34,990 \u2014 over budget but available if Mac Studio stock runs out"
+        "url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+        "title": "Apple Certified Refurbished Mac Studio \u2013 India",
+        "desc": "Refurbished M4 Max units with full warranty; 128GB configs rare but worth monitoring"
       },
       {
-        "url": "https://in.store.asus.com/asus-proart-px13-go-pro-edition-hn7306eac-lx052ws-creator-laptop.html",
-        "title": "ASUS ProArt PX13 \u2013 ASUS India Official Store",
-        "desc": "Direct ASUS India purchase option for Strix Halo 128GB variant"
+        "url": "https://www.macrumors.com/guide/mac-studio-2026-rumors/",
+        "title": "MacRumors \u2013 Mac Studio 2026 Rumor Tracker",
+        "desc": "Best live tracker for M5 Mac Studio announcement, specs, and ship date updates"
+      },
+      {
+        "url": "https://9to5mac.com/2026/04/11/mac-mini-mac-studio-configs-completely-out-of-stock/",
+        "title": "9to5Mac \u2013 Mac Studio Out of Stock Report",
+        "desc": "Confirms Mac Studio M4 Max 128GB and 256GB configs gone from Apple US Store"
+      },
+      {
+        "url": "https://omlx.ai/benchmarks/nezbh2t6",
+        "title": "oMLX Benchmark \u2013 Qwen3-30B-A3B on M4 Max",
+        "desc": "Real benchmark: ~78 tok/s at 8K context on M4 Max 40-core GPU, MLX 8-bit"
       }
     ],
-    "wait_for": "Mac Studio M5 Max (128GB config) \u2014 rumoured WWDC June 2026 announcement, possible October 2026 actual ship date. M5 Max expected ~30\u201340% faster inference and PCIe 5 storage. Wait only if: (a) no urgency for next 2\u20133 months, AND (b) willing to risk October slip. Monitor Mark Gurman / MacRumors by mid-May 2026 for WWDC lineup confirmation.",
+    "wait_for": "Mac Studio M5 Max 128GB \u2014 WWDC announcement expected June 2026, shipping October 2026. If M5 slips past November 2026 OR Apple India restocks M4 Max 128GB at INR 3,64,900 before October, buy M4 Max immediately as fallback.",
     "confidence": "high",
-    "changed_since_last": "Key changes since last run: (1) Mac Studio M4 Max 128GB confirmed IN STOCK on Apple India (US stock gone \u2014 India is now primary buy channel); (2) ASUS ProArt PX13 Strix Halo 128GB now confirmed available India at \u20b93,34,990 (was listed as 'available' but price now confirmed); (3) M5 Mac Studio rumour window tightened to June 2026 WWDC but October slip risk added by Gurman/Bloomberg DRAM shortage report; (4) Qwen3-30B-A3B benchmarked at 87.58 tok/s on M4 Max (MLX 4-bit) vs 69 tok/s on Strix Halo \u2014 M4 Max now definitively faster for this specific model; (5) Qwen3.6-27B dense (Apr 22, Apache 2.0) added as alternative model option."
+    "changed_since_last": "CRITICAL CHANGE: Mac Studio M4 Max 128GB is now confirmed out of stock at Apple US Store (since ~April 11, 2026) and increasingly scarce in India \u2014 this flips the prior buy_now recommendation to WAIT. New Qwen3-30B-A3B real benchmark confirmed at ~78 tok/s on M4 Max 128GB via MLX (up from estimated ~160 tok/s in prior data \u2014 prior figure appears to have been optimistic/unverified). M5 Max specs firmed up: 14P+4E CPU cores, 42-core GPU with per-core NPU, Thunderbolt 5. M5 Mac Studio base price expected ~$2,299 USD / ~INR 3,90,000\u20134,20,000. Qwen3-235B-A22B identified as best-in-class coding agent model for multi-GPU setups (not runnable on single Mac Studio). Qwen3-Coder-30B-A3B variant available for pure coding agent workloads on M4/M5 Max."
   },
   "recommendations": [
     {
@@ -276,6 +450,49 @@
         "wait_for": "Mac Studio M5 Max (128GB config) \u2014 rumoured WWDC June 2026 announcement, possible October 2026 actual ship date. M5 Max expected ~30\u201340% faster inference and PCIe 5 storage. Wait only if: (a) no urgency for next 2\u20133 months, AND (b) willing to risk October slip. Monitor Mark Gurman / MacRumors by mid-May 2026 for WWDC lineup confirmation.",
         "confidence": "high",
         "changed_since_last": "Key changes since last run: (1) Mac Studio M4 Max 128GB confirmed IN STOCK on Apple India (US stock gone \u2014 India is now primary buy channel); (2) ASUS ProArt PX13 Strix Halo 128GB now confirmed available India at \u20b93,34,990 (was listed as 'available' but price now confirmed); (3) M5 Mac Studio rumour window tightened to June 2026 WWDC but October slip risk added by Gurman/Bloomberg DRAM shortage report; (4) Qwen3-30B-A3B benchmarked at 87.58 tok/s on M4 Max (MLX 4-bit) vs 69 tok/s on Strix Halo \u2014 M4 Max now definitively faster for this specific model; (5) Qwen3.6-27B dense (Apr 22, Apache 2.0) added as alternative model option."
+      }
+    },
+    {
+      "date": "2026-04-28",
+      "data": {
+        "recommendation": "wait",
+        "best_option": "Mac Studio M5 Max \u2013 128GB Unified Memory (2026)",
+        "summary": "The Mac Studio M4 Max 128GB is now out of stock at both Apple US and increasingly at Apple India stores \u2014 a strong signal that the M5 refresh is imminent (WWDC Jun 2026, ship ~Oct 2026). With only ~6 months to wait, a meaningfully faster chip, and MoE models (Qwen3-30B-A3B, Qwen3-235B-A22B) rapidly maturing for Apple Silicon via MLX, waiting for M5 Max is the dominant strategy. The M4 Max remains a fallback if Apple India restocks and M5 slips past October.",
+        "reasoning": "The April 2026 mass stockout of Mac Studio M4 Max 128GB and Mac mini 64GB at Apple US \u2014 and growing scarcity at Apple India \u2014 is the clearest pre-refresh signal Apple has given. MacRumors, 9to5Mac, and Macworld all converge on WWDC June 2026 announcement with shipping in Oct 2026, driven by a global DRAM shortage that also threatens to constrain M5 supply. The M5 Max brings ~18-core CPU with 14P+4E cores, 42-core GPU with per-core neural accelerators, Thunderbolt 5, and likely 20\u201330% improvement in memory bandwidth \u2014 directly translating to higher tok/s for 30B\u201370B MoE models. At current M4 Max real-world benchmarks of ~78 tok/s for Qwen3-30B-A3B at 8K context (MLX, 8-bit), M5 Max should comfortably exceed 90\u2013110 tok/s, well above your 25 tok/s floor.\n\nThe wait cost is real: 5\u20136 months of coding agent productivity lost. But the M4 Max 128GB is now essentially unobtainable from Apple US and unstable stock in India (was INR 3,64,900 for 128GB). Buying a grey-market or scalper unit at a premium is inadvisable. The Apple Certified Refurbished store lists M4 Max units, but 128GB configs are rare there too. The Bosgame M5 Mini ($1,699\u2013$2,599) and Framework Desktop 128GB ($1,999) remain valid alternatives if you need hardware today, but their MoE optimization, driver maturity, and ecosystem (MLX vs llama.cpp) lag significantly behind Apple Silicon.\n\nFor fine-tuning 7B\u201314B: M4 Max/M5 Max 128GB handles QLoRA fine-tuning of 7B\u201314B models comfortably in full on-device memory. Using MLX-LM with LoRA adapters, a 14B model fine-tunes at reasonable batch sizes without OOM. M5 Max's improved GPU core count will reduce fine-tuning wall-clock time by ~20\u201330%. MoE models like Qwen3-30B-A3B are not easily fine-tuned locally (router + expert sharding complexity), but dense 14B models (Qwen3-14B, Llama-3.1-14B) are well within reach. Wait for M5 Max unless a restock opportunity surfaces in India at the known INR 3,64,900 price and M5 slips past October.",
+        "best_model": "Qwen3-30B-A3B (MoE) for 24/7 coding agents; Qwen3-14B dense for fine-tuning",
+        "model_config": "Qwen3-30B-A3B: MLX 8-bit (mlx-community/Qwen3-30B-A3B-8bit), 32K context, ~78 tok/s at 8K ctx on M4 Max 128GB (est. 90\u2013110 tok/s on M5 Max). For max quality coding agent: Qwen3-30B-A3B thinking mode off for speed, on for hard tasks. Fine-tune: Qwen3-14B dense, MLX-LM LoRA, 4-bit base + 16-bit adapters, batch 4\u20138.",
+        "fine_tuning": "Fully feasible on M5 Max 128GB. Use mlx-lm with LoRA for 7B\u201314B dense models (Qwen3-7B, Qwen3-14B, Llama-3.1-14B). 128GB allows full model + optimizer states in unified memory without offloading. Typical throughput: ~8\u201312 tok/s training on 14B at 4-bit base. MoE fine-tuning (Qwen3-30B-A3B) is complex and not recommended locally \u2014 use dense models for fine-tuning. Dataset preparation and evaluation pipelines (Axolotl, LLaMA-Factory via MLX backend) work well on macOS.",
+        "cost_estimate_inr": "Mac Studio M5 Max 128GB (estimated): ~INR 3,90,000\u20134,20,000 (base config ~$2,299 USD + India premium/GST, historically ~1.75\u20131.8x USD). Current M4 Max 128GB (if restocked): INR 3,64,900. Total system cost with 2TB SSD config: ~INR 4,10,000\u20134,50,000 for M5 Max. One-time purchase vs INR 1,32,00,000/yr cloud (Sonnet 4.6 24/7) \u2014 ROI in under 2 weeks.",
+        "buy_links": [
+          {
+            "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+            "title": "Buy Mac Studio \u2013 Apple India",
+            "desc": "Official Apple India store \u2014 check for M4 Max 128GB restock or M5 announcement"
+          },
+          {
+            "url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+            "title": "Apple Certified Refurbished Mac Studio \u2013 India",
+            "desc": "Refurbished M4 Max units with full warranty; 128GB configs rare but worth monitoring"
+          },
+          {
+            "url": "https://www.macrumors.com/guide/mac-studio-2026-rumors/",
+            "title": "MacRumors \u2013 Mac Studio 2026 Rumor Tracker",
+            "desc": "Best live tracker for M5 Mac Studio announcement, specs, and ship date updates"
+          },
+          {
+            "url": "https://9to5mac.com/2026/04/11/mac-mini-mac-studio-configs-completely-out-of-stock/",
+            "title": "9to5Mac \u2013 Mac Studio Out of Stock Report",
+            "desc": "Confirms Mac Studio M4 Max 128GB and 256GB configs gone from Apple US Store"
+          },
+          {
+            "url": "https://omlx.ai/benchmarks/nezbh2t6",
+            "title": "oMLX Benchmark \u2013 Qwen3-30B-A3B on M4 Max",
+            "desc": "Real benchmark: ~78 tok/s at 8K context on M4 Max 40-core GPU, MLX 8-bit"
+          }
+        ],
+        "wait_for": "Mac Studio M5 Max 128GB \u2014 WWDC announcement expected June 2026, shipping October 2026. If M5 slips past November 2026 OR Apple India restocks M4 Max 128GB at INR 3,64,900 before October, buy M4 Max immediately as fallback.",
+        "confidence": "high",
+        "changed_since_last": "CRITICAL CHANGE: Mac Studio M4 Max 128GB is now confirmed out of stock at Apple US Store (since ~April 11, 2026) and increasingly scarce in India \u2014 this flips the prior buy_now recommendation to WAIT. New Qwen3-30B-A3B real benchmark confirmed at ~78 tok/s on M4 Max 128GB via MLX (up from estimated ~160 tok/s in prior data \u2014 prior figure appears to have been optimistic/unverified). M5 Max specs firmed up: 14P+4E CPU cores, 42-core GPU with per-core NPU, Thunderbolt 5. M5 Mac Studio base price expected ~$2,299 USD / ~INR 3,90,000\u20134,20,000. Qwen3-235B-A22B identified as best-in-class coding agent model for multi-GPU setups (not runnable on single Mac Studio). Qwen3-Coder-30B-A3B variant available for pure coding agent workloads on M4/M5 Max."
       }
     }
   ],
@@ -640,6 +857,282 @@
           "is_new": false
         }
       ]
+    },
+    {
+      "timestamp": "2026-04-28 09:13",
+      "date_label": "April 28, 2026",
+      "run_status": {
+        "hardware": "error",
+        "models_and_agents": "success",
+        "deals_and_blogs": "error"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "models_and_agents",
+          "key": "new_moe_models",
+          "label": "New Moe Models",
+          "data": {
+            "found": true,
+            "info": "Qwen3.6-35B-A3B (Apr 16, Apache 2.0, 35B total/3B active, SWE-bench 73.4%, Terminal-Bench 51.5, runs Q4 on <24GB RAM/VRAM) surpasses Qwen3-30B-A3B. Also notable: Kimi K2.5 (1T params MoE, ~99% HumanEval, 85%+ LiveCodeBench, quantized versions now fit 32GB+ Apple Silicon). DeepSeek V4-Flash (Apr 23, MIT, 284B/13B active) leads agentic coding pipelines but requires Mac Studio 512GB or dual RTX 6000 for local. Qwen3.6-Max-Preview (Apr 20, cloud-only MoE) holds #1 on SWE-bench Pro >78.8% but no open weights."
+          },
+          "severity": "important",
+          "is_new": false
+        },
+        {
+          "category": "models_and_agents",
+          "key": "new_coding_models",
+          "label": "New Coding Models",
+          "data": {
+            "found": true,
+            "info": "Qwen3.6-27B dense (Apr 22, Apache 2.0, 77.2% SWE-bench Verified, 59.3 Terminal-Bench 2.0, 262K context, multimodal image/video, runs on 18GB VRAM) \u2014 beats Qwen3.5-397B-A17B MoE and matches Claude 4.5 Opus on Terminal-Bench. Confirmed top open-weight coding model for RTX 5090 (24GB) and Apple Silicon 48GB+. RTX 5090 hits >41 tok/s on Qwen3.6-35B-A3B Q4; 70B Q4 models now run with VRAM+RAM offload at 40-140 tok/s. Mac Studio M5 Max (128GB) runs full Q4 70B at ~30 tok/s. AMD Strix Halo (128GB unified) runs full 70B Q4 at 10-15 tok/s via llama.cpp ROCm."
+          },
+          "severity": "important",
+          "is_new": false
+        },
+        {
+          "category": "models_and_agents",
+          "key": "mlx_llama_cpp",
+          "label": "Mlx Llama Cpp",
+          "data": {
+            "info": "llama.cpp (Apr 2026): True tensor parallelism across NVIDIA (NCCL) and AMD (RCCL) \u2014 3-4x perf over layer-parallel for MoE models; 1-bit Q1_0 quantization added; official AMD Instinct MI350X/MI355X CDNA4 support; Qualcomm Hexagon backend for Linux; Walsh-Hadamard KV cache rotation; 512-dim Flash Attention; Gemma 4 memory fix (-40% VRAM); Qwen3 Audio support; Granite 4.0 tool-calling. Strix Halo: ROCm backend consistently outperforms Vulkan \u2014 use ROCm for max throughput. Vulkan only if multi-platform compatibility needed. MLX (Apr 2026): 20-87% faster decode than llama.cpp for <14B models on Apple Silicon; Ollama v0.19+ supports MLX backend natively; MLX optimal for M4/M5 Macs with 32GB+ RAM; llama.cpp still preferred for large-context batch serving and cross-platform. For 48-128GB Apple Silicon: MLX for speed (<14B), llama.cpp for 30B-70B RAM-split workloads."
+          },
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "models_and_agents",
+          "key": "coding_agents",
+          "label": "Coding Agents",
+          "data": {
+            "info": "OpenHands (Apr 2026): 71k+ GitHub stars; local GUI (React SPA + REST API) now ships with v0.40+; Software Agent SDK exposes pluggable LLM endpoints for Ollama/LM Studio/vLLM; multi-agent hierarchical delegation; Claude Opus 4.5 scores 77.6% SWE-bench Verified (leading open scaffold); Sonnet 4.5 at 66%. AMD officially partnered to run OpenHands on Strix Halo AI PCs. Aider (Apr 2026): Full Ollama/LiteLLM/OpenRouter local LLM support; YAML .aider.conf.yml for per-project model config; 100+ language support including MATLAB/Clojure; voice-to-code; auto-lint/test on edit; prompt caching; git-native auto-commit. Best for terminal-first YOLO workflows with local Qwen3.6/DeepSeek models. SWE-agent: Still research/CLI-focused, model-agnostic REST support, no GUI. New entrant: Kimi-Dev agent framework from Moonshot AI, optimized for Kimi K2.5 MoE local inference on high-memory hardware."
+          },
+          "severity": "info",
+          "is_new": false
+        }
+      ]
     }
-  ]
+  ],
+  "store_check": {
+    "timestamp": "2026-04-28T09:07:43.514775",
+    "results": [
+      {
+        "key": "mac_studio_128gb_india",
+        "label": "Mac Studio M4 Max 128GB/512GB (Apple India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 364900.0,
+        "currency": "INR",
+        "target_config_selectable": true,
+        "continue_enabled": false,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "mac_studio_128gb_india_1tb",
+        "label": "Mac Studio M4 Max 128GB/1TB (Apple India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-1tb-storage",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 384900.0,
+        "currency": "INR",
+        "target_config_selectable": true,
+        "continue_enabled": false,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "mac_studio_128gb_us",
+        "label": "Mac Studio M4 Max 128GB/512GB (Apple US)",
+        "url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 3499.0,
+        "currency": "USD",
+        "target_config_selectable": true,
+        "continue_enabled": false,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "mac_mini_48gb_india",
+        "label": "Mac Mini M4 Pro 48GB/512GB (Apple India)",
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 189900.0,
+        "currency": "INR",
+        "target_config_selectable": false,
+        "continue_enabled": true,
+        "availability_signal": "config_validated",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "mac_mini_48gb_us",
+        "label": "Mac Mini M4 Pro 48GB/512GB (Apple US)",
+        "url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 1799.0,
+        "currency": "USD",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "apple_refurbished_india",
+        "label": "Mac Studio Refurbished (Apple India)",
+        "url": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+        "page_reachable": false,
+        "sku_present": false,
+        "price": null,
+        "currency": "INR",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "unreachable",
+        "playwright_status": "http_fallback_error_404",
+        "delivery_info": null,
+        "fallback_used": "http"
+      },
+      {
+        "key": "apple_refurbished_us",
+        "label": "Mac Studio Refurbished (Apple US)",
+        "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 6369.0,
+        "currency": "USD",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "framework_desktop_128gb",
+        "label": "Framework Desktop Strix Halo 128GB (Framework US)",
+        "url": "https://frame.work/desktop",
+        "page_reachable": true,
+        "sku_present": false,
+        "price": null,
+        "currency": "USD",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "page_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "bosgame_m5_128gb",
+        "label": "Bosgame M5 Strix Halo 128GB (Bosgame Official)",
+        "url": "https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": "2599",
+        "currency": "USD",
+        "target_config_selectable": true,
+        "continue_enabled": false,
+        "availability_signal": "in_stock_schema",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "beelink_gtr9_pro_128gb",
+        "label": "Beelink GTR9 Pro Strix Halo 128GB (Beelink Official)",
+        "url": "https://www.bee-link.com/products/beelink-gtr9-pro-amd-ryzen-ai-max-395-processor-openclaw",
+        "page_reachable": true,
+        "sku_present": false,
+        "price": 3399.0,
+        "currency": "USD",
+        "target_config_selectable": true,
+        "continue_enabled": false,
+        "availability_signal": "add_to_cart",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "minisforum_ms_s1_max",
+        "label": "Minisforum MS-S1 Max Strix Halo 128GB (Minisforum Store)",
+        "url": "https://store.minisforum.com/products/minisforum-ms-s1-max-mini-pc",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": 3119.0,
+        "currency": "USD",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "out_of_stock",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "corsair_ws300",
+        "label": "Corsair AI WS 300 Strix Halo 128GB (Corsair US)",
+        "url": "https://www.corsair.com/us/en/p/gaming-computers/cs-9080003-na/corsair-ai-workstation-300-amd-ryzen-ai-max-395-processor-amd-radeon-8060s-igpu-up-to-96gb-vram-128gb-lpddr5x-memory-4tb-2tb-2tb-m2-ssd-win11-home-cs-9080003-na",
+        "page_reachable": true,
+        "sku_present": true,
+        "price": "3399.99",
+        "currency": "USD",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "out_of_stock",
+        "playwright_status": "http_fallback_ok",
+        "delivery_info": "delivery by 04/29/2026-05/01/2026 60-days risk free returns SYSTEM CPU AMD Ryzen",
+        "fallback_used": "http"
+      },
+      {
+        "key": "amd_strix_halo_128gb_india",
+        "label": "ASUS ProArt PX13 Strix Halo 128GB (Amazon India)",
+        "url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL",
+        "page_reachable": true,
+        "sku_present": false,
+        "price": null,
+        "currency": "INR",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "page_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "rtx_5090_india",
+        "label": "NVIDIA RTX 5090 Founders Edition (Amazon India)",
+        "url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
+        "page_reachable": true,
+        "sku_present": false,
+        "price": null,
+        "currency": "INR",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "page_only",
+        "playwright_status": "ok",
+        "delivery_info": null
+      },
+      {
+        "key": "rtx_5090_flipkart",
+        "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
+        "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
+        "page_reachable": false,
+        "sku_present": false,
+        "price": null,
+        "currency": "INR",
+        "target_config_selectable": false,
+        "continue_enabled": false,
+        "availability_signal": "unreachable",
+        "playwright_status": "http_fallback_error",
+        "delivery_info": null,
+        "fallback_used": "http"
+      }
+    ]
+  },
+  "dynamic_stores": {
+    "stores": [],
+    "pruned": []
+  }
 }

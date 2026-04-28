@@ -114,15 +114,20 @@ PROMPTS = {
 
     "models_and_agents": (
         "You are an AI model monitoring agent. Today is {date}. "
-        "GOAL: Find models that run well locally for 24/7 YOLO coding agents. "
-        "Target hardware: 48-128GB unified memory (Apple/Strix Halo) or 24-32GB VRAM (RTX 5090). "
-        "Need: 30B-70B inference + 7B-14B fine-tuning capability. "
+        "GOAL: Find the best models and tools for 24/7 LOCAL autonomous coding agents. "
+        "Target hardware: 48-128GB unified memory (Apple Silicon/Strix Halo) or 24-32GB VRAM (RTX 5090). "
+        "Need: models good at coding (30B-70B inference) + smaller models for fine-tuning (7B-14B). "
         "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
         "Check each of these 4 items and return exactly this structure: "
-        '{{"new_moe_models": {{"found": false, "info": "any MoE model better than Qwen3-30B-A3B for coding on 48-128GB unified memory or 24-32GB VRAM"}}, '
-        '"new_coding_models": {{"found": false, "info": "new local coding models (30B-70B) released in last 30 days that run well on unified memory or RTX 5090"}}, '
-        '"mlx_llama_cpp": {{"info": "latest MLX and llama.cpp updates for Apple Silicon and AMD iGPU (Strix Halo ROCm/Vulkan)"}}, '
-        '"coding_agents": {{"info": "updates to OpenHands, Aider, SWE-agent, Copilot CLI, or new YOLO coding agent frameworks. Focus on local-model support"}}}} '
+        '{{"best_local_coding_models": {{"found": false, "info": "Best models released in last 30 days for LOCAL coding tasks — any architecture (dense, MoE, hybrid). '
+        "Must run on 48-128GB unified memory or 24-32GB VRAM. Compare on: HumanEval/SWE-bench scores, tok/s on target hardware, quantization options. "
+        'Current baseline: Qwen3-30B-A3B ~160 tok/s on M4 Max 128GB. Report anything that beats this for coding."}}, '
+        '"fine_tuning_models": {{"found": false, "info": "Best 7B-14B models for fine-tuning on coding tasks that run on 48-128GB RAM. '
+        'New releases, LoRA/QLoRA support, training frameworks. Any breakthroughs in efficient fine-tuning?"}}, '
+        '"inference_runtimes": {{"info": "Latest updates to ANY local inference runtime or engine — MLX, llama.cpp, vLLM, Ollama, exllamav2, TensorRT-LLM, etc. '
+        'Focus on: Apple Silicon optimizations, AMD iGPU (Strix Halo ROCm/Vulkan) support, speed improvements, new model support."}}, '
+        '"coding_agent_frameworks": {{"info": "Latest autonomous coding agent frameworks and tools — ANY framework that supports local models for YOLO/unattended coding. '
+        'New releases, major updates, local-model performance comparisons. Which frameworks work best with 30B-70B local models?"}}}}} '
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
 
@@ -150,16 +155,18 @@ PROMPTS = {
 ENRICHMENT_PROMPTS = {
     "models_deep": (
         "You are an AI researcher. Today is {date}. "
-        "GOAL: Find the best local models for 24/7 YOLO coding agents on 48-128GB unified memory or 24-32GB VRAM. "
-        "Need: 30B-70B inference + 7B-14B fine-tuning. "
+        "GOAL: Find the best local models and tools for 24/7 autonomous coding agents on 48-128GB unified memory or 24-32GB VRAM. "
+        "Primary task: CODING. Need: 30B-70B inference + 7B-14B fine-tuning. "
         "Do deep web searches for each item below. Return ONLY JSON with detailed analysis and source links. "
-        '{{"new_moe_models": {{"analysis": "2-3 paragraphs on MoE models for local coding. Include benchmark scores, tok/s on 128GB unified memory, quantization options, comparison with Qwen3-30B-A3B. How do they perform for coding agents?", '
+        '{{"best_local_coding_models": {{"analysis": "2-3 paragraphs on the best local models for coding right now — any architecture (dense, MoE, hybrid). '
+        "Include benchmark scores (HumanEval, SWE-bench, LiveCodeBench), tok/s on 128GB unified memory and 32GB VRAM, quantization options. "
+        'Current baseline: Qwen3-30B-A3B ~160 tok/s on M4 Max. What beats this for coding?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"new_coding_models": {{"analysis": "2-3 paragraphs on new local coding models (30B-70B). Benchmark scores on HumanEval/SWE-bench, tok/s on target hardware, best quantization for 48-128GB RAM. Any good for fine-tuning at 7B-14B?", '
+        '"fine_tuning_models": {{"analysis": "2-3 paragraphs on best 7B-14B models for coding fine-tuning. LoRA/QLoRA feasibility on 48-128GB RAM, training frameworks, datasets. Any breakthroughs?", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"mlx_llama_cpp": {{"analysis": "Latest MLX and llama.cpp updates. Performance improvements, new model support, Apple Silicon + AMD ROCm/Vulkan optimizations", '
+        '"inference_runtimes": {{"analysis": "Latest local inference runtime updates — ANY engine. Performance improvements, new model support, Apple Silicon + AMD ROCm/Vulkan optimizations, speculative decoding", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
-        '"coding_agents": {{"analysis": "Latest coding agent frameworks. OpenHands, Aider, SWE-agent updates. Which support local 30B-70B models best? New YOLO/autonomous capabilities?", '
+        '"coding_agent_frameworks": {{"analysis": "Latest autonomous coding frameworks. Which support local 30B-70B models best? New YOLO/unattended capabilities? Comparison of local-model performance across frameworks.", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}}} '
         "1-3 REAL URLs per item. Replace all placeholders with real current data. ONLY JSON."
     ),
@@ -905,7 +912,7 @@ def build_dynamic_prompt_context(state: dict, category: str = "hardware") -> str
         # Inject last known model findings so Copilot looks for NEWER stuff
         models_data = checks.get("models_and_agents", {})
         model_facts = []
-        for key in ("new_moe_models", "new_coding_models", "coding_agents"):
+        for key in ("best_local_coding_models", "fine_tuning_models", "inference_runtimes", "coding_agent_frameworks"):
             item = models_data.get(key, {})
             info = item.get("info", "")[:100]
             if info:
@@ -1627,7 +1634,9 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         "minisforum_ms_s1_max", "corsair_ws300",
         "amd_strix_halo_128gb_india", "apple_refurbished",
         "rtx_5090_india", "rtx_5090_us",
-        "new_moe_models", "new_coding_models", "coding_agents",
+        "best_local_coding_models", "fine_tuning_models",
+        "coding_agent_frameworks", "inference_runtimes",
+        "new_hardware_discoveries", "new_products_from_blogs",
         "strix_halo_deals", "gpu_deals_india",
     }
     for cat, data in checks.items():
