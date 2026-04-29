@@ -29,6 +29,7 @@ import asyncio
 import urllib.request
 import urllib.error
 import ssl
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
@@ -47,8 +48,9 @@ STATE_FILE = MONITOR_DIR / "monitor_state.json"
 LOG_FILE = MONITOR_DIR / "monitor.log"
 DASHBOARD_FILE = MONITOR_DIR / "LLM-Hardware-Monitor.html"
 
-# Use .cmd wrapper so subprocess can find it (not .ps1)
-COPILOT_CMD = r"C:\ProgramData\global-npm\copilot.cmd"
+# Call node directly with npm-loader.js to bypass .cmd metacharacter issues
+COPILOT_CMD = "node"
+COPILOT_SCRIPT = r"C:\ProgramData\global-npm\node_modules\@github\copilot\npm-loader.js"
 
 # Copilot invocation flags — use text mode (more reliable than json for subprocess)
 COPILOT_FLAGS = [
@@ -127,7 +129,7 @@ PROMPTS = {
         '"inference_runtimes": {{"info": "Latest updates to ANY local inference runtime or engine — MLX, llama.cpp, vLLM, Ollama, exllamav2, TensorRT-LLM, etc. '
         'Focus on: Apple Silicon optimizations, AMD iGPU (Strix Halo ROCm/Vulkan) support, speed improvements, new model support."}}, '
         '"coding_agent_frameworks": {{"info": "Latest autonomous coding agent frameworks and tools — ANY framework that supports local models for YOLO/unattended coding. '
-        'New releases, major updates, local-model performance comparisons. Which frameworks work best with 30B-70B local models?"}}}}} '
+        'New releases, major updates, local-model performance comparisons. Which frameworks work best with 30B-70B local models?"}}}}}} '
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
 
@@ -210,14 +212,10 @@ def save_state(state: dict):
 def run_copilot(prompt: str, timeout: int = 180) -> str:
     """Run a Copilot CLI prompt and return the raw response text.
     
-    Uses -s (silent) text mode. The response will contain tool progress
-    indicators followed by the actual response. JSON extraction is handled
-    by parse_json_response().
+    Calls node directly with the npm-loader.js script, bypassing the .cmd
+    wrapper to avoid cmd.exe metacharacter interpretation issues on Windows.
     """
-    # .cmd files are invoked via cmd.exe which interprets shell metacharacters
-    # even in list-mode subprocess. Escape them with ^ for safety.
-    safe_prompt = prompt.replace("|", "^|").replace("&", "^&").replace("<", "^<").replace(">", "^>")
-    cmd = [COPILOT_CMD, "-p", safe_prompt] + COPILOT_FLAGS
+    cmd = [COPILOT_CMD, COPILOT_SCRIPT, "-p", prompt] + COPILOT_FLAGS
     logger.info(f"Running Copilot prompt ({len(prompt)} chars)...")
 
     try:
@@ -249,7 +247,7 @@ def run_copilot(prompt: str, timeout: int = 180) -> str:
         logger.error(f"Copilot timed out after {timeout}s")
         return ""
     except FileNotFoundError:
-        logger.error("Copilot CLI not found! Is it installed and in PATH?")
+        logger.error("Copilot CLI not found! Is node installed and in PATH?")
         return ""
     except Exception as e:
         logger.error(f"Copilot invocation failed: {e}")
@@ -357,7 +355,10 @@ def run_copilot_with_retry(prompt: str, category: str = None,
 
     Returns (raw_response, parsed_dict_or_None).
     """
+    response = ""
     for attempt in range(max_retries):
+        if attempt > 0:
+            time.sleep(3)  # brief pause before retry to avoid race conditions
         response = run_copilot(prompt, timeout=timeout)
         if not response:
             logger.warning(f"Attempt {attempt + 1}/{max_retries}: empty response")
@@ -965,9 +966,15 @@ def update_dynamic_stores(state: dict, store_results: list[dict]) -> dict:
                 cur = result.get("currency", entry.get("currency", "USD"))
                 entry["label"] = entry["label"].replace("Discovered: ", "")
                 if cur == "INR":
-                    entry["label"] += f" ~₹{price:,.0f}"
+                    try:
+                        entry["label"] += f" ~₹{float(price):,.0f}"
+                    except (ValueError, TypeError):
+                        entry["label"] += f" ~₹{price}"
                 else:
-                    entry["label"] += f" ~${price:,.0f}"
+                    try:
+                        entry["label"] += f" ~${float(price):,.0f}"
+                    except (ValueError, TypeError):
+                        entry["label"] += f" ~${price}"
 
         elif is_strong_failure:
             entry["consecutive_failures"] = entry.get("consecutive_failures", 0) + 1
@@ -1040,7 +1047,10 @@ def build_dynamic_prompt_context(state: dict, category: str = "hardware") -> str
             label = r.get("label", r.get("key", "?"))
 
             if price:
-                ps = f"₹{price:,.0f}" if cur == "INR" else f"${price:,.0f}"
+                try:
+                    ps = f"₹{float(price):,.0f}" if cur == "INR" else f"${float(price):,.0f}"
+                except (ValueError, TypeError):
+                    ps = f"{cur} {price}"
                 known_facts.append(f"{label}: {ps} ({sig})")
             elif sig != "unreachable":
                 known_facts.append(f"{label}: ({sig})")
@@ -1800,7 +1810,10 @@ def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
                 sig = result.get("availability_signal", "unknown")
                 price = result.get("price")
                 cur = result.get("currency", "USD")
-                price_str = f"₹{price:,.0f}" if cur == "INR" and price else (f"${price:,.0f}" if price else "unknown")
+                try:
+                    price_str = f"₹{float(price):,.0f}" if cur == "INR" and price else (f"${float(price):,.0f}" if price else "unknown")
+                except (ValueError, TypeError):
+                    price_str = f"{cur} {price}" if price else "unknown"
                 hw[rkey] = {
                     "available": sig in ("config_validated", "add_to_cart", "in_stock_schema"),
                     "info": f"[Discovered] {result.get('label', rkey)} — {sig}, {price_str}",
@@ -3023,7 +3036,11 @@ def main():
     today = datetime.now().strftime("%B %d, %Y")
 
     # Run each category prompt
+    first_category = True
     for category, prompt_template in PROMPTS.items():
+        if not first_category:
+            time.sleep(5)  # brief pause between API calls to avoid .cmd race conditions
+        first_category = False
         logger.info(f"--- Checking: {category} ---")
         prompt = prompt_template.format(date=today)
         # Inject dynamic context (known facts, discoveries, model history) per category
