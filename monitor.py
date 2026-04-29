@@ -1992,6 +1992,27 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         if cap_items:
             cap_summary = f" Candidates: {'; '.join(cap_items[:6])}."
 
+    # Build store availability summary from Playwright-verified data
+    avail_lines = []
+    if state:
+        store_results = state.get("store_check", {}).get("results", [])
+        for r in store_results:
+            sig = r.get("availability_signal", "unknown")
+            label = r.get("label", r.get("key", "?"))
+            price = r.get("price")
+            cur = r.get("currency", "USD")
+            if sig in ("config_validated", "add_to_cart", "in_stock_schema"):
+                try:
+                    ps = f"₹{float(price):,.0f}" if cur == "INR" and price else (f"${float(price):,.0f}" if price else "")
+                except (ValueError, TypeError):
+                    ps = ""
+                avail_lines.append(f"{label}: IN STOCK {ps}")
+            elif sig == "out_of_stock":
+                avail_lines.append(f"{label}: OUT OF STOCK")
+            elif sig == "metadata_only":
+                avail_lines.append(f"{label}: PAGE EXISTS BUT NOT ORDERABLE")
+        avail_summary = " VERIFIED STORE STATUS: " + "; ".join(avail_lines[:10]) + "." if avail_lines else ""
+
     prev_text = ""
     if prev_recs:
         last = prev_recs[-1].get("data", {})
@@ -2006,8 +2027,11 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         f"Ruled out: RTX 4090 (discontinued), 4070 Ti Super/5080 (16GB too small), dual GPU (unreliable). "
         f"Qwen3-30B-A3B: ~160 tok/s M4 Max, ~70 tok/s Strix Halo. "
         f"Sonnet 4.6 cloud 24/7=INR 1.32Cr/yr. Apple warranty works globally."
-        f"{cap_summary}{prev_text} "
+        f"{cap_summary}{avail_summary}{prev_text} "
         f"Market: {context} "
+        "CRITICAL RULE: Do NOT recommend buy_now for any product that is NOT ORDERABLE or OUT OF STOCK. "
+        "Only recommend buy_now if the product shows IN STOCK in VERIFIED STORE STATUS above. "
+        "If best product is unavailable, recommend wait or consider_alternative. "
         "Search web for latest. Return ONLY JSON: "
         '{"recommendation": "buy_now or wait or consider_alternative", '
         '"best_option": "product name+config", '
