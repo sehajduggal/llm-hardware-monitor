@@ -332,6 +332,52 @@ def parse_json_response(text: str) -> dict | None:
     return None
 
 
+# Expected keys per category — used for schema validation on parse
+EXPECTED_KEYS = {
+    "hardware": {"mac_studio_m5", "mac_studio_128gb_india", "mac_studio_128gb_us"},
+    "models_and_agents": {"best_local_coding_models", "inference_runtimes"},
+    "deals_and_blogs": {"apple_india_deals", "latest_local_llm_news"},
+}
+
+
+def _validate_response_schema(parsed: dict, category: str) -> bool:
+    """Check if parsed JSON has minimum expected keys for the category."""
+    expected = EXPECTED_KEYS.get(category)
+    if not expected:
+        return True  # no schema defined, accept anything
+    present = set(parsed.keys())
+    overlap = present & expected
+    # Require at least half the expected keys
+    return len(overlap) >= len(expected) / 2
+
+
+def run_copilot_with_retry(prompt: str, category: str = None,
+                           timeout: int = 180, max_retries: int = 2) -> tuple[str, dict | None]:
+    """Run Copilot CLI and parse JSON, retrying on parse failure or schema mismatch.
+
+    Returns (raw_response, parsed_dict_or_None).
+    """
+    for attempt in range(max_retries):
+        response = run_copilot(prompt, timeout=timeout)
+        if not response:
+            logger.warning(f"Attempt {attempt + 1}/{max_retries}: empty response")
+            continue
+
+        parsed = parse_json_response(response)
+        if parsed:
+            if category and not _validate_response_schema(parsed, category):
+                logger.warning(
+                    f"Attempt {attempt + 1}/{max_retries}: schema mismatch for {category} "
+                    f"(got keys: {list(parsed.keys())[:5]})"
+                )
+                continue
+            return response, parsed
+
+        logger.warning(f"Attempt {attempt + 1}/{max_retries}: JSON parse failed")
+
+    return response if response else "", None
+
+
 # ─── Store Availability Checker (Playwright) ─────────────────────────────────
 
 STORE_CHECK_CONFIGS = [
@@ -551,6 +597,128 @@ TRUSTED_STORE_DOMAINS = {
     "elitehubs.com", "vedantcomputers.com", "theitdepot.com",
     "croma.com", "reliance.digital", "pcstudio.in",
 }
+
+
+# ─── Capability Sheet (structured workload-fit data per candidate) ───────────
+
+# Seed data from our prior research — updated by enrichment runs
+CAPABILITY_SHEET_SEED = {
+    "mac_studio_m4_max_128gb": {
+        "name": "Mac Studio M4 Max 128GB",
+        "memory_gb": 128, "memory_type": "unified", "bandwidth_gbs": 546,
+        "chip": "M4 Max", "gpu_cores": 40,
+        "tok_s_30b_q4": 160, "tok_s_70b_q4": 28, "model_used": "Qwen3-30B-A3B / Llama-70B",
+        "max_context_30b": 128000, "max_context_70b": 32000,
+        "fine_tune_7b": "QLoRA feasible", "fine_tune_14b": "QLoRA tight, ~2 tok/s training",
+        "power_idle_w": 20, "power_load_w": 185, "noise": "fan audible under sustained load",
+        "always_on_suitability": "excellent", "os": "macOS",
+        "price_inr": 364900, "price_usd": 3499,
+        "buy_regions": ["India", "USA", "Canada"], "warranty": "global Apple warranty",
+    },
+    "mac_mini_m4_pro_48gb": {
+        "name": "Mac Mini M4 Pro 48GB",
+        "memory_gb": 48, "memory_type": "unified", "bandwidth_gbs": 273,
+        "chip": "M4 Pro", "gpu_cores": 20,
+        "tok_s_30b_q4": 80, "tok_s_70b_q4": None, "model_used": "Qwen3-30B-A3B",
+        "max_context_30b": 64000, "max_context_70b": None,
+        "fine_tune_7b": "QLoRA feasible", "fine_tune_14b": "not feasible (memory)",
+        "power_idle_w": 7, "power_load_w": 65, "noise": "very quiet",
+        "always_on_suitability": "excellent", "os": "macOS",
+        "price_inr": 189900, "price_usd": 1799,
+        "buy_regions": ["India", "USA", "Canada"], "warranty": "global Apple warranty",
+    },
+    "bosgame_m5_128gb": {
+        "name": "Bosgame M5 Strix Halo 128GB",
+        "memory_gb": 128, "memory_type": "unified", "bandwidth_gbs": 256,
+        "chip": "Ryzen AI Max+ 395", "gpu_cores": 40,
+        "tok_s_30b_q4": 70, "tok_s_70b_q4": 15, "model_used": "Qwen3-30B-A3B / Llama-70B",
+        "max_context_30b": 128000, "max_context_70b": 16000,
+        "fine_tune_7b": "QLoRA feasible (ROCm)", "fine_tune_14b": "QLoRA possible but slow",
+        "power_idle_w": 25, "power_load_w": 120, "noise": "moderate fan noise",
+        "always_on_suitability": "good", "os": "Windows/Linux",
+        "price_inr": None, "price_usd": 2599,
+        "buy_regions": ["USA"], "warranty": "1yr manufacturer (no India service)",
+    },
+    "framework_desktop_128gb": {
+        "name": "Framework Desktop Strix Halo 128GB",
+        "memory_gb": 128, "memory_type": "unified", "bandwidth_gbs": 256,
+        "chip": "Ryzen AI Max+ 395", "gpu_cores": 40,
+        "tok_s_30b_q4": 70, "tok_s_70b_q4": 15, "model_used": "Qwen3-30B-A3B / Llama-70B",
+        "max_context_30b": 128000, "max_context_70b": 16000,
+        "fine_tune_7b": "QLoRA feasible (ROCm)", "fine_tune_14b": "QLoRA possible but slow",
+        "power_idle_w": None, "power_load_w": None, "noise": "unknown",
+        "always_on_suitability": "likely good", "os": "Windows/Linux",
+        "price_inr": None, "price_usd": 1999,
+        "buy_regions": ["USA"], "warranty": "Framework warranty (no India service)",
+    },
+    "mac_studio_m5_max_128gb": {
+        "name": "Mac Studio M5 Max 128GB (expected)",
+        "memory_gb": 128, "memory_type": "unified", "bandwidth_gbs": 614,
+        "chip": "M5 Max (expected)", "gpu_cores": 40,
+        "tok_s_30b_q4": None, "tok_s_70b_q4": None, "model_used": "estimated ~12% faster than M4 Max",
+        "max_context_30b": None, "max_context_70b": None,
+        "fine_tune_7b": "QLoRA feasible (expected)", "fine_tune_14b": "likely feasible",
+        "power_idle_w": None, "power_load_w": None, "noise": "expected similar to M4",
+        "always_on_suitability": "expected excellent", "os": "macOS",
+        "price_inr": None, "price_usd": None,
+        "buy_regions": ["India", "USA", "Canada"], "warranty": "global Apple warranty",
+    },
+}
+
+
+def update_capability_sheet(state: dict, store_results: list[dict] = None,
+                            enrichment: dict = None) -> dict:
+    """Update the persistent capability sheet from store results and enrichment.
+
+    Merges new data into existing sheet, never overwriting with None.
+    """
+    sheet = state.get("capability_sheet", {})
+
+    # Seed with defaults for any missing candidates
+    for key, seed in CAPABILITY_SHEET_SEED.items():
+        if key not in sheet:
+            sheet[key] = dict(seed)
+
+    # Update prices from store results
+    if store_results:
+        store_to_sheet = {
+            "mac_studio_128gb_india": "mac_studio_m4_max_128gb",
+            "mac_studio_128gb_us": "mac_studio_m4_max_128gb",
+            "mac_mini_48gb_india": "mac_mini_m4_pro_48gb",
+            "mac_mini_48gb_us": "mac_mini_m4_pro_48gb",
+            "bosgame_m5_128gb": "bosgame_m5_128gb",
+            "framework_desktop_128gb": "framework_desktop_128gb",
+        }
+        for result in store_results:
+            sheet_key = store_to_sheet.get(result["key"])
+            if not sheet_key or sheet_key not in sheet:
+                continue
+            if result.get("price"):
+                price_field = "price_inr" if result["currency"] == "INR" else "price_usd"
+                sheet[sheet_key][price_field] = result["price"]
+            sig = result.get("availability_signal", "")
+            if sig in ("config_validated", "add_to_cart", "in_stock_schema"):
+                sheet[sheet_key]["currently_available"] = True
+            elif sig == "out_of_stock":
+                sheet[sheet_key]["currently_available"] = False
+
+    # Update from enrichment analysis
+    if enrichment:
+        for key, enr_data in enrichment.items():
+            if not isinstance(enr_data, dict):
+                continue
+            analysis = enr_data.get("analysis", "")
+            if not analysis:
+                continue
+            for sheet_key in sheet:
+                if sheet_key.replace("_", " ") in key.replace("_", " ") or key.replace("_", " ") in sheet_key.replace("_", " "):
+                    sheet[sheet_key]["last_enrichment"] = analysis[:500]
+                    sheet[sheet_key]["enrichment_date"] = datetime.now().strftime("%Y-%m-%d")
+                    break
+
+    state["capability_sheet"] = sheet
+    return state
+
 
 # Store type inference from domain
 DOMAIN_STORE_TYPE = {
@@ -1469,11 +1637,45 @@ async def _check_all_stores(state: dict = None) -> list[dict]:
     return results
 
 
+def _tag_freshness(results: list[dict]) -> list[dict]:
+    """Tag each store result with a freshness level.
+
+    - 'fresh_verified': Playwright primary or stealth success
+    - 'partial': HTTP-only fallback (no JS rendering)
+    - 'stale': from cache, older data
+    """
+    for r in results:
+        fallback = r.get("fallback_used")
+        if fallback == "stale_cache":
+            r["freshness"] = "stale"
+            # Compute stale age
+            stale_from = r.get("stale_from", "")
+            if stale_from and stale_from != "unknown":
+                try:
+                    stale_dt = datetime.fromisoformat(stale_from)
+                    r["stale_hours"] = round((datetime.now() - stale_dt).total_seconds() / 3600, 1)
+                except (ValueError, TypeError):
+                    r["stale_hours"] = None
+        elif fallback == "http":
+            r["freshness"] = "partial"
+        else:
+            # Primary playwright or stealth retry — check if actually successful
+            if r.get("playwright_status", "").startswith("ok"):
+                r["freshness"] = "fresh_verified"
+            elif r.get("page_reachable"):
+                r["freshness"] = "partial"
+            else:
+                r["freshness"] = "stale" if r.get("availability_signal") != "unreachable" else "unknown"
+        r["checked_at"] = datetime.now().isoformat()
+    return results
+
+
 def check_store_availability(state: dict = None) -> list[dict]:
     """Sync wrapper for all store availability checks.
 
     Fallback chain: Playwright → Playwright stealth retry → HTTP GET → stale cache.
     Returns list of result dicts, or empty list if Playwright unavailable.
+    Each result gets a 'freshness' field: 'fresh_verified', 'partial', or 'stale'.
     """
     if not HAS_PLAYWRIGHT:
         logger.warning(
@@ -1491,10 +1693,10 @@ def check_store_availability(state: dict = None) -> list[dict]:
                 if cached:
                     result = cached
             results.append(result)
-        return results
+        return _tag_freshness(results)
 
     try:
-        return asyncio.run(_check_all_stores(state=state or {}))
+        return _tag_freshness(asyncio.run(_check_all_stores(state=state or {})))
     except Exception as e:
         logger.error(f"Store availability check failed: {e}")
         # Last resort: HTTP fallback for everything
@@ -1508,7 +1710,7 @@ def check_store_availability(state: dict = None) -> list[dict]:
                 if cached:
                     result = cached
             results.append(result)
-        return results
+        return _tag_freshness(results)
 
 
 def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
@@ -1560,6 +1762,10 @@ def merge_playwright_results(checks: dict, store_results: list[dict]) -> dict:
                 existing["availability_signal"] = result["availability_signal"]
                 existing["playwright_status"] = result["playwright_status"]
                 existing["store_url"] = result["url"]
+                existing["freshness"] = result.get("freshness", "unknown")
+                if result.get("stale_hours"):
+                    existing["stale_hours"] = result["stale_hours"]
+                existing["checked_at"] = result.get("checked_at", "")
 
                 if result["price"] is not None:
                     price_key = "price_inr" if result["currency"] == "INR" else "price_usd"
@@ -1727,7 +1933,8 @@ def _run_discovery_enrichment(enrichment: dict, today: str, state: dict) -> dict
     return enrichment
 
 
-def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list, today: str) -> str:
+def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
+                                today: str, state: dict = None) -> str:
     """Build a compact recommendation prompt (must stay under ~6000 chars for Windows cmd limit)."""
     # Compile concise market snapshot — key items only
     context_lines = []
@@ -1756,6 +1963,22 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
 
     context = "; ".join(context_lines)
 
+    # Build compact capability sheet summary for recommendation context
+    cap_summary = ""
+    if state:
+        sheet = state.get("capability_sheet", {})
+        cap_items = []
+        for key, data in sheet.items():
+            name = data.get("name", key)
+            mem = data.get("memory_gb", "?")
+            t30 = data.get("tok_s_30b_q4")
+            avail = data.get("currently_available")
+            avail_str = "avail" if avail else ("OOS" if avail is False else "?")
+            t30_str = f"{t30}tok/s" if t30 else "?"
+            cap_items.append(f"{name}: {mem}GB, {t30_str}@30B, {avail_str}")
+        if cap_items:
+            cap_summary = f" Candidates: {'; '.join(cap_items[:6])}."
+
     prev_text = ""
     if prev_recs:
         last = prev_recs[-1].get("data", {})
@@ -1768,10 +1991,9 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         f"Fine-tuning 7B-14B. MoE models (Qwen3-30B-A3B) are a game-changer. "
         f"Current plan: wait for Mac Studio M5 Max 128GB (WWDC Jun 2026, ship ~Oct 2026). "
         f"Ruled out: RTX 4090 (discontinued), 4070 Ti Super/5080 (16GB too small), dual GPU (unreliable). "
-        f"Key facts: Mac Studio M4 Max 128GB India=INR 3.65L, Mac Mini 48GB=INR 1.9L, "
-        f"Bosgame M5 128GB=$1699-2599, Framework Desktop 128GB=$1999. "
         f"Qwen3-30B-A3B: ~160 tok/s M4 Max, ~70 tok/s Strix Halo. "
-        f"Sonnet 4.6 cloud 24/7=INR 1.32Cr/yr. Apple warranty works globally.{prev_text} "
+        f"Sonnet 4.6 cloud 24/7=INR 1.32Cr/yr. Apple warranty works globally."
+        f"{cap_summary}{prev_text} "
         f"Market: {context} "
         "Search web for latest. Return ONLY JSON: "
         '{"recommendation": "buy_now or wait or consider_alternative", '
@@ -1784,15 +2006,18 @@ def build_recommendation_prompt(checks: dict, enrichment: dict, prev_recs: list,
         '"cost_estimate_inr": "total INR", '
         '"buy_links": [{"url": "link", "title": "name", "desc": "brief"}], '
         '"wait_for": "what+timeline if wait", '
+        '"next_milestone": "next key date/event to watch (e.g. WWDC June 9, Bosgame M5 restock, etc)", '
+        '"fallback_now": "if user needs something TODAY, what is the best available option right now with price and store link", '
         '"confidence": "high or medium or low", '
-        '"changed_since_last": "what changed or first_run"} '
+        '"changed_since_last": "what changed since yesterday or first_run"} '
         "Real data only. ONLY JSON."
     )
 
 
-def run_recommendation(checks: dict, enrichment: dict, prev_recs: list, today: str) -> dict | None:
+def run_recommendation(checks: dict, enrichment: dict, prev_recs: list,
+                       today: str, state: dict = None) -> dict | None:
     """Generate daily setup recommendation based on all current data."""
-    prompt = build_recommendation_prompt(checks, enrichment, prev_recs, today)
+    prompt = build_recommendation_prompt(checks, enrichment, prev_recs, today, state=state)
     logger.info(f"--- Daily Recommendation ({len(prompt)} chars) ---")
     response = run_copilot(prompt, timeout=300)
     if not response:
@@ -2042,6 +2267,15 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
                         color = "var(--green)" if val else "var(--dim)"
                         bl = bk.replace("_", " ").title()
                         flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
+                # Freshness indicator for store-checked items
+                freshness = data.get("freshness", "")
+                if freshness == "fresh_verified":
+                    flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>🟢 Fresh</span>'
+                elif freshness == "partial":
+                    flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>🟡 Partial</span>'
+                elif freshness == "stale":
+                    stale_h = data.get("stale_hours", "?")
+                    flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>🔴 Stale ({stale_h}h)</span>'
             elif isinstance(data, str):
                 info = data
 
@@ -2097,6 +2331,9 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
         rec_cost = rec.get("cost_estimate_inr", "")
         rec_confidence = rec.get("confidence", "medium")
         rec_wait = rec.get("wait_for", "")
+        rec_changed = rec.get("changed_since_last", "")
+        rec_milestone = rec.get("next_milestone", "")
+        rec_fallback = rec.get("fallback_now", "")
 
         rec_html = f'''
     <div class="rec-card" onclick="openRecModal()">
@@ -2113,6 +2350,9 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
         <span class="rec-meta-item">💰 <b>{esc(rec_cost)}</b></span>
         {f'<span class="rec-meta-item">⏳ <b>{esc(rec_wait[:80])}</b></span>' if rec_wait else ''}
       </div>
+      {f'<div class="rec-extra"><span class="rec-extra-item">🔄 {esc(rec_changed[:100])}</span></div>' if rec_changed and rec_changed != "first_run" else ''}
+      {f'<div class="rec-extra"><span class="rec-extra-item">📅 <b>Next:</b> {esc(rec_milestone[:100])}</span></div>' if rec_milestone else ''}
+      {f'<div class="rec-extra"><span class="rec-extra-item">⚡ <b>Fallback:</b> {esc(rec_fallback[:100])}</span></div>' if rec_fallback else ''}
       <span class="rec-hint">📖 Click for full analysis, model config, fine-tuning guide & buy links</span>
     </div>'''
 
@@ -2137,6 +2377,8 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
             "wait_for": rec.get("wait_for", ""),
             "changed_since_last": rec.get("changed_since_last", ""),
             "cost_estimate_inr": rec.get("cost_estimate_inr", ""),
+            "next_milestone": rec.get("next_milestone", ""),
+            "fallback_now": rec.get("fallback_now", ""),
         }
 
     # ── Serialize modal data for JS ──
@@ -2429,6 +2671,8 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
   }}
   .rec-meta-item {{ display: flex; align-items: center; gap: 6px; }}
   .rec-meta-item b {{ color: var(--text); font-weight: 600; }}
+  .rec-extra {{ margin-top: 8px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid var(--accent); }}
+  .rec-extra-item {{ font-size: 0.82em; color: var(--text); opacity: 0.85; }}
   .rec-hint {{
     display: block; margin-top: 12px; font-size: 0.75em; color: var(--accent); opacity: 0.7;
   }}
@@ -2694,6 +2938,12 @@ function openRecModal() {{
   if (rec.changed_since_last) {{
     analysisHtml += `<div class="rec-section"><h4>🔄 What Changed</h4><div class="rec-section-body">${{escH(rec.changed_since_last)}}</div></div>`;
   }}
+  if (rec.next_milestone) {{
+    analysisHtml += `<div class="rec-section"><h4>📅 Next Milestone</h4><div class="rec-section-body">${{escH(rec.next_milestone)}}</div></div>`;
+  }}
+  if (rec.fallback_now) {{
+    analysisHtml += `<div class="rec-section"><h4>⚡ Need Something Now?</h4><div class="rec-section-body">${{escH(rec.fallback_now)}}</div></div>`;
+  }}
 
   if (analysisHtml) {{
     analysisEl.innerHTML = analysisHtml;
@@ -2780,28 +3030,22 @@ def main():
         dynamic_context = build_dynamic_prompt_context(state, category=category)
         if dynamic_context:
             prompt = prompt + " " + dynamic_context
-        response = run_copilot(prompt)
 
-        if not response:
-            logger.error(f"Empty response for {category}")
-            run_status[category] = "error"
-            # Keep old data for this category
-            if category in old_checks:
-                new_checks[category] = old_checks[category]
-            continue
+        response, parsed = run_copilot_with_retry(prompt, category=category)
 
-        parsed = parse_json_response(response)
         if parsed:
             new_checks[category] = parsed
             run_status[category] = "success"
             logger.info(f"{category}: parsed successfully ({len(parsed)} items)")
         else:
             run_status[category] = "error"
-            logger.error(f"{category}: failed to parse JSON")
-            # Store raw response for debugging
-            raw_file = MONITOR_DIR / f"raw_{category}_{datetime.now().strftime('%Y%m%d')}.txt"
-            raw_file.write_text(response, encoding="utf-8")
-            # Keep old data
+            if response:
+                logger.error(f"{category}: failed to parse JSON after retries")
+                raw_file = MONITOR_DIR / f"raw_{category}_{datetime.now().strftime('%Y%m%d')}.txt"
+                raw_file.write_text(response, encoding="utf-8")
+            else:
+                logger.error(f"Empty response for {category} after retries")
+            # Keep old data for this category
             if category in old_checks:
                 new_checks[category] = old_checks[category]
 
@@ -2847,14 +3091,40 @@ def main():
     # Detect changes
     changes = detect_changes(old_checks, new_checks) if old_checks else []
 
-    # Run enrichment for richer modal content (analysis + links)
+    # Update capability sheet with latest store data
+    state = update_capability_sheet(state, store_results=store_results)
+
+    # Run enrichment — change-driven: skip if no changes and enrichment is fresh
     old_enrichment = state.get("enrichment", {})
-    enrichment = run_enrichment(old_enrichment, today, state=state)
-    state["enrichment"] = enrichment
+    enrichment_age_days = 999
+    if state.get("enrichment_timestamp"):
+        try:
+            enr_dt = datetime.fromisoformat(state["enrichment_timestamp"])
+            enrichment_age_days = (datetime.now() - enr_dt).days
+        except (ValueError, TypeError):
+            pass
+
+    should_enrich = (
+        enrichment_age_days >= 1  # at least 1 day old
+        or changes  # something changed
+        or not old_enrichment  # never run before
+    )
+
+    if should_enrich:
+        logger.info("--- Enrichment: running (change detected or stale) ---")
+        enrichment = run_enrichment(old_enrichment, today, state=state)
+        state["enrichment"] = enrichment
+        state["enrichment_timestamp"] = datetime.now().isoformat()
+    else:
+        logger.info("--- Enrichment: skipped (no changes, data fresh) ---")
+        enrichment = old_enrichment
+
+    # Update capability sheet with enrichment data too
+    state = update_capability_sheet(state, enrichment=enrichment)
 
     # Generate daily recommendation based on all data + user constraints
     prev_recs = state.get("recommendations", [])
-    rec_data = run_recommendation(new_checks, enrichment, prev_recs, today)
+    rec_data = run_recommendation(new_checks, enrichment, prev_recs, today, state=state)
     if rec_data:
         state["recommendation"] = rec_data
         rec_entry = {"date": datetime.now().strftime("%Y-%m-%d"), "data": rec_data}
