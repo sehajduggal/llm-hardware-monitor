@@ -2127,6 +2127,7 @@ def send_toast(title: str, message: str, severity: str = "info"):
     Features:
     - Click notification → opens dashboard HTML in default browser
     - App logo image for visual identity
+    - Persistent in Action Center (Scenario=Reminder + SnoozeAndDismiss)
     """
     icon = {"critical": "🚨", "important": "⚠️", "info": "ℹ️"}.get(severity, "ℹ️")
     full_title = f"{icon} LLM Hardware Monitor"
@@ -2140,7 +2141,7 @@ def send_toast(title: str, message: str, severity: str = "info"):
     dashboard_path = dashboard_uri.replace("'", "''")
     logo_path = str(MONITOR_DIR / "icon.png").replace("\\", "\\\\")
 
-    # Use BurntToast with click action to open dashboard, and app logo
+    # Use BurntToast with Reminder scenario for Action Center persistence
     ps_cmd = f"""
     Import-Module BurntToast -ErrorAction SilentlyContinue
 
@@ -2151,7 +2152,8 @@ def send_toast(title: str, message: str, severity: str = "info"):
     $textBinding2 = New-BTText -Text '{safe_msg}'
 
     $btnOpen = New-BTButton -Content 'Open Dashboard' -Arguments $dashUri -ActivationType Protocol
-    $actions = New-BTAction -Buttons $btnOpen
+    $btnDismiss = New-BTButton -Dismiss
+    $actions = New-BTAction -Buttons $btnOpen, $btnDismiss
 
     $bindingParams = @{{
         Children = $textBinding, $textBinding2
@@ -2165,7 +2167,8 @@ def send_toast(title: str, message: str, severity: str = "info"):
     $binding = New-BTBinding @bindingParams
     $visual = New-BTVisual -BindingGeneric $binding
 
-    $content = New-BTContent -Visual $visual -Actions $actions -Launch $dashUri -ActivationType Protocol
+    # Scenario=Reminder keeps the toast in Action Center until dismissed
+    $content = New-BTContent -Visual $visual -Actions $actions -Launch $dashUri -ActivationType Protocol -Scenario Reminder
 
     Submit-BTNotification -Content $content -UniqueIdentifier 'llm-monitor'
     """
@@ -2175,9 +2178,52 @@ def send_toast(title: str, message: str, severity: str = "info"):
             ["powershell", "-NoProfile", "-Command", ps_cmd],
             capture_output=True, timeout=15
         )
-        logger.info(f"Toast sent: {title} - {message}")
+        logger.info(f"Toast sent (persistent): {title} - {message}")
     except Exception as e:
         logger.warning(f"Toast notification failed: {e}")
+
+
+def write_desktop_summary(state: dict, changes: list[dict], run_status: dict):
+    """Write a quick-glance summary file to the desktop, overwritten each run."""
+    summary_path = Path(r"C:\Users\seduggal\Desktop\LLM-Monitor-Latest.txt")
+    dashboard_uri = "file:///" + str(DASHBOARD_FILE).replace("\\", "/")
+
+    rec = state.get("recommendation", {})
+    action = rec.get("recommendation", "unknown")
+    best_option = rec.get("best_option", "N/A")
+    reasoning = rec.get("reasoning", "No recommendation generated yet.")
+    # Truncate reasoning to 2 lines max
+    reasoning_lines = reasoning.replace("\r\n", "\n").split("\n")[:2]
+    reasoning_short = "\n".join(reasoning_lines)
+
+    status_str = "OK" if all(s == "success" for s in run_status.values()) else "Partial"
+    changes_summary = f"{len(changes)} change(s) detected" if changes else "No changes"
+
+    lines = [
+        "=" * 60,
+        "  LLM HARDWARE MONITOR — DAILY SUMMARY",
+        "=" * 60,
+        "",
+        f"  Run Time:       {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"  Run Status:     {status_str} ({changes_summary})",
+        "",
+        f"  Recommendation: {action.upper().replace('_', ' ')}",
+        f"  Best Option:    {best_option}",
+        "",
+        f"  Summary:",
+        f"    {reasoning_short}",
+        "",
+        "-" * 60,
+        f"  Dashboard: {dashboard_uri}",
+        "=" * 60,
+        "",
+    ]
+
+    try:
+        summary_path.write_text("\n".join(lines), encoding="utf-8")
+        logger.info(f"Desktop summary written to {summary_path}")
+    except Exception as e:
+        logger.warning(f"Failed to write desktop summary: {e}")
 
 
 def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
@@ -3176,7 +3222,7 @@ def main():
     else:
         logger.warning("Recommendation generation failed, keeping previous")
 
-    # Send notificationsfor important changes
+    # Send notifications — ALWAYS notify so user sees result even at 3:30 AM
     if changes:
         critical = [c for c in changes if c["severity"] == "critical"]
         important = [c for c in changes if c["severity"] == "important"]
@@ -3194,9 +3240,16 @@ def main():
     else:
         if old_checks:
             logger.info("No changes detected since last run")
+            rec = state.get("recommendation", {})
+            action = rec.get("recommendation", "wait")
+            best = rec.get("best_option", "N/A")
+            send_toast("✅ Daily Check Complete", f"No changes. Action: {action}. Best: {best}"[:200], "info")
         else:
             logger.info("First run — establishing baseline")
             send_toast("✅ Monitor Started", "LLM Hardware Monitor is now active!", "info")
+
+    # Always write desktop summary file as fallback notification
+    write_desktop_summary(state, changes, run_status)
 
     # Update state
     state["last_run"] = datetime.now().isoformat()
