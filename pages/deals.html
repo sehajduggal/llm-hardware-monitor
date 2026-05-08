@@ -353,19 +353,93 @@
 </style>
 </head>
 <body>
-<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link active">💰 Deals & News</a><span class="nav-time">Last: 2026-05-08 15:07:36</span></nav>
+<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link active">💰 Deals & News</a><span class="nav-time">Last: 2026-05-08 15:43:02</span></nav>
 
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>2026-05-08 15:07:36</b></div>
+    <div class="meta">Last check: <b>2026-05-08 15:43:02</b></div>
   </div>
 </div>
 
 <div class="content">
   <div class="page-title">💰 Deals & News</div>
   <div class="page-desc">Tracking Apple India deals, marketplace pricing, r/LocalLLaMA news, trending models, and other relevant blog posts and announcements.</div>
-  <div class="empty-state">No deals or news tracked yet.</div>
+  <div class="detail-cards">
+        <div class="timeline-card clickable" onclick="openModal('apple_india_deals')"
+             data-search="Apple India Deals Mac Studio M4 Max 128GB available to configure on apple.com/in — base M4 Max (36GB/512GB) starts at ₹2,14,900; 128GB configs estimated ₹3.5L–5L+. Education discount (~10% off) via UNiDAYS at apple.com/in-edu/store. Cashback ₹5,000–₹10,000 with select credit cards (HDFC, Axis, ICICI). Mac Mini M4 Pro 48GB/512GB confirmed at ₹1,89,900 — best value entry for local LLMs under ₹2L. No sitewide sale active currently. Deals &amp; News" data-item="apple_india_deals">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Apple India Deals</div>
+          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
+          <div class="card-info">Mac Studio M4 Max 128GB available to configure on apple.com/in — base M4 Max (36GB/512GB) starts at ₹2,14,900; 128GB configs estimated ₹3.5L–5L+. Educ…</div>
+          <span class="detail-hint">📖 Click for details</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('strix_halo_deals')"
+             data-search="Strix Halo Deals Bosgame M5 (Ryzen AI Max+ 395, 128GB/2TB) current price ~$2,699 on AliExpress (down from $3,299 launch); official site bosgamepc.com lists $2,799. Historical low was $1,699–$1,839 in late 2025 — no such deal active now. Framework Desktop 128GB/1TB ~$2,851 at frame.work/desktop. Beelink GTR9 Pro 128GB ~$2,999. Minisforum MS-S1 Max 128GB $3,199 (out of stock). Corsair AI WS 300 $3,400 (out of stock). No significant price drops vs. confirmed baseline prices currently active. Deals &amp; News" data-item="strix_halo_deals">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Strix Halo Deals</div>
+          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
+          <div class="card-info">Bosgame M5 (Ryzen AI Max+ 395, 128GB/2TB) current price ~$2,699 on AliExpress (down from $3,299 launch); official site bosgamepc.com lists $2,799. His…</div>
+          <span class="detail-hint">↗ Click for info</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('gpu_deals_india')"
+             data-search="Gpu Deals India RTX 5090 in India ranges ₹4,20,000–₹8,70,000 (well above ₹3.5L budget). Lowest seen: Gigabyte Windforce RTX 5090 ~₹4,46,969 on Amazon India (amazon.in/rtx-5090). Flipkart MSI Vanguard SOC listed ₹4,59,999 with offer price ~₹3,05,134 — verify this deal as it may be stale/seller-inflated. RTX 5080 starts ~₹1,71,599 (MSI Ventus 3X OC, Amazon India) and FE at ₹2,72,753. RTX 5080 at ₹1.7L is within budget but offers only 16GB VRAM. No RTX 5090 under ₹3.5L found. Deals &amp; News" data-item="gpu_deals_india">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Gpu Deals India</div>
+          <div class="card-flags"><span class="flag" style="color:var(--dim)"><span class="dot" style="background:var(--dim)"></span>Has Deals: No</span></div>
+          <div class="card-info">RTX 5090 in India ranges ₹4,20,000–₹8,70,000 (well above ₹3.5L budget). Lowest seen: Gigabyte Windforce RTX 5090 ~₹4,46,969 on Amazon India (amazon.in…</div>
+          <span class="detail-hint">↗ Click for info</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('mac_studio_marketplace')"
+             data-search="Mac Studio Marketplace Mac Studio M4 Max 128GB not directly listed as a standalone SKU on Amazon India or Flipkart — base 36GB config available on Flipkart at ₹2,14,900. Custom 128GB orders via apple.com/in with 2–3 week delivery. Apple Premium Resellers (iStore, Reliance Digital, Imagine) carry base configs; high-RAM units are build-to-order. No refurbished Mac Studio M4 Max 128GB spotted on Indian marketplaces. Apple US refurbished site lists M4 Max refurbs from $2,289 but India refurb store rarely stocks Studio. Check: apple.com/in/shop/buy-mac/mac-studio Deals &amp; News" data-item="mac_studio_marketplace">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Mac Studio Marketplace</div>
+          <div class="card-info">Mac Studio M4 Max 128GB not directly listed as a standalone SKU on Amazon India or Flipkart — base 36GB config available on Flipkart at ₹2,14,900. Cus…</div>
+          <span class="detail-hint">↗ Click for info</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('latest_local_llm_news')"
+             data-search="Latest Local Llm News 1. Unsloth released guide for fine-tuning Llama 3.3 70B with 90K context window using QLoRA + gradient checkpointing — fits on a single A100 or dual consumer GPUs; widely shared on r/LocalLLaMA. 2. Quantization (Q4_K_M GGUF / EXL2) now mainstream — 70B models run at ~41–45GB VRAM via llama.cpp/Ollama with hybrid CPU-GPU layer offload, making 30B models viable on single 24GB GPUs. 3. HuggingFace launched hf-agents CLI extension for local coding agents — auto-detects hardware, recommends runnable models, and launches Pi agent locally; gaining traction on HN as a zero-config local agent framework (github.com/huggingface/hf-agents). Deals &amp; News" data-item="latest_local_llm_news">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Latest Local Llm News</div>
+          <div class="card-info">1. Unsloth released guide for fine-tuning Llama 3.3 70B with 90K context window using QLoRA + gradient checkpointing — fits on a single A100 or dual c…</div>
+          <span class="detail-hint">📖 Click for details</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('trending_models')"
+             data-search="Trending Models 1. Qwen3-Coder-Next (235B MoE, 22B active) — 58.7% SWE-Bench, 256K context; runs on 24GB GPU at Q4 quant, ideal on 48–128GB unified memory; top pick for agentic coding workflows. 2. DeepSeek V3.2 / DeepSeek Coder 33B — strong algorithmic reasoning and SWE-Bench scores; needs 24GB+ VRAM, excellent on 48GB+ unified memory. 3. Llama 4 Scout (109B, 10M token context) — unmatched for large codebase indexing; Q4 fits in 24GB VRAM, full quality on 48–128GB unified memory. All three available on HuggingFace (huggingface.co/models?sort=trending). Deals &amp; News" data-item="trending_models">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">Trending Models</div>
+          <div class="card-info">1. Qwen3-Coder-Next (235B MoE, 22B active) — 58.7% SWE-Bench, 256K context; runs on 24GB GPU at Q4 quant, ideal on 48–128GB unified memory; top pick f…</div>
+          <span class="detail-hint">↗ Click for info</span>
+        </div>
+        <div class="timeline-card clickable" onclick="openModal('new_products_from_blogs')"
+             data-search="New Products From Blogs 1. Framework Desktop (AMD Ryzen AI Max+ 395, up to 128GB LPDDR5x unified memory, 96GB GPU-addressable, 4.5L Mini-ITX, Wi-Fi 7) — $2,851 for 128GB/1TB config; in stock. Source: frame.work/desktop | videocardz.com/newz/framework-desktop. 2. Bosgame M5 AI Mini (Ryzen AI Max+ 395, 128GB LPDDR5X-8533, Radeon 8060S iGPU, 2TB SSD) — ~$2,699 on AliExpress, $2,799 official; in stock. Source: bosgamepc.com | aliexpress.com. 3. Beelink GTR9 Pro (Ryzen AI Max+ 395, 128GB RAM, 2TB SSD) — $2,999; available. Source: bee-link.com. All three feature &gt;=48GB unified memory, cost &lt;$5,000, and are relevant for running 70B+ LLMs locally. Note: Minisforum MS-S1 Max and Corsair AI WS 300 at 128GB remain out of stock as of May 2026. Deals &amp; News" data-item="new_products_from_blogs">
+          <div class="card-top">
+            <span class="card-icon">💰</span>
+            <span class="card-cat">Deals &amp; News</span>
+          </div>
+          <div class="card-title">New Products From Blogs</div>
+          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
+          <div class="card-info">1. Framework Desktop (AMD Ryzen AI Max+ 395, up to 128GB LPDDR5x unified memory, 96GB GPU-addressable, 4.5L Mini-ITX, Wi-Fi 7) — $2,851 for 128GB/1TB …</div>
+          <span class="detail-hint">↗ Click for info</span>
+        </div></div>
 </div>
 
 <!-- Side Pane Modal -->
@@ -412,7 +486,7 @@
 </div>
 <script>
 // ── Modal Data ──
-const modalData = {};
+const modalData = {"apple_india_deals": {"label": "Apple India Deals", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Mac Studio M4 Max 128GB available to configure on apple.com/in — base M4 Max (36GB/512GB) starts at ₹2,14,900; 128GB configs estimated ₹3.5L–5L+. Education discount (~10% off) via UNiDAYS at apple.com/in-edu/store. Cashback ₹5,000–₹10,000 with select credit cards (HDFC, Axis, ICICI). Mac Mini M4 Pro 48GB/512GB confirmed at ₹1,89,900 — best value entry for local LLMs under ₹2L. No sitewide sale active currently.", "flags": {"has_deals": true}, "analysis": "Best current strategies to minimize Mac Studio 128GB cost in India: (1) Apple Education Store: base Mac Studio starts ₹1,94,900 with education pricing — 128GB config likely ~₹2.4–2.6L; (2) ICICI/Axis Bank cashback via authorized resellers (iCrest, iDestiny): up to ₹5,000 off; (3) Trade-in bonus: up to ₹12,000 for old Mac/device; (4) No-cost EMI up to 24 months. Combined max savings: ~₹15,000–20,000 off retail. The 2025 Back to School free AirPods promo explicitly excludes Mac Studio. Getting 128GB Mac Studio under ₹3.5L is achievable via education pricing + cashback + trade-in combo. Refurbished Apple India store is another option but 128GB Mac Studio configs are rare and sell quickly.", "links": [{"url": "https://www.apple.com/in-edu/store", "title": "Education Savings and Student Discounts - Apple India", "desc": "Apple India official education store for discounted Mac Studio pricing"}, {"url": "https://idestiny.in/apple-student-discount-offer/", "title": "Student Discount Offer | Mac for Students - iDestiny India", "desc": "Authorized Apple reseller with student discount, cashback, and EMI offers on Mac Studio"}, {"url": "https://www.goodreturns.in/news/apple-back-to-school-offer-2025-discounts-on-macbooks-ipads-free-airpods-more-check-eligibili-1436765.html", "title": "Apple Back to School Offer 2025: Discounts, Free AirPods & Eligibility", "desc": "Details on which Apple products qualify for the 2025 BTS promotion (Mac Studio excluded from freebies)"}]}, "strix_halo_deals": {"label": "Strix Halo Deals", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB/2TB) current price ~$2,699 on AliExpress (down from $3,299 launch); official site bosgamepc.com lists $2,799. Historical low was $1,699–$1,839 in late 2025 — no such deal active now. Framework Desktop 128GB/1TB ~$2,851 at frame.work/desktop. Beelink GTR9 Pro 128GB ~$2,999. Minisforum MS-S1 Max 128GB $3,199 (out of stock). Corsair AI WS 300 $3,400 (out of stock). No significant price drops vs. confirmed baseline prices currently active.", "flags": {"has_deals": true}, "analysis": "", "links": []}, "gpu_deals_india": {"label": "Gpu Deals India", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "RTX 5090 in India ranges ₹4,20,000–₹8,70,000 (well above ₹3.5L budget). Lowest seen: Gigabyte Windforce RTX 5090 ~₹4,46,969 on Amazon India (amazon.in/rtx-5090). Flipkart MSI Vanguard SOC listed ₹4,59,999 with offer price ~₹3,05,134 — verify this deal as it may be stale/seller-inflated. RTX 5080 starts ~₹1,71,599 (MSI Ventus 3X OC, Amazon India) and FE at ₹2,72,753. RTX 5080 at ₹1.7L is within budget but offers only 16GB VRAM. No RTX 5090 under ₹3.5L found.", "flags": {"has_deals": false}, "analysis": "", "links": []}, "mac_studio_marketplace": {"label": "Mac Studio Marketplace", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Mac Studio M4 Max 128GB not directly listed as a standalone SKU on Amazon India or Flipkart — base 36GB config available on Flipkart at ₹2,14,900. Custom 128GB orders via apple.com/in with 2–3 week delivery. Apple Premium Resellers (iStore, Reliance Digital, Imagine) carry base configs; high-RAM units are build-to-order. No refurbished Mac Studio M4 Max 128GB spotted on Indian marketplaces. Apple US refurbished site lists M4 Max refurbs from $2,289 but India refurb store rarely stocks Studio. Check: apple.com/in/shop/buy-mac/mac-studio", "flags": {}, "analysis": "", "links": [{"url": "https://www.amazon.in/s?k=Mac+Studio", "title": "Mac Studio Marketplace", "desc": "Default tracking link"}]}, "latest_local_llm_news": {"label": "Latest Local Llm News", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Unsloth released guide for fine-tuning Llama 3.3 70B with 90K context window using QLoRA + gradient checkpointing — fits on a single A100 or dual consumer GPUs; widely shared on r/LocalLLaMA. 2. Quantization (Q4_K_M GGUF / EXL2) now mainstream — 70B models run at ~41–45GB VRAM via llama.cpp/Ollama with hybrid CPU-GPU layer offload, making 30B models viable on single 24GB GPUs. 3. HuggingFace launched hf-agents CLI extension for local coding agents — auto-detects hardware, recommends runnable models, and launches Pi agent locally; gaining traction on HN as a zero-config local agent framework (github.com/huggingface/hf-agents).", "flags": {}, "analysis": "Key 2025–2026 themes from Reddit/LocalLLaMA and HN: (1) Unified memory is now the consensus best value for 70B local inference — Apple M4 Ultra and Strix Halo 128GB are the go-to recommendations for anyone who can't afford H100s. (2) Memory bandwidth — not compute — is the primary bottleneck for LLM tok/s; Strix Halo at 215 GB/s vs Mac M4 Max at ~546 GB/s means Apple still wins on speed/token for same model size. (3) ROCm maturing: llama.cpp Vulkan/ROCm paths on AMD APUs are improving rapidly but still lag CUDA for fine-tuning workflows. (4) MoE models (Qwen3-30B-MoE, Llama 4 Scout) are game-changers on unified memory — deliver 30B+ quality at 3B active param speeds. (5) For fine-tuning: CUDA (RTX) still dominates; Unsloth + QLoRA on RTX 5090 is the fastest consumer path for 7B–14B fine-tuning.", "links": [{"url": "https://www.redditmedia.com/r/LocalLLaMA/comments/1huughr/multigpu_system_for_local_llm/", "title": "Multi-GPU system for Local LLM? : r/LocalLLaMA", "desc": "Reddit thread discussing GPU vs unified memory tradeoffs for 70B local inference"}, {"url": "https://aiaas.team/guides/gpu-vs-unified-memory/", "title": "GPU vs Unified Memory Tradeoffs | AIaaS.Team Guide", "desc": "Technical guide comparing discrete GPU VRAM vs unified memory for LLM inference with real benchmarks"}, {"url": "https://forum.level1techs.com/t/strix-halo-ryzen-ai-max-395-llm-benchmark-results/233796", "title": "Strix Halo (Ryzen AI Max+ 395) LLM Benchmark Results - Level1Techs", "desc": "Community benchmark thread comparing Strix Halo 128GB against Apple Silicon for various model sizes"}]}, "trending_models": {"label": "Trending Models", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Qwen3-Coder-Next (235B MoE, 22B active) — 58.7% SWE-Bench, 256K context; runs on 24GB GPU at Q4 quant, ideal on 48–128GB unified memory; top pick for agentic coding workflows. 2. DeepSeek V3.2 / DeepSeek Coder 33B — strong algorithmic reasoning and SWE-Bench scores; needs 24GB+ VRAM, excellent on 48GB+ unified memory. 3. Llama 4 Scout (109B, 10M token context) — unmatched for large codebase indexing; Q4 fits in 24GB VRAM, full quality on 48–128GB unified memory. All three available on HuggingFace (huggingface.co/models?sort=trending).", "flags": {}, "analysis": "", "links": [{"url": "https://huggingface.co/models?sort=trending", "title": "Trending Models", "desc": "Default tracking link"}]}, "new_products_from_blogs": {"label": "New Products From Blogs", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Framework Desktop (AMD Ryzen AI Max+ 395, up to 128GB LPDDR5x unified memory, 96GB GPU-addressable, 4.5L Mini-ITX, Wi-Fi 7) — $2,851 for 128GB/1TB config; in stock. Source: frame.work/desktop | videocardz.com/newz/framework-desktop. 2. Bosgame M5 AI Mini (Ryzen AI Max+ 395, 128GB LPDDR5X-8533, Radeon 8060S iGPU, 2TB SSD) — ~$2,699 on AliExpress, $2,799 official; in stock. Source: bosgamepc.com | aliexpress.com. 3. Beelink GTR9 Pro (Ryzen AI Max+ 395, 128GB RAM, 2TB SSD) — $2,999; available. Source: bee-link.com. All three feature >=48GB unified memory, cost <$5,000, and are relevant for running 70B+ LLMs locally. Note: Minisforum MS-S1 Max and Corsair AI WS 300 at 128GB remain out of stock as of May 2026.", "flags": {"found": true}, "analysis": "", "links": []}};
 
 // ── Search & Filter ──
 const searchBox = document.getElementById('search');
