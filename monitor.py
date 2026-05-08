@@ -47,6 +47,7 @@ MONITOR_DIR = Path(__file__).parent
 STATE_FILE = MONITOR_DIR / "monitor_state.json"
 LOG_FILE = MONITOR_DIR / "monitor.log"
 DASHBOARD_FILE = MONITOR_DIR / "LLM-Hardware-Monitor.html"
+PAGES_DIR = MONITOR_DIR / "pages"
 
 # Call node directly with npm-loader.js to bypass .cmd metacharacter issues
 COPILOT_CMD = "node"
@@ -150,6 +151,30 @@ PROMPTS = {
         'Include product name, specs, price, and source URL. Exclude discontinued items (RTX 4090) and 16GB VRAM cards."}}}} '
         "Include store URLs when available. Replace each info with real current findings. Return ONLY the JSON."
     ),
+    "efficiency_research": (
+        "You are an LLM efficiency researcher. Today is {date}. "
+        "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
+        "Focus on breakthroughs in running large language models on budget/lower-end hardware. "
+        "Signal levels: \"breakthrough\" = 2x+ speed improvement, >30% VRAM reduction, or enables previously impossible configs (e.g., 70B on 16GB GPU); "
+        "\"notable\" = 10-50% improvements, new tools/models worth tracking; "
+        "\"noise\" = minor version bumps, <10% improvements. "
+        "Check each of these items and return exactly this structure: "
+        '{{"quantization_breakthroughs": {{"found": false, "signal": "noise", '
+        '"info": "New quantization methods reducing VRAM — GPTQ, AWQ, GGUF improvements, new formats. Any method enabling 30B+ models on 8-16GB VRAM?"}}, '
+        '"inference_engine_updates": {{"found": false, "signal": "noise", '
+        '"info": "Updates to llama.cpp, vLLM, KTransformers, PowerInfer, SGLang, exllamav2, TensorRT-LLM — speed gains, new features, new hardware support"}}, '
+        '"moe_offloading": {{"found": false, "signal": "noise", '
+        '"info": "MoE expert offloading improvements — --n-cpu-moe in llama.cpp, heterogeneous CPU/GPU placement, partial offloading strategies"}}, '
+        '"budget_gpu_benchmarks": {{"found": false, "signal": "noise", '
+        '"info": "Budget GPU benchmarks for LLMs — RTX 4060 Ti 16GB, RTX 3060 12GB, GTX 1060 running 30B+ models. tok/s numbers, configs used"}}, '
+        '"efficient_model_architectures": {{"found": false, "signal": "noise", '
+        '"info": "New efficient model architectures — MoE with few active params like Qwen3-30B-A3B, sparse models, distilled models that punch above their weight"}}, '
+        '"memory_optimization": {{"found": false, "signal": "noise", '
+        '"info": "Memory optimization tricks — KV cache compression, speculative decoding advances, flash attention improvements, paged attention updates"}}, '
+        '"community_discoveries": {{"found": false, "signal": "noise", '
+        '"info": "Reddit r/LocalLLaMA discoveries, YouTube demos, GitHub PRs showing big models on small GPUs. Practical configs people are actually using"}}}} '
+        "Replace each info with real current findings. Return ONLY the JSON."
+    ),
 }
 
 # ─── Enrichment Prompts (deeper analysis + links for modal) ──────────────────
@@ -189,6 +214,34 @@ ENRICHMENT_PROMPTS = {
         '"latest_local_llm_news": {{"analysis": "Top local LLM hardware news from Reddit and HN relevant to 30B-70B inference on unified memory or discrete GPU", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "brief"}}]}}}} '
         "1-3 REAL URLs per item. ONLY JSON."
+    ),
+    "efficiency_deep": (
+        "You are an LLM efficiency researcher. Today is {date}. "
+        "GOAL: Find breakthroughs in running large language models on budget/lower-end hardware. "
+        "Do deep web searches for each item below. Return ONLY JSON with detailed analysis and source links: "
+        '{{"quantization_breakthroughs": {{"analysis": "2-3 paragraphs on latest quantization methods reducing VRAM requirements. '
+        "GPTQ, AWQ, GGUF improvements, new formats like HQQ, AQLM, QuIP#. Benchmark numbers: perplexity vs VRAM savings. "
+        'What enables 30B+ models on 8-16GB VRAM?", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"inference_engine_updates": {{"analysis": "2-3 paragraphs on latest inference engine updates — llama.cpp, vLLM, KTransformers, PowerInfer, SGLang, exllamav2, TensorRT-LLM. '
+        'Speed gains, new hardware support, memory optimizations. Include tok/s benchmarks where available.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"moe_offloading": {{"analysis": "2-3 paragraphs on MoE expert offloading improvements. --n-cpu-moe in llama.cpp, heterogeneous CPU/GPU placement, '
+        'partial offloading strategies. What MoE models can run on budget hardware now?", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"budget_gpu_benchmarks": {{"analysis": "2-3 paragraphs on budget GPU LLM benchmarks. RTX 4060 Ti 16GB, RTX 3060 12GB, older GPUs running 30B+ models. '
+        'Practical configs, quantization settings, tok/s numbers.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"efficient_model_architectures": {{"analysis": "2-3 paragraphs on efficient model architectures — MoE with few active params (Qwen3-30B-A3B), sparse models, '
+        'distilled models. Which architectures give best quality per VRAM GB?", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"memory_optimization": {{"analysis": "2-3 paragraphs on memory optimization tricks — KV cache compression, speculative decoding, flash attention improvements, '
+        'paged attention. What reduces memory footprint most for long-context inference?", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"community_discoveries": {{"analysis": "2-3 paragraphs on community discoveries from r/LocalLLaMA, YouTube demos, GitHub PRs. '
+        'Real-world configs people use to run big models on small GPUs. Most upvoted/discussed findings.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}}} '
+        "1-3 REAL URLs per item. Replace all placeholders with real current data. ONLY JSON."
     ),
 }
 
@@ -335,6 +388,7 @@ EXPECTED_KEYS = {
     "hardware": {"mac_studio_m5", "mac_studio_128gb_india", "mac_studio_128gb_us"},
     "models_and_agents": {"best_local_coding_models", "inference_runtimes"},
     "deals_and_blogs": {"apple_india_deals", "latest_local_llm_news"},
+    "efficiency_research": {"quantization_breakthroughs", "inference_engine_updates", "moe_offloading"},
 }
 
 
@@ -1100,6 +1154,27 @@ def build_dynamic_prompt_context(state: dict, category: str = "hardware") -> str
                 "LAST KNOWN: " + "; ".join(model_facts) +
                 ". Search for anything NEWER than these."
             )
+
+    elif category == "efficiency_research":
+        # Inject previous efficiency findings so Copilot focuses on what's NEW
+        efficiency_data = checks.get("efficiency_research", {})
+        eff_facts = []
+        for key in ("quantization_breakthroughs", "inference_engine_updates",
+                     "moe_offloading", "budget_gpu_benchmarks",
+                     "efficient_model_architectures", "memory_optimization",
+                     "community_discoveries"):
+            item = efficiency_data.get(key, {})
+            info = item.get("info", "")[:100]
+            if info:
+                eff_facts.append(f"{key}: {info}")
+        if eff_facts:
+            parts.append("PREVIOUS FINDINGS: " + "; ".join(eff_facts))
+        parts.append(
+            "Current baseline: Qwen3-30B-A3B at 30-45 tok/s on RTX 4060 Ti 16GB "
+            "with --n-cpu-moe expert offloading. KTransformers achieves 14-20 tok/s "
+            "on weaker hardware. llama.cpp MoE flags: -ncmoe 99 -fa on -ctk q4_0 -ctv q4_0"
+        )
+        parts.append("Focus on what is NEW since last check.")
 
     elif category == "deals_and_blogs":
         # Inject known prices so Copilot can identify actual deals vs normal prices
@@ -2114,11 +2189,92 @@ def classify_severity(item: str, field: str, new_value) -> str:
                        "new_moe_models", "new_coding_models",
                        "amd_strix_halo_128gb_india"}
 
+    # Efficiency research breakthroughs are always critical
+    efficiency_keys = {"quantization_breakthroughs", "inference_engine_updates",
+                       "moe_offloading", "budget_gpu_benchmarks",
+                       "efficient_model_architectures", "memory_optimization",
+                       "community_discoveries"}
+    if item in efficiency_keys and field == "found" and new_value is True:
+        return "critical"
+
     if item in critical_items and new_value is True:
         return "critical"
     if item in important_items and new_value is True:
         return "important"
     return "info"
+
+
+# --- Efficiency research signal classification & filtering ---
+
+_SIGNAL_LEVELS = {"noise": 0, "notable": 1, "breakthrough": 2}
+
+_BREAKTHROUGH_KEYWORDS = [
+    "2x", "3x", "10x", "100%", "half the vram",
+    "previously impossible", "game-changer", "first time", "new engine",
+]
+_NOTABLE_KEYWORDS = [
+    "new release", "update", "improvement", "optimization", "benchmark",
+]
+_NOISE_KEYWORDS = [
+    "minor", "patch", "bug fix", "no significant", "incremental",
+]
+
+
+def classify_efficiency_signal(item_key: str, item_data: dict) -> str:
+    """Classify an efficiency_research item as breakthrough/notable/noise.
+
+    Trusts the LLM-provided ``signal`` field first, then applies keyword
+    heuristic overrides on the ``info`` text.
+    """
+    llm_signal = item_data.get("signal", "notable")
+    if llm_signal not in _SIGNAL_LEVELS:
+        llm_signal = "notable"
+
+    info = (item_data.get("info") or "").lower()
+
+    for kw in _BREAKTHROUGH_KEYWORDS:
+        if kw in info:
+            return "breakthrough"
+    for kw in _NOISE_KEYWORDS:
+        if kw in info:
+            return "noise"
+    for kw in _NOTABLE_KEYWORDS:
+        if kw in info:
+            return "notable"
+
+    return llm_signal
+
+
+def filter_efficiency_results(results: dict, min_signal: str = "notable") -> dict:
+    """Return only efficiency_research items at or above *min_signal*.
+
+    Each retained item gets its ``signal`` field updated with the classified
+    value from :func:`classify_efficiency_signal`.
+    """
+    threshold = _SIGNAL_LEVELS.get(min_signal, 1)
+    filtered: dict = {}
+    for key, data in results.items():
+        if not isinstance(data, dict):
+            continue
+        classified = classify_efficiency_signal(key, data)
+        if _SIGNAL_LEVELS.get(classified, 1) >= threshold:
+            filtered[key] = {**data, "signal": classified}
+    return filtered
+
+
+def get_efficiency_breakthroughs(results: dict) -> list[dict]:
+    """Return a list of items classified as breakthrough — used for notifications."""
+    breakthroughs: list[dict] = []
+    for key, data in results.items():
+        if not isinstance(data, dict):
+            continue
+        if classify_efficiency_signal(key, data) == "breakthrough":
+            breakthroughs.append({
+                "key": key,
+                "info": data.get("info", ""),
+                "signal": "breakthrough",
+            })
+    return breakthroughs
 
 
 def send_toast(title: str, message: str, severity: str = "info"):
@@ -2213,11 +2369,31 @@ def write_desktop_summary(state: dict, changes: list[dict], run_status: dict):
         f"  Summary:",
         f"    {reasoning_short}",
         "",
+    ]
+
+    # Efficiency research section
+    eff_data = state.get("checks", {}).get("efficiency_research", {})
+    eff_highlights = []
+    for eff_key, eff_val in eff_data.items():
+        if not isinstance(eff_val, dict):
+            continue
+        sig = eff_val.get("signal", "")
+        if sig == "breakthrough":
+            eff_highlights.append(f"  🚨 {eff_key.replace('_', ' ').title()}: {eff_val.get('info', '')[:80]}")
+        elif sig == "notable" and eff_val.get("found"):
+            eff_highlights.append(f"  ⚡ {eff_key.replace('_', ' ').title()}: {eff_val.get('info', '')[:80]}")
+    if eff_highlights:
+        lines.append("-" * 60)
+        lines.append("  EFFICIENCY RESEARCH")
+        lines.extend(eff_highlights)
+        lines.append("")
+
+    lines.extend([
         "-" * 60,
         f"  Dashboard: {dashboard_uri}",
         "=" * 60,
         "",
-    ]
+    ])
 
     try:
         summary_path.write_text("\n".join(lines), encoding="utf-8")
@@ -2226,610 +2402,361 @@ def write_desktop_summary(state: dict, changes: list[dict], run_status: dict):
         logger.warning(f"Failed to write desktop summary: {e}")
 
 
-def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
-    """Generate timeline-based HTML dashboard with search, cards, and detail side-pane modal."""
-    import html as html_lib
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    timeline = state.get("timeline", [])
-    checks = state.get("checks", {})
-    enrichment = state.get("enrichment", {})
+# ─── Dashboard Shared Helpers ────────────────────────────────────────────────
 
-    def esc(val):
-        if val is None:
-            return ""
-        return html_lib.escape(str(val))
-
-    cat_icons = {
-        "hardware": "🖥️",
-        "models_and_agents": "🧠",
-        "deals_and_blogs": "💰",
-    }
-    cat_labels = {
-        "hardware": "Hardware",
-        "models_and_agents": "Models & Agents",
-        "deals_and_blogs": "Deals & News",
-    }
-    link_map = {
-        "mac_studio_m5": "https://www.macrumors.com/roundup/mac-studio/",
-        "mac_studio_128gb_india": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "mac_studio_128gb_us": "https://www.apple.com/shop/buy-mac/mac-studio",
-        "apple_refurbished": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
-        "wwdc_apple_event": "https://developer.apple.com/wwdc26/",
-        "corsair_ws300_india": "https://www.amazon.in/s?k=Corsair+AI+Workstation",
-        "amd_strix_halo_128gb_india": "https://www.amazon.in/s?k=AMD+Strix+Halo+128GB",
-        "new_moe_models": "https://huggingface.co/models?sort=trending",
-        "new_coding_models": "https://huggingface.co/models?sort=trending&search=code",
-        "mlx_llama_cpp": "https://github.com/ml-explore/mlx",
-        "coding_agents": "https://github.com/topics/coding-agent",
-        "apple_india_deals": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "mac_studio_marketplace": "https://www.amazon.in/s?k=Mac+Studio",
-        "latest_local_llm_news": "https://www.reddit.com/r/LocalLLaMA/top/?t=week",
-        "trending_models": "https://huggingface.co/models?sort=trending",
-    }
-
-    # ── Build modal data (combined basic + enrichment) for JS embedding ──
-    modal_data = {}
-    for cat_key, cat_data in checks.items():
-        if not isinstance(cat_data, dict):
-            continue
-        for item_key, item_val in cat_data.items():
-            entry = {
-                "label": item_key.replace("_", " ").title(),
-                "category": cat_key,
-                "categoryLabel": cat_labels.get(cat_key, cat_key),
-                "icon": cat_icons.get(cat_key, "📦"),
-                "info": "",
-                "flags": {},
-                "analysis": "",
-                "links": [],
-            }
-            if isinstance(item_val, dict):
-                entry["info"] = item_val.get("info", "")
-                entry["flags"] = {k: v for k, v in item_val.items() if k != "info"}
-            else:
-                entry["info"] = str(item_val)
-
-            # Merge enrichment data
-            enr = enrichment.get(item_key, {})
-            if isinstance(enr, dict):
-                entry["analysis"] = enr.get("analysis", "")
-                enr_links = enr.get("links", [])
-                if isinstance(enr_links, list):
-                    entry["links"] = enr_links
-
-            # Fallback: add default link if no enrichment links
-            if not entry["links"]:
-                default_link = link_map.get(item_key, "")
-                if default_link:
-                    entry["links"] = [{"url": default_link, "title": entry["label"], "desc": "Default tracking link"}]
-
-            modal_data[item_key] = entry
-
-    # ── Build status bar ──
-    status_items = []
-    for cat_key, cat_data in checks.items():
-        if not isinstance(cat_data, dict):
-            continue
-        for item_key, item_val in cat_data.items():
-            if isinstance(item_val, dict):
-                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
-                    if bk in item_val:
-                        label = item_key.replace("_", " ").title()
-                        val = item_val[bk]
-                        color = "var(--green)" if val else "var(--red)"
-                        status_items.append(f'<span class="status-pill" style="border-color:{color}"><span class="dot" style="background:{color}"></span>{esc(label)}</span>')
-    status_bar = " ".join(status_items) if status_items else '<span class="dim">No data yet</span>'
-
-    # ── Build timeline HTML ──
-    timeline_html = ""
-    for entry in reversed(timeline):
-        ts = entry.get("timestamp", "")
-        date_label = entry.get("date_label", ts)
-        items = entry.get("items", [])
-        if not items:
-            continue
-
-        cards_html = ""
-        for item in items:
-            key = item.get("key", "")
-            label = item.get("label", key)
-            data = item.get("data", {})
-            severity = item.get("severity", "info")
-            is_new = item.get("is_new", False)
-            cat = item.get("category", "other")
-            icon = cat_icons.get(cat, "📦")
-            cat_label = cat_labels.get(cat, cat.replace("_", " ").title())
-
-            info = ""
-            flags_html = ""
-            if isinstance(data, dict):
-                info = data.get("info", "")
-                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
-                    if bk in data:
-                        val = data[bk]
-                        color = "var(--green)" if val else "var(--dim)"
-                        bl = bk.replace("_", " ").title()
-                        flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
-                # Freshness indicator for store-checked items
-                freshness = data.get("freshness", "")
-                if freshness == "fresh_verified":
-                    flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>🟢 Fresh</span>'
-                elif freshness == "partial":
-                    flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>🟡 Partial</span>'
-                elif freshness == "stale":
-                    stale_h = data.get("stale_hours", "?")
-                    flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>🔴 Stale ({stale_h}h)</span>'
-            elif isinstance(data, str):
-                info = data
-
-            sev_class = f"sev-{severity}"
-            new_badge = '<span class="badge new">NEW</span>' if is_new else '<span class="badge update">UPDATED</span>'
-
-            # Check if enrichment has data for richer indicator
-            has_analysis = bool(enrichment.get(key, {}).get("analysis", ""))
-            detail_indicator = '<span class="detail-hint">📖 Click for details</span>' if has_analysis else '<span class="detail-hint">↗ Click for info</span>'
-
-            cards_html += f'''
-            <div class="timeline-card {sev_class} clickable" onclick="openModal('{esc(key)}')"
-                 data-search="{esc(label)} {esc(info)} {esc(cat_label)}" data-item="{esc(key)}">
-              <div class="card-top">
-                <span class="card-icon">{icon}</span>
-                <span class="card-cat">{esc(cat_label)}</span>
-                {new_badge}
-              </div>
-              <div class="card-title">{esc(label)}</div>
-              {f'<div class="card-flags">{flags_html}</div>' if flags_html else ''}
-              <div class="card-info">{esc(info[:150])}{"…" if len(info) > 150 else ""}</div>
-              {detail_indicator}
-            </div>'''
-
-        timeline_html += f'''
-        <div class="timeline-group" data-date="{esc(ts)}">
-          <div class="timeline-date">
-            <span class="date-dot"></span>
-            <span class="date-text">{esc(date_label)}</span>
-            <span class="date-time">{esc(ts)}</span>
-            <span class="date-count">{len(items)} update{"s" if len(items)!=1 else ""}</span>
-          </div>
-          <div class="timeline-cards">{cards_html}</div>
-        </div>'''
-
-    if not timeline_html:
-        timeline_html = '<div class="empty-state">No updates yet. First check will populate this timeline.</div>'
-
-    # ── Run status badges ──
-    run_bar = ""
-    for cat, st in run_status.items():
-        ico = "✅" if st == "success" else "❌"
-        run_bar += f'<span class="run-badge {st}">{ico} {cat.replace("_"," ")}</span> '
-
-    # ── Build recommendation hero card ──
-    rec = state.get("recommendation", {})
-    rec_html = ""
-    if rec:
-        rec_action = rec.get("recommendation", "wait")
-        rec_best = rec.get("best_option", "")
-        rec_summary = rec.get("summary", "")
-        rec_model = rec.get("best_model", "")
-        rec_cost = rec.get("cost_estimate_inr", "")
-        rec_confidence = rec.get("confidence", "medium")
-        rec_wait = rec.get("wait_for", "")
-        rec_changed = rec.get("changed_since_last", "")
-        rec_milestone = rec.get("next_milestone", "")
-        rec_fallback = rec.get("fallback_now", "")
-
-        rec_html = f'''
-    <div class="rec-card" onclick="openRecModal()">
-      <div class="rec-top">
-        <span style="font-size:1.4em">🎯</span>
-        <span style="font-weight:700;font-size:0.85em;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Today's Recommendation</span>
-        <span class="rec-badge {esc(rec_action)}">{esc(rec_action.replace("_"," "))}</span>
-        <span class="rec-confidence {esc(rec_confidence)}">{esc(rec_confidence)} confidence</span>
-      </div>
-      <div class="rec-title">{esc(rec_best)}</div>
-      <div class="rec-summary">{esc(rec_summary)}</div>
-      <div class="rec-meta">
-        <span class="rec-meta-item">🧠 <b>{esc(rec_model)}</b></span>
-        <span class="rec-meta-item">💰 <b>{esc(rec_cost)}</b></span>
-        {f'<span class="rec-meta-item">⏳ <b>{esc(rec_wait[:80])}</b></span>' if rec_wait else ''}
-      </div>
-      {f'<div class="rec-extra"><span class="rec-extra-item">🔄 {esc(rec_changed[:100])}</span></div>' if rec_changed and rec_changed != "first_run" else ''}
-      {f'<div class="rec-extra"><span class="rec-extra-item">📅 <b>Next:</b> {esc(rec_milestone[:100])}</span></div>' if rec_milestone else ''}
-      {f'<div class="rec-extra"><span class="rec-extra-item">⚡ <b>Fallback:</b> {esc(rec_fallback[:100])}</span></div>' if rec_fallback else ''}
-      <span class="rec-hint">📖 Click for full analysis, model config, fine-tuning guide & buy links</span>
-    </div>'''
-
-    # Add recommendation to modal data under special key
-    if rec:
-        modal_data["__recommendation__"] = {
-            "label": rec.get("best_option", "Daily Recommendation"),
-            "category": "recommendation",
-            "categoryLabel": "Daily Recommendation",
-            "icon": "🎯",
-            "info": rec.get("summary", ""),
-            "flags": {
-                "recommendation": rec.get("recommendation", ""),
-                "confidence": rec.get("confidence", ""),
-            },
-            "analysis": rec.get("reasoning", ""),
-            "links": rec.get("buy_links", []),
-            # Extra recommendation fields for the modal
-            "best_model": rec.get("best_model", ""),
-            "model_config": rec.get("model_config", ""),
-            "fine_tuning": rec.get("fine_tuning", ""),
-            "wait_for": rec.get("wait_for", ""),
-            "changed_since_last": rec.get("changed_since_last", ""),
-            "cost_estimate_inr": rec.get("cost_estimate_inr", ""),
-            "next_milestone": rec.get("next_milestone", ""),
-            "fallback_now": rec.get("fallback_now", ""),
-        }
-
-    # ── Serialize modal data for JS ──
-    modal_json = json.dumps(modal_data, ensure_ascii=False, default=str)
-
-    html = f'''<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM Hardware Monitor</title>
-<style>
-  :root {{
+_DASHBOARD_CSS = """
+  :root {
     --bg: #0a0e14; --surface: #131920; --card: #1a2029; --border: #262f3d;
     --text: #e6edf3; --dim: #6b7b8d; --accent: #58a6ff; --accent2: #a371f7;
     --green: #3fb950; --red: #f85149; --yellow: #d29922; --orange: #db6d28;
     --radius: 12px; --pane-bg: #0d1117;
-  }}
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-  body {{
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
-  }}
+  }
 
   /* ── Header ── */
-  .header {{
+  .header {
     position: sticky; top: 0; z-index: 100;
     background: rgba(10,14,20,0.92); backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border); padding: 16px 24px;
-  }}
-  .header-top {{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }}
-  .header h1 {{
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header h1 {
     font-size: 1.4em; font-weight: 700;
     background: linear-gradient(135deg, #58a6ff 0%, #a371f7 50%, #f778ba 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }}
-  .header .meta {{ font-size: 0.8em; color: var(--dim); }}
-  .header .meta b {{ color: var(--accent); font-weight: 500; }}
+  }
+  .header .meta { font-size: 0.8em; color: var(--dim); }
+  .header .meta b { color: var(--accent); font-weight: 500; }
+
+  /* ── Nav Bar ── */
+  .nav-bar {
+    display: flex; align-items: center; gap: 4px; padding: 10px 24px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .nav-link {
+    padding: 6px 16px; border-radius: 8px; font-size: 0.82em; font-weight: 500;
+    color: var(--dim); text-decoration: none; transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .nav-link:hover { color: var(--text); background: var(--card); }
+  .nav-link.active {
+    color: var(--accent); background: rgba(88,166,255,0.1);
+    border-color: rgba(88,166,255,0.3);
+  }
+  .nav-time { margin-left: auto; font-size: 0.75em; color: var(--dim); }
 
   /* ── Search ── */
-  .search-wrap {{
+  .search-wrap {
     padding: 12px 24px; background: var(--surface); border-bottom: 1px solid var(--border);
     position: sticky; top: 65px; z-index: 99; display: flex; flex-direction: column;
-  }}
-  .search-row {{ position: relative; }}
-  .search-box {{
+  }
+  .search-row { position: relative; }
+  .search-box {
     width: 100%; max-width: 600px; padding: 10px 16px 10px 40px;
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
     color: var(--text); font-size: 0.95em; outline: none; transition: border-color 0.2s;
-  }}
-  .search-box:focus {{ border-color: var(--accent); }}
-  .search-box::placeholder {{ color: var(--dim); }}
-  .search-row .icon {{ position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; }}
-  .filter-bar {{ display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }}
-  .filter-btn {{
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--dim); }
+  .search-row .icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--dim); pointer-events: none; }
+  .filter-bar { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .filter-btn {
     padding: 5px 14px; border-radius: 20px; font-size: 0.8em;
     background: var(--card); border: 1px solid var(--border); color: var(--dim);
     cursor: pointer; transition: all 0.2s;
-  }}
-  .filter-btn:hover, .filter-btn.active {{
+  }
+  .filter-btn:hover, .filter-btn.active {
     background: rgba(88,166,255,0.15); color: var(--accent); border-color: var(--accent);
-  }}
+  }
 
   /* ── Status Bar ── */
-  .status-bar {{
+  .status-bar {
     display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px;
     background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto;
-  }}
-  .status-pill {{
+  }
+  .status-pill {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 12px; border-radius: 20px; font-size: 0.78em;
     background: var(--card); border: 1px solid var(--border); white-space: nowrap;
-  }}
-  .dot {{ width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }}
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 
   /* ── Content ── */
-  .content {{ max-width: 1100px; margin: 0 auto; padding: 24px; }}
-  .run-status {{ display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }}
-  .run-badge {{ padding: 4px 12px; border-radius: 12px; font-size: 0.78em; }}
-  .run-badge.success {{ background: rgba(63,185,80,0.12); color: var(--green); }}
-  .run-badge.error {{ background: rgba(248,81,73,0.12); color: var(--red); }}
+  .content { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .run-status { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .run-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.78em; }
+  .run-badge.success { background: rgba(63,185,80,0.12); color: var(--green); }
+  .run-badge.error { background: rgba(248,81,73,0.12); color: var(--red); }
 
   /* ── Timeline ── */
-  .timeline {{ position: relative; }}
-  .timeline::before {{
+  .timeline { position: relative; }
+  .timeline::before {
     content: ''; position: absolute; left: 18px; top: 0; bottom: 0;
     width: 2px; background: linear-gradient(180deg, var(--accent), var(--accent2), var(--border));
-  }}
-  .timeline-group {{ margin-bottom: 32px; position: relative; }}
-  .timeline-date {{
+  }
+  .timeline-group { margin-bottom: 32px; position: relative; }
+  .timeline-date {
     display: flex; align-items: center; gap: 12px;
     padding: 8px 0; margin-left: 40px; margin-bottom: 12px;
-  }}
-  .date-dot {{
+  }
+  .date-dot {
     position: absolute; left: 12px; width: 14px; height: 14px;
     border-radius: 50%; background: var(--accent); border: 3px solid var(--bg);
     box-shadow: 0 0 0 2px var(--accent);
-  }}
-  .date-text {{ font-weight: 700; font-size: 1.1em; }}
-  .date-time {{ color: var(--dim); font-size: 0.8em; }}
-  .date-count {{
+  }
+  .date-text { font-weight: 700; font-size: 1.1em; }
+  .date-time { color: var(--dim); font-size: 0.8em; }
+  .date-count {
     padding: 2px 10px; border-radius: 12px; font-size: 0.75em;
     background: rgba(88,166,255,0.12); color: var(--accent);
-  }}
+  }
 
   /* ── Cards ── */
-  .timeline-cards {{
+  .timeline-cards {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 12px; margin-left: 40px;
-  }}
-  .timeline-card {{
+  }
+  .detail-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+  }
+  .timeline-card {
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 16px; transition: all 0.25s ease;
     border-left: 3px solid var(--border); position: relative; overflow: hidden;
     cursor: pointer;
-  }}
-  .timeline-card:hover {{
+  }
+  .timeline-card:hover {
     transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.35);
     border-color: var(--accent);
-  }}
-  .timeline-card::after {{
-    content: '→'; position: absolute; top: 12px; right: 14px;
+  }
+  .timeline-card::after {
+    content: '\2192'; position: absolute; top: 12px; right: 14px;
     color: var(--dim); font-size: 1.1em; transition: all 0.2s;
-  }}
-  .timeline-card:hover::after {{ color: var(--accent); transform: translateX(3px); }}
-  .timeline-card.sev-critical {{
+  }
+  .timeline-card:hover::after { color: var(--accent); transform: translateX(3px); }
+  .timeline-card.sev-critical {
     border-left-color: var(--red);
     background: linear-gradient(135deg, rgba(248,81,73,0.06), var(--card));
     animation: glow-red 3s ease-in-out infinite;
-  }}
-  .timeline-card.sev-important {{
+  }
+  .timeline-card.sev-important {
     border-left-color: var(--yellow);
     background: linear-gradient(135deg, rgba(210,153,34,0.06), var(--card));
-  }}
-  @keyframes glow-red {{
-    0%, 100% {{ box-shadow: 0 0 0 rgba(248,81,73,0); }}
-    50% {{ box-shadow: 0 0 20px rgba(248,81,73,0.15); }}
-  }}
-  .card-top {{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }}
-  .card-icon {{ font-size: 1.1em; }}
-  .card-cat {{ font-size: 0.75em; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }}
-  .badge {{
+  }
+  @keyframes glow-red {
+    0%, 100% { box-shadow: 0 0 0 rgba(248,81,73,0); }
+    50% { box-shadow: 0 0 20px rgba(248,81,73,0.15); }
+  }
+  .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .card-icon { font-size: 1.1em; }
+  .card-cat { font-size: 0.75em; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge {
     padding: 2px 8px; border-radius: 10px; font-size: 0.65em; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.5px;
-  }}
-  .badge.new {{ background: rgba(63,185,80,0.2); color: var(--green); }}
-  .badge.update {{ background: rgba(88,166,255,0.2); color: var(--accent); }}
-  .card-title {{ font-weight: 700; font-size: 1.05em; margin-bottom: 6px; }}
-  .card-flags {{ display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }}
-  .flag {{
+  }
+  .badge.new { background: rgba(63,185,80,0.2); color: var(--green); }
+  .badge.update { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .card-title { font-weight: 700; font-size: 1.05em; margin-bottom: 6px; }
+  .card-flags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .flag {
     display: inline-flex; align-items: center; gap: 4px;
     font-size: 0.78em; font-weight: 500;
-  }}
-  .card-info {{
+  }
+  .card-info {
     font-size: 0.85em; color: var(--dim); line-height: 1.5;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-  }}
-  .detail-hint {{
+  }
+  .detail-hint {
     display: block; margin-top: 8px; font-size: 0.75em; color: var(--accent);
     opacity: 0.7; transition: opacity 0.2s;
-  }}
-  .timeline-card:hover .detail-hint {{ opacity: 1; }}
+  }
+  .timeline-card:hover .detail-hint { opacity: 1; }
 
   /* ── Modal (Side Pane) ── */
-  .modal-overlay {{
+  .modal-overlay {
     position: fixed; inset: 0; z-index: 1000;
     background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
     opacity: 0; visibility: hidden; transition: all 0.3s ease;
-  }}
-  .modal-overlay.open {{ opacity: 1; visibility: visible; }}
-  .modal-pane {{
+  }
+  .modal-overlay.open { opacity: 1; visibility: visible; }
+  .modal-pane {
     position: absolute; right: 0; top: 0; bottom: 0;
     width: 560px; max-width: 92vw;
     background: var(--pane-bg); border-left: 1px solid var(--border);
     overflow-y: auto; overflow-x: hidden;
     transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: -12px 0 48px rgba(0,0,0,0.5);
-  }}
-  .modal-overlay.open .modal-pane {{ transform: translateX(0); }}
-  .modal-close {{
+  }
+  .modal-overlay.open .modal-pane { transform: translateX(0); }
+  .modal-close {
     position: sticky; top: 0; float: right; z-index: 10;
     width: 40px; height: 40px; margin: 12px 12px 0 0;
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
     color: var(--dim); font-size: 1.2em; cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  }}
-  .modal-close:hover {{ color: var(--text); background: var(--surface); }}
-  .modal-body {{ padding: 20px 28px 40px; }}
-  .modal-header {{
+  }
+  .modal-close:hover { color: var(--text); background: var(--surface); }
+  .modal-body { padding: 20px 28px 40px; }
+  .modal-header {
     display: flex; align-items: flex-start; gap: 14px;
     margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
-  }}
-  .modal-icon {{ font-size: 2em; line-height: 1; }}
-  .modal-title {{ font-size: 1.3em; font-weight: 700; margin-bottom: 4px; }}
-  .modal-cat {{
+  }
+  .modal-icon { font-size: 2em; line-height: 1; }
+  .modal-title { font-size: 1.3em; font-weight: 700; margin-bottom: 4px; }
+  .modal-cat {
     font-size: 0.8em; color: var(--accent); text-transform: uppercase;
     letter-spacing: 0.5px; font-weight: 500;
-  }}
-  .modal-flags {{
+  }
+  .modal-flags {
     display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;
-  }}
-  .modal-flag {{
+  }
+  .modal-flag {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 6px 14px; border-radius: 8px; font-size: 0.85em; font-weight: 600;
     background: var(--card); border: 1px solid var(--border);
-  }}
-  .modal-section {{ margin-bottom: 24px; }}
-  .modal-section h3 {{
+  }
+  .modal-section { margin-bottom: 24px; }
+  .modal-section h3 {
     font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.8px;
     color: var(--accent); margin-bottom: 10px; font-weight: 600;
     display: flex; align-items: center; gap: 8px;
-  }}
-  .modal-section h3::before {{
+  }
+  .modal-section h3::before {
     content: ''; display: inline-block; width: 3px; height: 14px;
     background: var(--accent); border-radius: 2px;
-  }}
-  .modal-summary {{
+  }
+  .modal-summary {
     font-size: 0.95em; line-height: 1.7; color: var(--text);
     background: var(--surface); padding: 14px 18px; border-radius: 10px;
     border: 1px solid var(--border);
-  }}
-  .modal-analysis {{
+  }
+  .modal-analysis {
     font-size: 0.92em; line-height: 1.8; color: #c9d1d9;
     background: var(--surface); padding: 16px 20px; border-radius: 10px;
     border: 1px solid var(--border); white-space: pre-wrap;
-  }}
-  .modal-analysis:empty {{ display: none; }}
+  }
+  .modal-analysis:empty { display: none; }
 
   /* ── Links Table ── */
-  .links-table {{
+  .links-table {
     width: 100%; border-collapse: collapse; font-size: 0.88em;
     background: var(--surface); border-radius: 10px; overflow: hidden;
     border: 1px solid var(--border);
-  }}
-  .links-table th {{
+  }
+  .links-table th {
     text-align: left; padding: 10px 14px; font-size: 0.78em;
     text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim);
     background: var(--card); border-bottom: 1px solid var(--border); font-weight: 600;
-  }}
-  .links-table td {{
+  }
+  .links-table td {
     padding: 10px 14px; border-bottom: 1px solid var(--border);
     vertical-align: top;
-  }}
-  .links-table tr:last-child td {{ border-bottom: none; }}
-  .links-table tr:hover td {{ background: rgba(88,166,255,0.04); }}
-  .links-table a {{
+  }
+  .links-table tr:last-child td { border-bottom: none; }
+  .links-table tr:hover td { background: rgba(88,166,255,0.04); }
+  .links-table a {
     color: var(--accent); text-decoration: none; font-weight: 500;
     display: inline-flex; align-items: center; gap: 4px;
-  }}
-  .links-table a:hover {{ text-decoration: underline; }}
-  .links-table a::after {{ content: '↗'; font-size: 0.8em; opacity: 0.6; }}
-  .links-table .link-desc {{ color: var(--dim); font-size: 0.9em; margin-top: 2px; }}
-  .no-links {{ color: var(--dim); font-style: italic; font-size: 0.9em; padding: 12px; }}
+  }
+  .links-table a:hover { text-decoration: underline; }
+  .links-table a::after { content: '\2197'; font-size: 0.8em; opacity: 0.6; }
+  .links-table .link-desc { color: var(--dim); font-size: 0.9em; margin-top: 2px; }
+  .no-links { color: var(--dim); font-style: italic; font-size: 0.9em; padding: 12px; }
 
-  .empty-state {{ text-align: center; padding: 60px 20px; color: var(--dim); font-size: 1.1em; }}
-  .hidden {{ display: none !important; }}
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--dim); font-size: 1.1em; }
+  .hidden { display: none !important; }
 
   /* ── Recommendation Hero Card ── */
-  .rec-card {{
+  .rec-card {
     background: linear-gradient(135deg, rgba(88,166,255,0.08) 0%, rgba(163,113,247,0.08) 50%, rgba(247,120,186,0.06) 100%);
     border: 1px solid rgba(88,166,255,0.25); border-radius: 16px;
     padding: 24px 28px; margin-bottom: 28px; position: relative; overflow: hidden; cursor: pointer;
     transition: all 0.3s ease;
-  }}
-  .rec-card:hover {{
+  }
+  .rec-card:hover {
     border-color: var(--accent); box-shadow: 0 8px 40px rgba(88,166,255,0.12);
     transform: translateY(-2px);
-  }}
-  .rec-card::before {{
+  }
+  .rec-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     background: linear-gradient(90deg, var(--accent), var(--accent2), #f778ba);
-  }}
-  .rec-card::after {{
-    content: '→'; position: absolute; top: 20px; right: 20px;
+  }
+  .rec-card::after {
+    content: '\2192'; position: absolute; top: 20px; right: 20px;
     color: var(--dim); font-size: 1.3em; transition: all 0.2s;
-  }}
-  .rec-card:hover::after {{ color: var(--accent); transform: translateX(4px); }}
-  .rec-top {{ display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }}
-  .rec-badge {{
+  }
+  .rec-card:hover::after { color: var(--accent); transform: translateX(4px); }
+  .rec-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .rec-badge {
     padding: 4px 12px; border-radius: 20px; font-size: 0.72em; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.8px;
-  }}
-  .rec-badge.buy_now {{ background: rgba(63,185,80,0.2); color: var(--green); }}
-  .rec-badge.wait {{ background: rgba(210,153,34,0.2); color: var(--yellow); }}
-  .rec-badge.consider_alternative {{ background: rgba(88,166,255,0.2); color: var(--accent); }}
-  .rec-title {{ font-size: 1.2em; font-weight: 700; margin-bottom: 6px; }}
-  .rec-summary {{ font-size: 0.95em; color: #c9d1d9; line-height: 1.7; margin-bottom: 14px; }}
-  .rec-meta {{
+  }
+  .rec-badge.buy_now { background: rgba(63,185,80,0.2); color: var(--green); }
+  .rec-badge.wait { background: rgba(210,153,34,0.2); color: var(--yellow); }
+  .rec-badge.consider_alternative { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .rec-title { font-size: 1.2em; font-weight: 700; margin-bottom: 6px; }
+  .rec-summary { font-size: 0.95em; color: #c9d1d9; line-height: 1.7; margin-bottom: 14px; }
+  .rec-meta {
     display: flex; flex-wrap: wrap; gap: 16px; font-size: 0.82em; color: var(--dim);
-  }}
-  .rec-meta-item {{ display: flex; align-items: center; gap: 6px; }}
-  .rec-meta-item b {{ color: var(--text); font-weight: 600; }}
-  .rec-extra {{ margin-top: 8px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid var(--accent); }}
-  .rec-extra-item {{ font-size: 0.82em; color: var(--text); opacity: 0.85; }}
-  .rec-hint {{
+  }
+  .rec-meta-item { display: flex; align-items: center; gap: 6px; }
+  .rec-meta-item b { color: var(--text); font-weight: 600; }
+  .rec-extra { margin-top: 8px; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border-left: 3px solid var(--accent); }
+  .rec-extra-item { font-size: 0.82em; color: var(--text); opacity: 0.85; }
+  .rec-hint {
     display: block; margin-top: 12px; font-size: 0.75em; color: var(--accent); opacity: 0.7;
-  }}
+  }
 
   /* ── Recommendation Modal extras ── */
-  .rec-section {{ margin-bottom: 20px; }}
-  .rec-section h4 {{
+  .rec-section { margin-bottom: 20px; }
+  .rec-section h4 {
     font-size: 0.82em; text-transform: uppercase; letter-spacing: 0.6px;
     color: var(--accent2); margin-bottom: 8px; font-weight: 600;
-  }}
-  .rec-section-body {{
+  }
+  .rec-section-body {
     font-size: 0.92em; line-height: 1.8; color: #c9d1d9;
     background: var(--surface); padding: 14px 18px; border-radius: 10px;
     border: 1px solid var(--border); white-space: pre-wrap;
-  }}
-  .rec-confidence {{
+  }
+  .rec-confidence {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 12px; border-radius: 12px; font-size: 0.78em; font-weight: 600;
-  }}
-  .rec-confidence.high {{ background: rgba(63,185,80,0.15); color: var(--green); }}
-  .rec-confidence.medium {{ background: rgba(210,153,34,0.15); color: var(--yellow); }}
-  .rec-confidence.low {{ background: rgba(248,81,73,0.15); color: var(--red); }}
+  }
+  .rec-confidence.high { background: rgba(63,185,80,0.15); color: var(--green); }
+  .rec-confidence.medium { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .rec-confidence.low { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  /* ── Detail Page ── */
+  .page-title { font-size: 1.5em; font-weight: 700; margin-bottom: 8px; }
+  .page-desc { font-size: 0.9em; color: var(--dim); margin-bottom: 24px; line-height: 1.6; }
 
   /* ── Footer ── */
-  .footer {{
+  .footer {
     text-align: center; padding: 30px; color: var(--dim); font-size: 0.78em;
     border-top: 1px solid var(--border); margin-top: 40px;
-  }}
-  .footer a {{ color: var(--accent); text-decoration: none; }}
+  }
+  .footer a { color: var(--accent); text-decoration: none; }
 
-  @media (max-width: 600px) {{
-    .timeline-cards {{ grid-template-columns: 1fr; }}
-    .header h1 {{ font-size: 1.1em; }}
-    .content {{ padding: 16px; }}
-    .modal-pane {{ width: 100vw; max-width: 100vw; }}
-    .modal-body {{ padding: 16px; }}
-  }}
-</style>
-</head>
-<body>
+  @media (max-width: 600px) {
+    .timeline-cards, .detail-cards { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.1em; }
+    .content { padding: 16px; }
+    .modal-pane { width: 100vw; max-width: 100vw; }
+    .modal-body { padding: 16px; }
+  }
+"""
 
-<div class="header">
-  <div class="header-top">
-    <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>{now}</b> · {len(timeline)} runs tracked</div>
-  </div>
-</div>
-
-<div class="search-wrap">
-  <div class="search-row">
-    <span class="icon">🔍</span>
-    <input type="text" class="search-box" id="search" placeholder="Search updates... (e.g. Mac Studio, Qwen, WWDC, deals)" autocomplete="off">
-  </div>
-  <div class="filter-bar">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="hardware">🖥️ Hardware</button>
-    <button class="filter-btn" data-filter="models_and_agents">🧠 Models</button>
-    <button class="filter-btn" data-filter="deals_and_blogs">💰 Deals</button>
-    <button class="filter-btn" data-filter="critical">🚨 Critical Only</button>
-  </div>
-</div>
-
-<div class="status-bar">{status_bar}</div>
-
-<div class="content">
-  <div class="run-status">{run_bar}</div>
-  {rec_html}
-  <div class="timeline" id="timeline">{timeline_html}</div>
-</div>
-
+_MODAL_OVERLAY_HTML = """
 <!-- Side Pane Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
   <div class="modal-pane" onclick="event.stopPropagation()">
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()">&#10005;</button>
     <div class="modal-body">
       <div class="modal-header">
         <span class="modal-icon" id="modalIcon"></span>
@@ -2861,17 +2788,12 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
     </div>
   </div>
 </div>
+"""
 
-<div class="footer">
-  Powered by <a href="https://github.com/features/copilot">GitHub Copilot CLI</a> ·
-  Checks daily at 9 AM via Windows Task Scheduler ·
-  <a href="file:///{str(MONITOR_DIR).replace(chr(92), '/')}/monitor.log">View Log</a> ·
-  <a href="file:///{str(MONITOR_DIR).replace(chr(92), '/')}/monitor_state.json">View State</a>
-</div>
-
-<script>
+# __MODAL_JSON__ is replaced at runtime with actual JSON
+_DASHBOARD_JS = r"""
 // ── Modal Data ──
-const modalData = {modal_json};
+const modalData = __MODAL_JSON__;
 
 // ── Search & Filter ──
 const searchBox = document.getElementById('search');
@@ -2879,19 +2801,21 @@ const cards = document.querySelectorAll('.timeline-card');
 const groups = document.querySelectorAll('.timeline-group');
 let activeFilter = 'all';
 
-searchBox.addEventListener('input', () => filterCards(searchBox.value.toLowerCase(), activeFilter));
+if (searchBox) {
+  searchBox.addEventListener('input', () => filterCards(searchBox.value.toLowerCase(), activeFilter));
+}
 
-document.querySelectorAll('.filter-btn').forEach(btn => {{
-  btn.addEventListener('click', () => {{
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeFilter = btn.dataset.filter;
-    filterCards(searchBox.value.toLowerCase(), activeFilter);
-  }});
-}});
+    filterCards(searchBox ? searchBox.value.toLowerCase() : '', activeFilter);
+  });
+});
 
-function filterCards(query, filter) {{
-  cards.forEach(card => {{
+function filterCards(query, filter) {
+  cards.forEach(card => {
     const text = (card.dataset.search || '').toLowerCase();
     const matchesSearch = !query || text.includes(query);
     let matchesFilter = filter === 'all';
@@ -2900,17 +2824,17 @@ function filterCards(query, filter) {{
     if (filter === 'deals_and_blogs') matchesFilter = text.includes('deals') || text.includes('news');
     if (filter === 'critical') matchesFilter = card.classList.contains('sev-critical') || card.classList.contains('sev-important');
     card.classList.toggle('hidden', !(matchesSearch && matchesFilter));
-  }});
-  groups.forEach(g => {{
+  });
+  groups.forEach(g => {
     const vis = g.querySelectorAll('.timeline-card:not(.hidden)').length;
     g.classList.toggle('hidden', vis === 0);
-  }});
-}}
+  });
+}
 
 // ── Modal ──
 const overlay = document.getElementById('modalOverlay');
 
-function openModal(itemKey) {{
+function openModal(itemKey) {
   const item = modalData[itemKey];
   if (!item) return;
 
@@ -2921,16 +2845,16 @@ function openModal(itemKey) {{
   // Flags
   const flagsEl = document.getElementById('modalFlags');
   flagsEl.innerHTML = '';
-  if (item.flags) {{
-    for (const [k, v] of Object.entries(item.flags)) {{
-      if (typeof v === 'boolean' || typeof v === 'string') {{
+  if (item.flags) {
+    for (const [k, v] of Object.entries(item.flags)) {
+      if (typeof v === 'boolean' || typeof v === 'string') {
         const color = v === true ? 'var(--green)' : v === false ? 'var(--red)' : 'var(--dim)';
-        const label = k.replace(/_/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase());
+        const label = k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         const val = typeof v === 'boolean' ? (v ? 'Yes ✓' : 'No ✗') : v;
-        flagsEl.innerHTML += `<span class="modal-flag" style="border-color:${{color}}"><span class="dot" style="background:${{color}}"></span>${{label}}: ${{val}}</span>`;
-      }}
-    }}
-  }}
+        flagsEl.innerHTML += `<span class="modal-flag" style="border-color:${color}"><span class="dot" style="background:${color}"></span>${label}: ${val}</span>`;
+      }
+    }
+  }
 
   // Summary
   document.getElementById('modalSummary').textContent = item.info || 'No summary available.';
@@ -2939,13 +2863,13 @@ function openModal(itemKey) {{
   const analysisEl = document.getElementById('modalAnalysis');
   const analysisSec = document.getElementById('analysisSection');
   analysisSec.querySelector('h3').textContent = 'Detailed Analysis';
-  if (item.analysis) {{
+  if (item.analysis) {
     analysisEl.innerHTML = '';
     analysisEl.textContent = item.analysis;
     analysisSec.style.display = '';
-  }} else {{
+  } else {
     analysisSec.style.display = 'none';
-  }}
+  }
 
   // Links table
   const tbody = document.getElementById('modalLinksBody');
@@ -2953,32 +2877,32 @@ function openModal(itemKey) {{
   const noLinks = document.getElementById('noLinks');
   tbody.innerHTML = '';
 
-  if (item.links && item.links.length > 0) {{
+  if (item.links && item.links.length > 0) {
     table.style.display = '';
     noLinks.style.display = 'none';
-    item.links.forEach(lnk => {{
+    item.links.forEach(lnk => {
       const url = lnk.url || '';
-      const title = lnk.title || url.replace(/https?:\\/\\//, '').split('/')[0];
+      const title = lnk.title || url.replace(/https?:\/\//, '').split('/')[0];
       const desc = lnk.desc || lnk.description || '';
       const row = document.createElement('tr');
-      row.innerHTML = `<td><a href="${{url}}" target="_blank" rel="noopener">${{escH(title)}}</a></td><td><span class="link-desc">${{escH(desc)}}</span></td>`;
+      row.innerHTML = `<td><a href="${url}" target="_blank" rel="noopener">${escH(title)}</a></td><td><span class="link-desc">${escH(desc)}</span></td>`;
       tbody.appendChild(row);
-    }});
-  }} else {{
+    });
+  } else {
     table.style.display = 'none';
     noLinks.style.display = '';
-  }}
+  }
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-}}
+}
 
-function closeModal() {{
+function closeModal() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
-}}
+}
 
-function openRecModal() {{
+function openRecModal() {
   const rec = modalData['__recommendation__'];
   if (!rec) return;
 
@@ -2991,8 +2915,8 @@ function openRecModal() {{
   flagsEl.innerHTML = '';
   const action = rec.flags?.recommendation || '';
   const conf = rec.flags?.confidence || 'medium';
-  flagsEl.innerHTML = `<span class="rec-badge ${{action}}">${{action.replace(/_/g,' ')}}</span>` +
-    `<span class="rec-confidence ${{conf}}">${{conf}} confidence</span>`;
+  flagsEl.innerHTML = `<span class="rec-badge ${action}">${action.replace(/_/g,' ')}</span>` +
+    `<span class="rec-confidence ${conf}">${conf} confidence</span>`;
 
   // Summary
   document.getElementById('modalSummary').textContent = rec.info || '';
@@ -3002,39 +2926,39 @@ function openRecModal() {{
   const analysisSec = document.getElementById('analysisSection');
   let analysisHtml = '';
 
-  if (rec.analysis) {{
-    analysisHtml += `<div class="rec-section"><h4>💡 Reasoning</h4><div class="rec-section-body">${{escH(rec.analysis)}}</div></div>`;
-  }}
-  if (rec.best_model) {{
-    analysisHtml += `<div class="rec-section"><h4>🧠 Best Model</h4><div class="rec-section-body"><b>${{escH(rec.best_model)}}</b>` +
-      (rec.model_config ? `\\n${{escH(rec.model_config)}}` : '') + `</div></div>`;
-  }}
-  if (rec.fine_tuning) {{
-    analysisHtml += `<div class="rec-section"><h4>🔧 Fine-Tuning</h4><div class="rec-section-body">${{escH(rec.fine_tuning)}}</div></div>`;
-  }}
-  if (rec.wait_for) {{
-    analysisHtml += `<div class="rec-section"><h4>⏳ What to Wait For</h4><div class="rec-section-body">${{escH(rec.wait_for)}}</div></div>`;
-  }}
-  if (rec.cost_estimate_inr) {{
-    analysisHtml += `<div class="rec-section"><h4>💰 Cost Estimate</h4><div class="rec-section-body">${{escH(rec.cost_estimate_inr)}}</div></div>`;
-  }}
-  if (rec.changed_since_last) {{
-    analysisHtml += `<div class="rec-section"><h4>🔄 What Changed</h4><div class="rec-section-body">${{escH(rec.changed_since_last)}}</div></div>`;
-  }}
-  if (rec.next_milestone) {{
-    analysisHtml += `<div class="rec-section"><h4>📅 Next Milestone</h4><div class="rec-section-body">${{escH(rec.next_milestone)}}</div></div>`;
-  }}
-  if (rec.fallback_now) {{
-    analysisHtml += `<div class="rec-section"><h4>⚡ Need Something Now?</h4><div class="rec-section-body">${{escH(rec.fallback_now)}}</div></div>`;
-  }}
+  if (rec.analysis) {
+    analysisHtml += `<div class="rec-section"><h4>💡 Reasoning</h4><div class="rec-section-body">${escH(rec.analysis)}</div></div>`;
+  }
+  if (rec.best_model) {
+    analysisHtml += `<div class="rec-section"><h4>🧠 Best Model</h4><div class="rec-section-body"><b>${escH(rec.best_model)}</b>` +
+      (rec.model_config ? `\n${escH(rec.model_config)}` : '') + `</div></div>`;
+  }
+  if (rec.fine_tuning) {
+    analysisHtml += `<div class="rec-section"><h4>🔧 Fine-Tuning</h4><div class="rec-section-body">${escH(rec.fine_tuning)}</div></div>`;
+  }
+  if (rec.wait_for) {
+    analysisHtml += `<div class="rec-section"><h4>⏳ What to Wait For</h4><div class="rec-section-body">${escH(rec.wait_for)}</div></div>`;
+  }
+  if (rec.cost_estimate_inr) {
+    analysisHtml += `<div class="rec-section"><h4>💰 Cost Estimate</h4><div class="rec-section-body">${escH(rec.cost_estimate_inr)}</div></div>`;
+  }
+  if (rec.changed_since_last) {
+    analysisHtml += `<div class="rec-section"><h4>🔄 What Changed</h4><div class="rec-section-body">${escH(rec.changed_since_last)}</div></div>`;
+  }
+  if (rec.next_milestone) {
+    analysisHtml += `<div class="rec-section"><h4>📅 Next Milestone</h4><div class="rec-section-body">${escH(rec.next_milestone)}</div></div>`;
+  }
+  if (rec.fallback_now) {
+    analysisHtml += `<div class="rec-section"><h4>⚡ Need Something Now?</h4><div class="rec-section-body">${escH(rec.fallback_now)}</div></div>`;
+  }
 
-  if (analysisHtml) {{
+  if (analysisHtml) {
     analysisEl.innerHTML = analysisHtml;
     analysisSec.style.display = '';
     analysisSec.querySelector('h3').textContent = 'Full Analysis';
-  }} else {{
+  } else {
     analysisSec.style.display = 'none';
-  }}
+  }
 
   // Links table (buy links)
   const tbody = document.getElementById('modalLinksBody');
@@ -3042,54 +2966,702 @@ function openRecModal() {{
   const noLinks = document.getElementById('noLinks');
   tbody.innerHTML = '';
 
-  if (rec.links && rec.links.length > 0) {{
+  if (rec.links && rec.links.length > 0) {
     table.style.display = '';
     noLinks.style.display = 'none';
-    rec.links.forEach(lnk => {{
+    rec.links.forEach(lnk => {
       const url = lnk.url || '';
-      const title = lnk.title || url.replace(/https?:\\/\\//, '').split('/')[0];
+      const title = lnk.title || url.replace(/https?:\/\//, '').split('/')[0];
       const desc = lnk.desc || lnk.description || '';
       const row = document.createElement('tr');
-      row.innerHTML = `<td><a href="${{url}}" target="_blank" rel="noopener">${{escH(title)}}</a></td><td><span class="link-desc">${{escH(desc)}}</span></td>`;
+      row.innerHTML = `<td><a href="${url}" target="_blank" rel="noopener">${escH(title)}</a></td><td><span class="link-desc">${escH(desc)}</span></td>`;
       tbody.appendChild(row);
-    }});
-  }} else {{
+    });
+  } else {
     table.style.display = 'none';
     noLinks.style.display = '';
-  }}
+  }
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-}}
+}
 
-function escH(s) {{
+function escH(s) {
   const d = document.createElement('div');
   d.textContent = s || '';
   return d.innerHTML;
-}}
+}
 
 // ── Keyboard shortcuts ──
-document.addEventListener('keydown', (e) => {{
-  if (e.key === 'Escape') {{
-    if (overlay.classList.contains('open')) {{
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (overlay.classList.contains('open')) {
       closeModal();
-    }} else {{
+    } else if (searchBox) {
       searchBox.value = '';
       searchBox.blur();
       filterCards('', activeFilter);
-    }}
-  }}
-  if (e.key === '/' && document.activeElement !== searchBox && !overlay.classList.contains('open')) {{
+    }
+  }
+  if (e.key === '/' && document.activeElement !== searchBox && !overlay.classList.contains('open')) {
     e.preventDefault();
-    searchBox.focus();
-  }}
-}});
-</script>
-</body>
-</html>'''
+    if (searchBox) searchBox.focus();
+  }
+});
+"""
 
-    DASHBOARD_FILE.write_text(html, encoding="utf-8")
-    logger.info(f"Dashboard updated: {DASHBOARD_FILE}")
+
+def _esc(val):
+    """HTML-escape a value for dashboard rendering."""
+    import html as html_lib
+    if val is None:
+        return ""
+    return html_lib.escape(str(val))
+
+
+def _generate_nav_html(active_page: str, now: str) -> str:
+    """Generate navigation bar HTML. active_page determines link targets and highlighting."""
+    pages = [
+        ("summary", "\U0001F4CA Summary", "LLM-Hardware-Monitor.html"),
+        ("hardware", "\U0001F5A5\uFE0F Hardware", "hardware.html"),
+        ("models", "\U0001F9E0 Models & Agents", "models.html"),
+        ("efficiency", "\U0001F52C Efficiency", "efficiency.html"),
+        ("deals", "\U0001F4B0 Deals & News", "deals.html"),
+    ]
+    links = []
+    for key, label, filename in pages:
+        active_cls = " active" if key == active_page else ""
+        if active_page == "summary":
+            href = "LLM-Hardware-Monitor.html" if key == "summary" else f"pages/{filename}"
+        else:
+            href = "../LLM-Hardware-Monitor.html" if key == "summary" else filename
+        links.append(f'<a href="{href}" class="nav-link{active_cls}">{label}</a>')
+    return (
+        '<nav class="nav-bar">'
+        + "".join(links)
+        + f'<span class="nav-time">Last: {_esc(now)}</span>'
+        + "</nav>"
+    )
+
+
+def _build_modal_data(checks, enrichment, cat_icons, cat_labels, link_map):
+    """Build modal data dict from checks and enrichment data."""
+    modal_data = {}
+    for cat_key, cat_data in checks.items():
+        if not isinstance(cat_data, dict):
+            continue
+        for item_key, item_val in cat_data.items():
+            entry = {
+                "label": item_key.replace("_", " ").title(),
+                "category": cat_key,
+                "categoryLabel": cat_labels.get(cat_key, cat_key),
+                "icon": cat_icons.get(cat_key, "\U0001F4E6"),
+                "info": "",
+                "flags": {},
+                "analysis": "",
+                "links": [],
+            }
+            if isinstance(item_val, dict):
+                entry["info"] = item_val.get("info", "")
+                entry["flags"] = {k: v for k, v in item_val.items() if k != "info"}
+            else:
+                entry["info"] = str(item_val)
+
+            enr = enrichment.get(item_key, {})
+            if isinstance(enr, dict):
+                entry["analysis"] = enr.get("analysis", "")
+                enr_links = enr.get("links", [])
+                if isinstance(enr_links, list):
+                    entry["links"] = enr_links
+
+            if not entry["links"]:
+                default_link = link_map.get(item_key, "")
+                if default_link:
+                    entry["links"] = [{"url": default_link, "title": entry["label"], "desc": "Default tracking link"}]
+
+            modal_data[item_key] = entry
+    return modal_data
+
+
+def _generate_item_cards_html(cat_key, items_dict, cat_icons, cat_labels, enrichment):
+    """Generate card HTML for all items in a category. Used by detail pages."""
+    icon = cat_icons.get(cat_key, "\U0001F4E6")
+    cat_label = cat_labels.get(cat_key, cat_key.replace("_", " ").title())
+    cards = ""
+    for item_key, item_val in items_dict.items():
+        label = item_key.replace("_", " ").title()
+        info = ""
+        flags_html = ""
+        if isinstance(item_val, dict):
+            info = item_val.get("info", "")
+            for bk in ("announced", "in_stock", "available", "found", "has_deals"):
+                if bk in item_val:
+                    val = item_val[bk]
+                    color = "var(--green)" if val else "var(--dim)"
+                    bl = bk.replace("_", " ").title()
+                    flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
+            freshness = item_val.get("freshness", "")
+            if freshness == "fresh_verified":
+                flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>\U0001F7E2 Fresh</span>'
+            elif freshness == "partial":
+                flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>\U0001F7E1 Partial</span>'
+            elif freshness == "stale":
+                stale_h = item_val.get("stale_hours", "?")
+                flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>\U0001F534 Stale ({stale_h}h)</span>'
+        elif isinstance(item_val, str):
+            info = item_val
+
+        has_analysis = bool(enrichment.get(item_key, {}).get("analysis", ""))
+        detail_indicator = '<span class="detail-hint">\U0001F4D6 Click for details</span>' if has_analysis else '<span class="detail-hint">\u2197 Click for info</span>'
+
+        cards += (
+            f'\n        <div class="timeline-card clickable" onclick="openModal(\'{_esc(item_key)}\')"'
+            f'\n             data-search="{_esc(label)} {_esc(info)} {_esc(cat_label)}" data-item="{_esc(item_key)}">'
+            f'\n          <div class="card-top">'
+            f'\n            <span class="card-icon">{icon}</span>'
+            f'\n            <span class="card-cat">{_esc(cat_label)}</span>'
+            f'\n          </div>'
+            f'\n          <div class="card-title">{_esc(label)}</div>'
+            + (f'\n          <div class="card-flags">{flags_html}</div>' if flags_html else '')
+            + f'\n          <div class="card-info">{_esc(str(info)[:150])}{"…" if len(str(info)) > 150 else ""}</div>'
+            f'\n          {detail_indicator}'
+            f'\n        </div>'
+        )
+    return cards
+
+
+def _generate_page_shell(title, nav_html, body_content, modal_json):
+    """Wrap content in a full HTML document with CSS, modal system, and JS."""
+    monitor_dir_uri = str(MONITOR_DIR).replace("\\", "/")
+    js = _DASHBOARD_JS.replace("__MODAL_JSON__", modal_json)
+    return (
+        '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+        '<meta charset="UTF-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+        f'<title>{title}</title>\n'
+        f'<style>{_DASHBOARD_CSS}</style>\n'
+        '</head>\n<body>\n'
+        + nav_html + '\n'
+        + body_content + '\n'
+        + _MODAL_OVERLAY_HTML + '\n'
+        + f'<div class="footer">\n'
+        f'  Powered by <a href="https://github.com/features/copilot">GitHub Copilot CLI</a> &middot;\n'
+        f'  Checks daily at 9 AM via Windows Task Scheduler &middot;\n'
+        f'  <a href="file:///{monitor_dir_uri}/monitor.log">View Log</a> &middot;\n'
+        f'  <a href="file:///{monitor_dir_uri}/monitor_state.json">View State</a>\n'
+        f'</div>\n'
+        f'<script>{js}\n</script>\n'
+        '</body>\n</html>'
+    )
+
+
+def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline):
+    """Generate the main summary page content."""
+    nav_html = _generate_nav_html("summary", now)
+
+    # Status bar
+    status_items = []
+    for cat_key, cat_data in checks.items():
+        if not isinstance(cat_data, dict):
+            continue
+        for item_key, item_val in cat_data.items():
+            if isinstance(item_val, dict):
+                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
+                    if bk in item_val:
+                        label = item_key.replace("_", " ").title()
+                        val = item_val[bk]
+                        color = "var(--green)" if val else "var(--red)"
+                        status_items.append(f'<span class="status-pill" style="border-color:{color}"><span class="dot" style="background:{color}"></span>{_esc(label)}</span>')
+    status_bar = " ".join(status_items) if status_items else '<span class="dim">No data yet</span>'
+
+    # Timeline HTML
+    timeline_html = ""
+    for entry in reversed(timeline):
+        ts = entry.get("timestamp", "")
+        date_label = entry.get("date_label", ts)
+        items = entry.get("items", [])
+        if not items:
+            continue
+
+        cards_html = ""
+        for item in items:
+            key = item.get("key", "")
+            label = item.get("label", key)
+            data = item.get("data", {})
+            severity = item.get("severity", "info")
+            is_new = item.get("is_new", False)
+            cat = item.get("category", "other")
+            icon = cat_icons.get(cat, "\U0001F4E6")
+            cat_label = cat_labels.get(cat, cat.replace("_", " ").title())
+
+            info = ""
+            flags_html = ""
+            if isinstance(data, dict):
+                info = data.get("info", "")
+                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
+                    if bk in data:
+                        val = data[bk]
+                        color = "var(--green)" if val else "var(--dim)"
+                        bl = bk.replace("_", " ").title()
+                        flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
+                freshness = data.get("freshness", "")
+                if freshness == "fresh_verified":
+                    flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>\U0001F7E2 Fresh</span>'
+                elif freshness == "partial":
+                    flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>\U0001F7E1 Partial</span>'
+                elif freshness == "stale":
+                    stale_h = data.get("stale_hours", "?")
+                    flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>\U0001F534 Stale ({stale_h}h)</span>'
+            elif isinstance(data, str):
+                info = data
+
+            sev_class = f"sev-{severity}"
+            new_badge = '<span class="badge new">NEW</span>' if is_new else '<span class="badge update">UPDATED</span>'
+
+            has_analysis = bool(enrichment.get(key, {}).get("analysis", ""))
+            detail_indicator = '<span class="detail-hint">\U0001F4D6 Click for details</span>' if has_analysis else '<span class="detail-hint">\u2197 Click for info</span>'
+
+            cards_html += (
+                f'\n            <div class="timeline-card {sev_class} clickable" onclick="openModal(\'{_esc(key)}\')"'
+                f'\n                 data-search="{_esc(label)} {_esc(info)} {_esc(cat_label)}" data-item="{_esc(key)}">'
+                f'\n              <div class="card-top">'
+                f'\n                <span class="card-icon">{icon}</span>'
+                f'\n                <span class="card-cat">{_esc(cat_label)}</span>'
+                f'\n                {new_badge}'
+                f'\n              </div>'
+                f'\n              <div class="card-title">{_esc(label)}</div>'
+                + (f'\n              <div class="card-flags">{flags_html}</div>' if flags_html else '')
+                + f'\n              <div class="card-info">{_esc(str(info)[:150])}{"…" if len(str(info)) > 150 else ""}</div>'
+                f'\n              {detail_indicator}'
+                f'\n            </div>'
+            )
+
+        timeline_html += (
+            f'\n        <div class="timeline-group" data-date="{_esc(ts)}">'
+            f'\n          <div class="timeline-date">'
+            f'\n            <span class="date-dot"></span>'
+            f'\n            <span class="date-text">{_esc(date_label)}</span>'
+            f'\n            <span class="date-time">{_esc(ts)}</span>'
+            f'\n            <span class="date-count">{len(items)} update{"s" if len(items)!=1 else ""}</span>'
+            f'\n          </div>'
+            f'\n          <div class="timeline-cards">{cards_html}</div>'
+            f'\n        </div>'
+        )
+
+    if not timeline_html:
+        timeline_html = '<div class="empty-state">No updates yet. First check will populate this timeline.</div>'
+
+    # Run status badges
+    run_bar = ""
+    for cat, st in run_status.items():
+        ico = "\u2705" if st == "success" else "\u274C"
+        run_bar += f'<span class="run-badge {st}">{ico} {cat.replace("_"," ")}</span> '
+
+    # Recommendation hero card
+    rec = state.get("recommendation", {})
+    rec_html = ""
+    if rec:
+        rec_action = rec.get("recommendation", "wait")
+        rec_best = rec.get("best_option", "")
+        rec_summary = rec.get("summary", "")
+        rec_model = rec.get("best_model", "")
+        rec_cost = rec.get("cost_estimate_inr", "")
+        rec_confidence = rec.get("confidence", "medium")
+        rec_wait = rec.get("wait_for", "")
+        rec_changed = rec.get("changed_since_last", "")
+        rec_milestone = rec.get("next_milestone", "")
+        rec_fallback = rec.get("fallback_now", "")
+
+        rec_html = (
+            '\n    <div class="rec-card" onclick="openRecModal()">'
+            '\n      <div class="rec-top">'
+            '\n        <span style="font-size:1.4em">\U0001F3AF</span>'
+            '\n        <span style="font-weight:700;font-size:0.85em;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Today\'s Recommendation</span>'
+            f'\n        <span class="rec-badge {_esc(rec_action)}">{_esc(rec_action.replace("_"," "))}</span>'
+            f'\n        <span class="rec-confidence {_esc(rec_confidence)}">{_esc(rec_confidence)} confidence</span>'
+            '\n      </div>'
+            f'\n      <div class="rec-title">{_esc(rec_best)}</div>'
+            f'\n      <div class="rec-summary">{_esc(rec_summary)}</div>'
+            '\n      <div class="rec-meta">'
+            f'\n        <span class="rec-meta-item">\U0001F9E0 <b>{_esc(rec_model)}</b></span>'
+            f'\n        <span class="rec-meta-item">\U0001F4B0 <b>{_esc(rec_cost)}</b></span>'
+            + (f'\n        <span class="rec-meta-item">\u23F3 <b>{_esc(rec_wait[:80])}</b></span>' if rec_wait else '')
+            + '\n      </div>'
+            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\U0001F504 {_esc(rec_changed[:100])}</span></div>' if rec_changed and rec_changed != "first_run" else '')
+            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\U0001F4C5 <b>Next:</b> {_esc(rec_milestone[:100])}</span></div>' if rec_milestone else '')
+            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\u26A1 <b>Fallback:</b> {_esc(rec_fallback[:100])}</span></div>' if rec_fallback else '')
+            + '\n      <span class="rec-hint">\U0001F4D6 Click for full analysis, model config, fine-tuning guide & buy links</span>'
+            '\n    </div>'
+        )
+
+    # Quick stats
+    hw_count = len(checks.get("hardware", {})) if isinstance(checks.get("hardware"), dict) else 0
+    model_count = len(checks.get("models_and_agents", {})) if isinstance(checks.get("models_and_agents"), dict) else 0
+    deals_count = len(checks.get("deals_and_blogs", {})) if isinstance(checks.get("deals_and_blogs"), dict) else 0
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b> &middot; {len(timeline)} runs tracked</div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="search-wrap">'
+        '\n  <div class="search-row">'
+        '\n    <span class="icon">\U0001F50D</span>'
+        '\n    <input type="text" class="search-box" id="search" placeholder="Search updates... (e.g. Mac Studio, Qwen, WWDC, deals)" autocomplete="off">'
+        '\n  </div>'
+        '\n  <div class="filter-bar">'
+        '\n    <button class="filter-btn active" data-filter="all">All</button>'
+        f'\n    <button class="filter-btn" data-filter="hardware">\U0001F5A5\uFE0F Hardware ({hw_count})</button>'
+        f'\n    <button class="filter-btn" data-filter="models_and_agents">\U0001F9E0 Models ({model_count})</button>'
+        f'\n    <button class="filter-btn" data-filter="deals_and_blogs">\U0001F4B0 Deals ({deals_count})</button>'
+        '\n    <button class="filter-btn" data-filter="critical">\U0001F6A8 Critical Only</button>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        f'\n<div class="status-bar">{status_bar}</div>'
+        '\n'
+        '\n<div class="content">'
+        f'\n  <div class="run-status">{run_bar}</div>'
+        f'\n  {rec_html}'
+        f'\n  <div class="timeline" id="timeline">{timeline_html}</div>'
+        '\n</div>'
+    )
+
+    modal_json = json.dumps(modal_data, ensure_ascii=False, default=str)
+    return _generate_page_shell("LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
+    """Generate the hardware detail page."""
+    nav_html = _generate_nav_html("hardware", now)
+    hw_items = checks.get("hardware", {})
+    if not isinstance(hw_items, dict):
+        hw_items = {}
+
+    cards_html = _generate_item_cards_html("hardware", hw_items, cat_icons, cat_labels, enrichment)
+    if not cards_html:
+        cards_html = '<div class="empty-state">No hardware items tracked yet.</div>'
+    else:
+        cards_html = f'<div class="detail-cards">{cards_html}</div>'
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F5A5\uFE0F Hardware</div>'
+        '\n  <div class="page-desc">Tracking Mac Studio M5 availability, AMD Strix Halo alternatives, Corsair AI Workstations, and other hardware options for local LLM inference.</div>'
+        f'\n  {cards_html}'
+        '\n</div>'
+    )
+
+    hw_modal = {k: v for k, v in modal_data.items() if v.get("category") == "hardware"}
+    modal_json = json.dumps(hw_modal, ensure_ascii=False, default=str)
+    return _generate_page_shell("Hardware - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
+    """Generate the models & agents detail page."""
+    nav_html = _generate_nav_html("models", now)
+    model_items = checks.get("models_and_agents", {})
+    if not isinstance(model_items, dict):
+        model_items = {}
+
+    cards_html = _generate_item_cards_html("models_and_agents", model_items, cat_icons, cat_labels, enrichment)
+    if not cards_html:
+        cards_html = '<div class="empty-state">No model or agent items tracked yet.</div>'
+    else:
+        cards_html = f'<div class="detail-cards">{cards_html}</div>'
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F9E0 Models & Agents</div>'
+        '\n  <div class="page-desc">Tracking new MoE models, coding models, MLX/llama.cpp framework updates, and coding agent framework developments.</div>'
+        f'\n  {cards_html}'
+        '\n</div>'
+    )
+
+    model_modal = {k: v for k, v in modal_data.items() if v.get("category") == "models_and_agents"}
+    modal_json = json.dumps(model_modal, ensure_ascii=False, default=str)
+    return _generate_page_shell("Models & Agents - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def _generate_efficiency_page(checks, enrichment, modal_data, now):
+    """Generate the efficiency research detail page with signal filtering."""
+    nav_html = _generate_nav_html("efficiency", now)
+    eff_items = checks.get("efficiency_research", {})
+    if not isinstance(eff_items, dict):
+        eff_items = {}
+    # Enrichment is stored flat by item key (not nested under "efficiency_deep")
+    eff_enrichment = enrichment
+
+    _SIGNAL_META = {
+        "breakthrough": {"badge": "\U0001F6A8 Breakthrough", "css": "signal-breakthrough"},
+        "notable":      {"badge": "\u2B50 Notable",      "css": "signal-notable"},
+        "noise":        {"badge": "\U0001F4CB Noise",        "css": "signal-noise"},
+    }
+
+    # Build efficiency-specific modal data
+    eff_modal = {}
+    cards_html = ""
+    counts = {"breakthrough": 0, "notable": 0, "noise": 0}
+
+    for item_key, item_val in eff_items.items():
+        if not isinstance(item_val, dict):
+            continue
+        signal = item_val.get("signal", "noise")
+        found = item_val.get("found", False)
+        info = item_val.get("info", "")
+        label = item_key.replace("_", " ").title()
+        counts[signal] = counts.get(signal, 0) + 1
+
+        meta = _SIGNAL_META.get(signal, _SIGNAL_META["noise"])
+        found_color = "var(--green)" if found else "var(--dim)"
+        found_label = "Yes" if found else "No"
+
+        has_deep = bool(eff_enrichment.get(item_key, {}).get("analysis", ""))
+        detail_indicator = (
+            '<span class="detail-hint">\U0001F4D6 Click for details</span>'
+            if has_deep
+            else '<span class="detail-hint">\u2197 Click for info</span>'
+        )
+
+        cards_html += (
+            f'\n        <div class="timeline-card clickable" data-signal="{_esc(signal)}"'
+            f'\n             onclick="openModal(\'{_esc(item_key)}\')"'
+            f'\n             data-search="{_esc(label)} {_esc(info)} {_esc(signal)}" data-item="{_esc(item_key)}">'
+            f'\n          <div class="card-top">'
+            f'\n            <span class="signal-badge {meta["css"]}">{meta["badge"]}</span>'
+            f'\n          </div>'
+            f'\n          <div class="card-title">{_esc(label)}</div>'
+            f'\n          <div class="card-flags">'
+            f'\n            <span class="flag" style="color:{found_color}"><span class="dot" style="background:{found_color}"></span>Found: {found_label}</span>'
+            f'\n          </div>'
+            f'\n          <div class="card-info">{_esc(str(info)[:200])}{"…" if len(str(info)) > 200 else ""}</div>'
+            f'\n          {detail_indicator}'
+            f'\n        </div>'
+        )
+
+        # Build modal entry for this item
+        enr = eff_enrichment.get(item_key, {})
+        eff_modal[item_key] = {
+            "label": label,
+            "category": "efficiency_research",
+            "categoryLabel": "Efficiency Research",
+            "icon": "\U0001F52C",
+            "info": info,
+            "flags": {"found": found, "signal": signal},
+            "analysis": enr.get("analysis", "") if isinstance(enr, dict) else "",
+            "links": enr.get("links", []) if isinstance(enr, dict) else [],
+        }
+
+    if not cards_html:
+        cards_inner = '<div class="empty-state">No efficiency research data yet. This page will show quantization breakthroughs, inference engine updates, MoE offloading, and other optimization findings.</div>'
+    else:
+        cards_inner = f'<div class="detail-cards">{cards_html}</div>'
+
+    # Signal filter buttons
+    total = sum(counts.values())
+    filter_bar = (
+        '\n  <div class="filter-bar">'
+        f'\n    <button class="signal-filter-btn active" data-signal="all">All ({total})</button>'
+        f'\n    <button class="signal-filter-btn" data-signal="breakthrough">\U0001F6A8 Breakthroughs Only ({counts["breakthrough"]})</button>'
+        f'\n    <button class="signal-filter-btn" data-signal="notable">\u2B50 Notable+ ({counts["breakthrough"] + counts["notable"]})</button>'
+        '\n  </div>'
+    )
+
+    # Inline CSS for signal badges and filter buttons
+    signal_css = (
+        '\n<style>'
+        '\n  .signal-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }'
+        '\n  .signal-breakthrough { background: #dc2626; color: #fff; }'
+        '\n  .signal-notable { background: #f59e0b; color: #000; }'
+        '\n  .signal-noise { background: #4b5563; color: #9ca3af; }'
+        '\n  .signal-filter-btn {'
+        '\n    padding: 5px 14px; border-radius: 20px; font-size: 0.8em;'
+        '\n    background: var(--card); border: 1px solid var(--border); color: var(--dim);'
+        '\n    cursor: pointer; transition: all 0.2s;'
+        '\n  }'
+        '\n  .signal-filter-btn:hover, .signal-filter-btn.active {'
+        '\n    background: rgba(88,166,255,0.15); color: var(--accent); border-color: var(--accent);'
+        '\n  }'
+        '\n</style>'
+    )
+
+    # Inline JS for signal filtering
+    signal_js = (
+        "\n<script>"
+        "\ndocument.querySelectorAll('.signal-filter-btn').forEach(btn => {"
+        "\n  btn.addEventListener('click', () => {"
+        "\n    document.querySelectorAll('.signal-filter-btn').forEach(b => b.classList.remove('active'));"
+        "\n    btn.classList.add('active');"
+        "\n    const sig = btn.dataset.signal;"
+        "\n    document.querySelectorAll('.timeline-card').forEach(card => {"
+        "\n      const cs = card.dataset.signal || '';"
+        "\n      if (sig === 'all') { card.style.display = ''; }"
+        "\n      else if (sig === 'notable') { card.style.display = (cs === 'breakthrough' || cs === 'notable') ? '' : 'none'; }"
+        "\n      else { card.style.display = cs === sig ? '' : 'none'; }"
+        "\n    });"
+        "\n  });"
+        "\n});"
+        "\n</script>"
+    )
+
+    body_content = (
+        signal_css
+        + '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F52C Efficiency Research</div>'
+        '\n  <div class="page-desc">Tracking quantization breakthroughs, inference engine updates, MoE offloading techniques, budget GPU benchmarks, efficient architectures, memory optimization, and community discoveries.</div>'
+        + filter_bar
+        + f'\n  {cards_inner}'
+        '\n</div>'
+        + signal_js
+    )
+
+    modal_json = json.dumps(eff_modal, ensure_ascii=False, default=str)
+    return _generate_page_shell("Efficiency Research - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
+    """Generate the deals & news detail page."""
+    nav_html = _generate_nav_html("deals", now)
+    deal_items = checks.get("deals_and_blogs", {})
+    if not isinstance(deal_items, dict):
+        deal_items = {}
+
+    cards_html = _generate_item_cards_html("deals_and_blogs", deal_items, cat_icons, cat_labels, enrichment)
+    if not cards_html:
+        cards_html = '<div class="empty-state">No deals or news tracked yet.</div>'
+    else:
+        cards_html = f'<div class="detail-cards">{cards_html}</div>'
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F4B0 Deals & News</div>'
+        '\n  <div class="page-desc">Tracking Apple India deals, marketplace pricing, r/LocalLLaMA news, trending models, and other relevant blog posts and announcements.</div>'
+        f'\n  {cards_html}'
+        '\n</div>'
+    )
+
+    deals_modal = {k: v for k, v in modal_data.items() if v.get("category") == "deals_and_blogs"}
+    modal_json = json.dumps(deals_modal, ensure_ascii=False, default=str)
+    return _generate_page_shell("Deals & News - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
+    """Generate multi-page HTML dashboard with search, cards, and detail side-pane modal."""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timeline = state.get("timeline", [])
+    checks = state.get("checks", {})
+    enrichment = state.get("enrichment", {})
+
+    cat_icons = {
+        "hardware": "\U0001F5A5\uFE0F",
+        "models_and_agents": "\U0001F9E0",
+        "efficiency_research": "\U0001F52C",
+        "deals_and_blogs": "\U0001F4B0",
+    }
+    cat_labels = {
+        "hardware": "Hardware",
+        "models_and_agents": "Models & Agents",
+        "efficiency_research": "Efficiency Research",
+        "deals_and_blogs": "Deals & News",
+    }
+    link_map = {
+        "mac_studio_m5": "https://www.macrumors.com/roundup/mac-studio/",
+        "mac_studio_128gb_india": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+        "mac_studio_128gb_us": "https://www.apple.com/shop/buy-mac/mac-studio",
+        "apple_refurbished": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
+        "wwdc_apple_event": "https://developer.apple.com/wwdc26/",
+        "corsair_ws300_india": "https://www.amazon.in/s?k=Corsair+AI+Workstation",
+        "amd_strix_halo_128gb_india": "https://www.amazon.in/s?k=AMD+Strix+Halo+128GB",
+        "new_moe_models": "https://huggingface.co/models?sort=trending",
+        "new_coding_models": "https://huggingface.co/models?sort=trending&search=code",
+        "mlx_llama_cpp": "https://github.com/ml-explore/mlx",
+        "coding_agents": "https://github.com/topics/coding-agent",
+        "apple_india_deals": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+        "mac_studio_marketplace": "https://www.amazon.in/s?k=Mac+Studio",
+        "latest_local_llm_news": "https://www.reddit.com/r/LocalLLaMA/top/?t=week",
+        "trending_models": "https://huggingface.co/models?sort=trending",
+    }
+
+    # Build modal data for all items
+    modal_data = _build_modal_data(checks, enrichment, cat_icons, cat_labels, link_map)
+
+    # Add recommendation to modal data
+    rec = state.get("recommendation", {})
+    if rec:
+        modal_data["__recommendation__"] = {
+            "label": rec.get("best_option", "Daily Recommendation"),
+            "category": "recommendation",
+            "categoryLabel": "Daily Recommendation",
+            "icon": "\U0001F3AF",
+            "info": rec.get("summary", ""),
+            "flags": {
+                "recommendation": rec.get("recommendation", ""),
+                "confidence": rec.get("confidence", ""),
+            },
+            "analysis": rec.get("reasoning", ""),
+            "links": rec.get("buy_links", []),
+            "best_model": rec.get("best_model", ""),
+            "model_config": rec.get("model_config", ""),
+            "fine_tuning": rec.get("fine_tuning", ""),
+            "wait_for": rec.get("wait_for", ""),
+            "changed_since_last": rec.get("changed_since_last", ""),
+            "cost_estimate_inr": rec.get("cost_estimate_inr", ""),
+            "next_milestone": rec.get("next_milestone", ""),
+            "fallback_now": rec.get("fallback_now", ""),
+        }
+
+    # Create pages directory
+    os.makedirs(PAGES_DIR, exist_ok=True)
+
+    # Generate and write main page
+    main_html = _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline)
+    DASHBOARD_FILE.write_text(main_html, encoding="utf-8")
+
+    # Generate and write detail pages
+    hw_html = _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
+    (PAGES_DIR / "hardware.html").write_text(hw_html, encoding="utf-8")
+
+    models_html = _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
+    (PAGES_DIR / "models.html").write_text(models_html, encoding="utf-8")
+
+    eff_html = _generate_efficiency_page(checks, enrichment, modal_data, now)
+    (PAGES_DIR / "efficiency.html").write_text(eff_html, encoding="utf-8")
+
+    deals_html = _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
+    (PAGES_DIR / "deals.html").write_text(deals_html, encoding="utf-8")
+
+    logger.info(f"Dashboard updated: {DASHBOARD_FILE} + {PAGES_DIR}")
 
 
 # ─── Main Execution ─────────────────────────────────────────────────────────
@@ -3248,12 +3820,21 @@ def main():
             logger.info("First run — establishing baseline")
             send_toast("✅ Monitor Started", "LLM Hardware Monitor is now active!", "info")
 
+    # Check for efficiency breakthroughs using signal classification heuristics
+    efficiency_data = new_checks.get("efficiency_research", {})
+    breakthroughs = get_efficiency_breakthroughs(efficiency_data)
+    if breakthroughs:
+        bt = breakthroughs[0]
+        send_toast("🚨 EFFICIENCY BREAKTHROUGH",
+                   f"{bt['key'].replace('_', ' ').title()}: {bt['info'][:150]}",
+                   "critical")
+
+    # Update checks before summary so desktop summary has current data
+    state["checks"] = new_checks
+    state["last_run"] = datetime.now().isoformat()
+
     # Always write desktop summary file as fallback notification
     write_desktop_summary(state, changes, run_status)
-
-    # Update state
-    state["last_run"] = datetime.now().isoformat()
-    state["checks"] = new_checks
 
     # Build a rich timeline entry with full data for each item that changed or is new
     timeline_entry = {
