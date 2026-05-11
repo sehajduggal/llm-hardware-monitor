@@ -175,6 +175,49 @@ PROMPTS = {
         '"info": "Reddit r/LocalLLaMA discoveries, YouTube demos, GitHub PRs showing big models on small GPUs. Practical configs people are actually using"}}}} '
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
+    "learning_feed": (
+        "You are a local LLM learning curator. Today is {date}. "
+        "Search Reddit r/LocalLLaMA, YouTube, Hacker News, and tech blogs for the most valuable and educational content from the past 7 days. "
+        "Focus topics: running LLMs locally, fine-tuning techniques, coding agent frameworks, hardware optimization, quantization advances, new model releases for local use. "
+        "Only include content with genuine educational value. Skip news-only items, product announcements without technical depth, and clickbait. "
+        "Return ONLY a JSON object (no markdown fences, no explanation) with 5-10 items sorted by relevance: "
+        '{{"articles": ['
+        '{{"title": "article title", "url": "real URL", "source": "reddit|youtube|hackernews|blog|github", '
+        '"category": "inference|training|agents|hardware|quantization|models", '
+        '"summary": "1-2 sentence summary of key insight", '
+        '"relevance": "high|medium", '
+        '"type": "article|video|tutorial|discussion|paper"}}'
+        "]}} "
+        "Replace placeholders with real current findings. Return ONLY the JSON."
+    ),
+    "model_benchmarks": (
+        "You are an LLM benchmarking analyst. Today is {date}. "
+        "Search the web and return ONLY a JSON object (no markdown fences, no explanation). "
+        "Find the top 5 coding-capable models ranked by coding capability that can run locally. "
+        "Include: Qwen3 variants, DeepSeek variants, Llama variants, Codestral, and any strong new entrant. "
+        "Models must fit on 48-128GB unified memory OR 16-32GB VRAM with quantization. "
+        "Return exactly this structure: "
+        '{{"top_coding_models": ['
+        '{{"name": "model name (e.g., Qwen3-30B-A3B)", '
+        '"params": "30B", '
+        '"architecture": "MoE|dense|hybrid", '
+        '"active_params": "3B (for MoE, null for dense)", '
+        '"humaneval_plus": 72.5, '
+        '"swe_bench_verified": 45.2, '
+        '"livecode_bench": null, '
+        '"vram_q4": "20GB", '
+        '"vram_q8": "34GB", '
+        '"tok_s_128gb_unified": 160, '
+        '"tok_s_48gb_unified": 45, '
+        '"tok_s_rtx5090": 80, '
+        '"tok_s_rtx4060ti_16gb_moe_offload": 35, '
+        '"best_quant": "Q4_K_M", '
+        '"context_max": "128K", '
+        '"released": "2025-04-28", '
+        '"notes": "key insight about this model"}}'
+        "]}} "
+        "Replace placeholders with real current data. Use null for unknown benchmarks. Return ONLY the JSON."
+    ),
 }
 
 # ─── Enrichment Prompts (deeper analysis + links for modal) ──────────────────
@@ -240,6 +283,22 @@ ENRICHMENT_PROMPTS = {
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
         '"community_discoveries": {{"analysis": "2-3 paragraphs on community discoveries from r/LocalLLaMA, YouTube demos, GitHub PRs. '
         'Real-world configs people use to run big models on small GPUs. Most upvoted/discussed findings.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}}} '
+        "1-3 REAL URLs per item. Replace all placeholders with real current data. ONLY JSON."
+    ),
+    "learning_deep": (
+        "You are a local LLM learning curator. Today is {date}. "
+        "GOAL: Provide deeper analysis of the top 3 most valuable learning resources about local LLMs from the past 7 days. "
+        "Search Reddit r/LocalLLaMA, YouTube, Hacker News, tech blogs, and GitHub for the best educational content. "
+        "Do deep web searches for each item. Return ONLY JSON with detailed analysis and source links: "
+        '{{"top_learning_item_1": {{"analysis": "2-3 paragraphs with full summary of the content, key takeaways, and why it matters for someone running LLMs locally. '
+        'Cover technical details, practical implications, and how to apply the knowledge.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"top_learning_item_2": {{"analysis": "2-3 paragraphs with full summary — different topic from item 1. '
+        'Focus on actionable insights for local LLM users: fine-tuning, inference optimization, agent frameworks, or hardware tips.", '
+        '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}, '
+        '"top_learning_item_3": {{"analysis": "2-3 paragraphs with full summary — different topic from items 1-2. '
+        'Prioritize content with genuine educational depth over surface-level news.", '
         '"links": [{{"url": "real_url", "title": "page_title", "desc": "what_it_says"}}]}}}} '
         "1-3 REAL URLs per item. Replace all placeholders with real current data. ONLY JSON."
     ),
@@ -389,6 +448,8 @@ EXPECTED_KEYS = {
     "models_and_agents": {"best_local_coding_models", "inference_runtimes"},
     "deals_and_blogs": {"apple_india_deals", "latest_local_llm_news"},
     "efficiency_research": {"quantization_breakthroughs", "inference_engine_updates", "moe_offloading"},
+    "learning_feed": {"articles", "title"},
+    "model_benchmarks": {"top_coding_models", "name"},
 }
 
 
@@ -400,7 +461,14 @@ def _validate_response_schema(parsed: dict, category: str) -> bool:
     present = set(parsed.keys())
     overlap = present & expected
     # Require at least half the expected keys
-    return len(overlap) >= len(expected) / 2
+    if len(overlap) >= len(expected) / 2:
+        return True
+    # Fallback: for learning_feed, accept flat dict of articles (each has title+url)
+    if category == "learning_feed" and len(parsed) >= 3:
+        first_val = next(iter(parsed.values()))
+        if isinstance(first_val, dict) and "title" in first_val:
+            return True
+    return False
 
 
 def run_copilot_with_retry(prompt: str, category: str = None,
@@ -721,6 +789,348 @@ CAPABILITY_SHEET_SEED = {
 }
 
 
+def compute_readiness_score(state: dict, checks: dict) -> dict:
+    """Compute a 0-100 readiness score for running 24/7 local coding agents.
+
+    Evaluates hardware, models, tools, and cost dimensions and returns
+    a structured dict with per-dimension scores, statuses, summaries,
+    blockers, and an overall weighted score with trend detection.
+    """
+    now_iso = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+    # ── Hardware (weight 40%) ────────────────────────────────────────────
+    hw_score = 0
+    hw_status = "none"
+    hw_summary = "No viable hardware options identified"
+    hw_blockers: list[str] = []
+
+    current_plan = USER_CONSTRAINTS.get("current_plan", "")
+    rec = state.get("recommendation", {})
+    sheet = state.get("capability_sheet", {})
+    store_check = state.get("store_check", {})
+    store_results = store_check.get("results", [])
+
+    # Count viable options from capability sheet
+    viable_options = [
+        k for k, v in sheet.items()
+        if isinstance(v, dict) and (v.get("memory_gb") or 0) >= 48
+    ]
+
+    # Check if any tracked store item is in stock / orderable
+    any_in_stock = any(
+        r.get("in_stock") or r.get("orderable")
+        for r in store_results if isinstance(r, dict)
+    )
+
+    # Determine best option label and price from recommendation or sheet
+    best_label = rec.get("best_option", "")
+    best_price = ""
+    if not best_label and viable_options:
+        first = sheet.get(viable_options[0], {})
+        best_label = first.get("name", viable_options[0])
+    for v in sheet.values():
+        if isinstance(v, dict) and v.get("name") == best_label:
+            usd = v.get("price_usd")
+            inr = v.get("price_inr")
+            if usd:
+                best_price = f"${usd:,}"
+            elif inr:
+                best_price = f"₹{inr:,}"
+            break
+
+    plan_lower = current_plan.lower().replace(" ", "_") if current_plan else ""
+
+    if "running" in plan_lower or "serving" in plan_lower:
+        hw_score = 100
+        hw_status = "ready"
+        hw_summary = f"Hardware running and serving models"
+    elif "setup" in plan_lower or "received" in plan_lower:
+        hw_score = 80
+        hw_status = "ready"
+        hw_summary = f"Hardware received, setting up"
+    elif "ordered" in plan_lower or "shipping" in plan_lower:
+        hw_score = 60
+        hw_status = "ordered"
+        hw_summary = f"Hardware ordered — {best_label}"
+        hw_blockers.append("Waiting for delivery")
+    elif "selected" in plan_lower or "buy_now" in plan_lower:
+        hw_score = 40
+        hw_status = "shopping"
+        hw_summary = f"Selected: {best_label}" + (f" at {best_price}" if best_price else "")
+        hw_blockers.append("Purchase not yet made")
+    elif viable_options:
+        hw_score = 20
+        hw_status = "shopping"
+        count = len(viable_options)
+        price_bit = f". Best: {best_label}" + (f" at {best_price}" if best_price else "")
+        hw_summary = f"Monitoring {count} option{'s' if count != 1 else ''}{price_bit}"
+        hw_blockers.append("No hardware purchased yet")
+    else:
+        hw_blockers.append("No viable options identified")
+
+    if any_in_stock and hw_score < 40:
+        hw_score = min(hw_score + 10, 40)
+
+    # ── Models (weight 25%) ──────────────────────────────────────────────
+    model_score = 25  # baseline — some local models exist
+    model_status = "weak"
+    model_summary = "No coding model data available"
+    model_blockers: list[str] = []
+
+    best_swe = 0.0
+    best_model_name = ""
+    best_tok_s = 0
+    fits_48gb = False
+
+    # Pull from model_benchmarks top_coding_models list
+    benchmarks = checks.get("model_benchmarks", {})
+    top_models = benchmarks.get("top_coding_models", [])
+    if isinstance(top_models, list):
+        for m in top_models:
+            if not isinstance(m, dict):
+                continue
+            swe = m.get("swe_bench_verified") or m.get("swe_bench") or 0
+            try:
+                swe = float(swe)
+            except (ValueError, TypeError):
+                swe = 0
+            if swe > best_swe:
+                best_swe = swe
+                best_model_name = m.get("name", "unknown")
+                # Check tok/s on target hardware
+                for tok_key in ("tok_s_128gb_unified", "tok_s_48gb_unified", "tok_s_rtx5090"):
+                    val = m.get(tok_key)
+                    if val:
+                        try:
+                            best_tok_s = max(best_tok_s, int(val))
+                        except (ValueError, TypeError):
+                            pass
+                # Check memory fit
+                vram_q4 = str(m.get("vram_q4", "")) .lower().replace("gb", "").strip()
+                try:
+                    if float(vram_q4) <= 48:
+                        fits_48gb = True
+                except (ValueError, TypeError):
+                    pass
+
+    # Also check models_and_agents for info strings with benchmark hints
+    ma = checks.get("models_and_agents", {})
+    if isinstance(ma, dict):
+        coding_info = ""
+        cm = ma.get("best_local_coding_models", {})
+        if isinstance(cm, dict):
+            coding_info = cm.get("info", "")
+        # Try to extract SWE-bench percentages from info text
+        import re as _re
+        swe_matches = _re.findall(r'(\d+(?:\.\d+)?)\s*%?\s*(?:on\s+)?swe[_-]?bench', coding_info, _re.IGNORECASE)
+        for s in swe_matches:
+            try:
+                val = float(s)
+                if val > best_swe:
+                    best_swe = val
+            except (ValueError, TypeError):
+                pass
+
+    # Score based on best SWE-bench
+    if best_swe >= 60:
+        model_score = 100
+        model_status = "excellent"
+    elif best_swe >= 45:
+        model_score = 70
+        model_status = "good_enough"
+    elif best_swe >= 30:
+        model_score = 50
+        model_status = "good_enough"
+    elif best_swe > 0:
+        model_score = 25
+        model_status = "weak"
+
+    # Bonuses
+    if best_tok_s >= 50:
+        model_score = min(model_score + 10, 100)
+    if fits_48gb:
+        model_score = min(model_score + 10, 100)
+
+    if best_model_name:
+        swe_str = f"{best_swe:.0f}%" if best_swe else "N/A"
+        tok_str = f", {best_tok_s} tok/s" if best_tok_s else ""
+        model_summary = f"{best_model_name} achieves ~{swe_str} SWE-bench{tok_str}"
+    if best_swe < 60:
+        model_blockers.append("No model above 60% SWE-bench runs locally yet")
+
+    # ── Tools (weight 15%) ───────────────────────────────────────────────
+    tools_score = 30  # baseline — basic frameworks exist
+    tools_status = "basic"
+    tools_summary = "Basic coding agent frameworks available"
+    tools_blockers: list[str] = []
+
+    frameworks = {}
+    if isinstance(ma, dict):
+        frameworks = ma.get("coding_agent_frameworks", {})
+    if not isinstance(frameworks, dict):
+        frameworks = {}
+
+    fw_info = (frameworks.get("info", "") or "").lower()
+
+    # Look for signals of maturity in the framework info
+    production_signals = ["battle-tested", "production", "reliable 24/7", "stable yolo"]
+    yolo_signals = ["yolo", "unattended", "autonomous", "auto-accept", "headless"]
+    local_signals = ["local model", "local llm", "ollama", "llama.cpp", "30b", "70b"]
+
+    has_yolo = any(s in fw_info for s in yolo_signals)
+    has_local = any(s in fw_info for s in local_signals)
+    has_production = any(s in fw_info for s in production_signals)
+
+    if has_production and has_yolo and has_local:
+        tools_score = 100
+        tools_status = "production"
+        tools_summary = "Production-ready YOLO frameworks with local model support"
+    elif has_yolo and has_local:
+        tools_score = 80
+        tools_status = "maturing"
+        tools_summary = "YOLO mode available with local 30B+ model support"
+    elif has_yolo or has_local:
+        tools_score = 55
+        tools_status = "maturing"
+        tools_summary = "Frameworks support local models in autonomous mode"
+        tools_blockers.append("Most frameworks optimized for cloud APIs, not local")
+    else:
+        tools_blockers.append("Limited autonomous/YOLO support for local models")
+
+    # Also check enrichment for deeper analysis
+    enrichment_fw = state.get("enrichment", {}).get("coding_agent_frameworks", {})
+    if isinstance(enrichment_fw, dict):
+        analysis = (enrichment_fw.get("analysis", "") or "").lower()
+        if any(s in analysis for s in yolo_signals) and tools_score < 55:
+            tools_score = 55
+            tools_status = "maturing"
+
+    # ── Cost (weight 20%) ────────────────────────────────────────────────
+    cost_score = 0
+    cost_status = "over_budget"
+    cost_summary = "No viable option found"
+    cost_blockers: list[str] = []
+
+    budget_usd_max = USER_CONSTRAINTS.get("budget_usd_max", 5000)
+    budget_inr_max = USER_CONSTRAINTS.get("budget_inr_max", 500_000)
+    budget_inr_min = USER_CONSTRAINTS.get("budget_inr_min", 150_000)
+    budget_usd_min = USER_CONSTRAINTS.get("budget_usd_min", 1500)
+
+    # Find cheapest viable option
+    best_usd = None
+    best_inr = None
+    best_cost_label = ""
+    for k, v in sheet.items():
+        if not isinstance(v, dict) or (v.get("memory_gb") or 0) < 48:
+            continue
+        try:
+            usd = float(v["price_usd"]) if v.get("price_usd") else None
+        except (ValueError, TypeError):
+            usd = None
+        try:
+            inr = float(v["price_inr"]) if v.get("price_inr") else None
+        except (ValueError, TypeError):
+            inr = None
+        if usd and (best_usd is None or usd < best_usd):
+            best_usd = usd
+            best_cost_label = v.get("name", k)
+        if inr and (best_inr is None or inr < best_inr):
+            best_inr = inr
+            if not best_usd or (usd and usd >= best_usd):
+                best_cost_label = v.get("name", k)
+
+    # Score against budget thresholds
+    under_budget = False
+    if best_usd is not None:
+        if best_usd <= budget_usd_min:
+            cost_score = 100
+            cost_status = "great_value"
+        elif best_usd <= 3000:
+            cost_score = 75
+            cost_status = "within_budget"
+        elif best_usd <= budget_usd_max:
+            cost_score = 50
+            cost_status = "within_budget"
+        else:
+            cost_score = 25
+            cost_status = "over_budget"
+            cost_blockers.append(f"Best USD option ${best_usd:,} exceeds ${budget_usd_max:,}")
+        under_budget = best_usd <= budget_usd_max
+
+    if best_inr is not None:
+        if best_inr <= budget_inr_min:
+            inr_score = 100
+        elif best_inr <= 300_000:
+            inr_score = 75
+        elif best_inr <= budget_inr_max:
+            inr_score = 50
+        else:
+            inr_score = 25
+        if inr_score > cost_score:
+            cost_score = inr_score
+            cost_status = "great_value" if inr_score >= 100 else "within_budget" if inr_score >= 50 else "over_budget"
+        under_budget = under_budget or (best_inr <= budget_inr_max)
+
+    if best_cost_label:
+        price_parts = []
+        if best_inr:
+            price_parts.append(f"₹{best_inr / 100_000:.2f}L")
+        if best_usd:
+            price_parts.append(f"${best_usd:,}")
+        cost_summary = f"Best option: {best_cost_label} at {' / '.join(price_parts)}" if price_parts else f"Best option: {best_cost_label}"
+    elif not under_budget:
+        cost_blockers.append("No viable option within budget")
+
+    # ── Overall (weighted average) ───────────────────────────────────────
+    overall = int(
+        hw_score * 0.40
+        + model_score * 0.25
+        + tools_score * 0.15
+        + cost_score * 0.20
+    )
+    overall = max(0, min(100, overall))
+
+    # ── Trend detection ──────────────────────────────────────────────────
+    trend = "stable"
+    history = state.get("readiness_history", [])
+    if history:
+        last_overall = history[-1].get("overall", overall)
+        if overall > last_overall + 2:
+            trend = "improving"
+        elif overall < last_overall - 2:
+            trend = "declining"
+
+    return {
+        "overall": overall,
+        "hardware": {
+            "score": hw_score,
+            "status": hw_status,
+            "summary": hw_summary,
+            "blockers": hw_blockers,
+        },
+        "models": {
+            "score": model_score,
+            "status": model_status,
+            "summary": model_summary,
+            "blockers": model_blockers,
+        },
+        "tools": {
+            "score": tools_score,
+            "status": tools_status,
+            "summary": tools_summary,
+            "blockers": tools_blockers,
+        },
+        "cost": {
+            "score": cost_score,
+            "status": cost_status,
+            "summary": cost_summary,
+            "blockers": cost_blockers,
+        },
+        "timestamp": now_iso,
+        "trend": trend,
+    }
+
+
 def update_capability_sheet(state: dict, store_results: list[dict] = None,
                             enrichment: dict = None) -> dict:
     """Update the persistent capability sheet from store results and enrichment.
@@ -773,6 +1183,338 @@ def update_capability_sheet(state: dict, store_results: list[dict] = None,
 
     state["capability_sheet"] = sheet
     return state
+
+
+# ─── Model Benchmarks Processing ────────────────────────────────────────────
+
+# VRAM budgets (GB) for each hardware config
+_HARDWARE_VRAM = {
+    "128gb_unified": 128,
+    "48gb_unified": 48,
+    "rtx5090_32gb": 32,
+    "rtx4060ti_16gb_moe": 16,
+}
+
+
+def process_model_benchmarks(state: dict, checks: dict) -> dict:
+    """Extract and track model benchmark data from check results."""
+    bm_data = checks.get("model_benchmarks", {})
+    top_models = bm_data.get("top_coding_models", [])
+
+    models_list: list[dict] = []
+    if isinstance(top_models, list):
+        models_list = top_models
+    elif isinstance(top_models, dict):
+        # Fallback: dict keyed by model name
+        for name, info in top_models.items():
+            entry = info if isinstance(info, dict) else {}
+            entry.setdefault("model", name)
+            models_list.append(entry)
+
+    if models_list:
+        state["model_benchmarks"] = {
+            "timestamp": datetime.now().isoformat(),
+            "models": models_list,
+        }
+
+    # Track historical best model (90-day rolling window)
+    history: list[dict] = state.get("model_benchmark_history", [])
+    if models_list:
+        best = _pick_best_coding_model(models_list)
+        if best:
+            history.append({
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "model": best.get("model", "unknown"),
+                "humaneval_plus": best.get("humaneval_plus"),
+                "swe_bench_verified": best.get("swe_bench_verified"),
+            })
+    cutoff = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+    state["model_benchmark_history"] = [h for h in history if h.get("date", "") >= cutoff]
+
+    return state
+
+
+def _pick_best_coding_model(models: list[dict]) -> dict | None:
+    """Return the model with the highest coding benchmark score."""
+    def _score(m: dict) -> float:
+        he = m.get("humaneval_plus")
+        sw = m.get("swe_bench_verified")
+        vals = [v for v in (he, sw) if v is not None]
+        return max(vals) if vals else -1
+    scored = [(m, _score(m)) for m in models]
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return scored[0][0] if scored and scored[0][1] >= 0 else None
+
+
+def get_best_model_for_hardware(state: dict, hardware_type: str) -> dict | None:
+    """Return the best coding model that fits on the given hardware config."""
+    vram_budget = _HARDWARE_VRAM.get(hardware_type)
+    if vram_budget is None:
+        return None
+    models = state.get("model_benchmarks", {}).get("models", [])
+    fits = [m for m in models if (m.get("vram_q4") or 0) <= vram_budget and m.get("vram_q4")]
+    return _pick_best_coding_model(fits)
+
+
+def generate_model_comparison_html(state: dict) -> str:
+    """Generate an HTML table comparing top models (dark-theme, dashboard-style)."""
+    models = state.get("model_benchmarks", {}).get("models", [])
+    if not models:
+        return '<p style="color:var(--fg,#ccc);">No model benchmark data available yet.</p>'
+
+    def _cell(val):
+        if val is None:
+            return "—"
+        if isinstance(val, float):
+            return f"{val:.1f}"
+        return str(val)
+
+    # Determine column-best values for highlighting
+    def _best(key):
+        vals = [m.get(key) for m in models if m.get(key) is not None]
+        return max(vals) if vals else None
+
+    best_he = _best("humaneval_plus")
+    best_sw = _best("swe_bench_verified")
+    best_tok128 = _best("tok_s_128gb_unified")
+    best_tok4060 = _best("tok_s_4060ti_moe")
+
+    def _hl(val, best_val):
+        if val is not None and best_val is not None and val == best_val:
+            return ' style="color:#4caf50;font-weight:bold;"'
+        return ""
+
+    rows = []
+    for m in models:
+        arch = m.get("architecture", "—")
+        active = _cell(m.get("active_params_b"))
+        he = m.get("humaneval_plus")
+        sw = m.get("swe_bench_verified")
+        t128 = m.get("tok_s_128gb_unified")
+        t4060 = m.get("tok_s_4060ti_moe")
+        vram = _cell(m.get("vram_q4"))
+        notes = _cell(m.get("notes"))
+        rows.append(
+            f"<tr>"
+            f"<td>{_cell(m.get('model'))}</td>"
+            f"<td>{_cell(arch)}</td>"
+            f"<td>{active}</td>"
+            f"<td{_hl(he, best_he)}>{_cell(he)}</td>"
+            f"<td{_hl(sw, best_sw)}>{_cell(sw)}</td>"
+            f"<td{_hl(t128, best_tok128)}>{_cell(t128)}</td>"
+            f"<td{_hl(t4060, best_tok4060)}>{_cell(t4060)}</td>"
+            f"<td>{vram}</td>"
+            f"<td>{notes}</td>"
+            f"</tr>"
+        )
+
+    return (
+        '<div class="model-table-wrap">'
+        '<table style="width:100%;border-collapse:collapse;background:var(--bg2,#1e1e2e);'
+        'color:var(--fg,#cdd6f4);font-size:0.9em;">'
+        "<thead><tr>"
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:left;">Model</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:left;">Arch</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">Active Params</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">HumanEval+</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">SWE-bench</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">tok/s 128GB</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">tok/s 4060Ti</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:right;">VRAM Q4</th>'
+        '<th style="padding:8px;border-bottom:2px solid var(--fg,#cdd6f4);text-align:left;">Notes</th>'
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        "</table>"
+        "</div>"
+    )
+
+
+# ─── Price History Tracking ──────────────────────────────────────────────────
+
+def record_price_history(state: dict, store_results: list, checks: dict) -> dict:
+    """Record daily price snapshots for all tracked products.
+
+    Extracts prices from Playwright store_results and Copilot hardware checks,
+    appends today's snapshot (deduplicating by date), and trims to a 90-day
+    rolling window.  Returns the updated state.
+    """
+    history = state.setdefault("price_history", {})
+    today = datetime.now().strftime("%Y-%m-%d")
+    cutoff = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+
+    prices: list[tuple[str, float, str]] = []  # (product_key, price, currency)
+
+    # --- Playwright / HTTP store results ---
+    if store_results:
+        for r in store_results:
+            key = r.get("key", "")
+            price = r.get("price")
+            currency = r.get("currency", "INR")
+            if key and price and isinstance(price, (int, float)) and price > 0:
+                prices.append((key, float(price), currency))
+
+    # --- Copilot hardware checks ---
+    hw = checks.get("hardware", {}) if isinstance(checks, dict) else {}
+    if not isinstance(hw, dict):
+        hw = {}
+    for item_key, item_val in hw.items():
+        if not isinstance(item_val, dict):
+            continue
+        for price_field, currency in (("price_inr", "INR"), ("price_usd", "USD")):
+            raw = item_val.get(price_field)
+            if raw is None:
+                continue
+            try:
+                val = float(raw)
+            except (TypeError, ValueError):
+                continue
+            if val > 0:
+                product_key = f"{item_key}_{currency.lower()}" if price_field != "price_inr" or currency != "INR" else item_key
+                # Normalise to a predictable key: strip trailing _inr/_usd if
+                # already present in item_key so we don't double-suffix.
+                if item_key.endswith("_india") or item_key.endswith("_inr"):
+                    product_key = item_key
+                elif item_key.endswith("_us") or item_key.endswith("_usd"):
+                    product_key = item_key
+                else:
+                    product_key = f"{item_key}_{currency.lower()}"
+                prices.append((product_key, val, currency))
+
+    # --- Append & deduplicate ---
+    for product_key, price, currency in prices:
+        entries = history.setdefault(product_key, [])
+        # Skip if today already recorded for this product
+        if any(e.get("date") == today for e in entries):
+            continue
+        entries.append({"date": today, "price": price, "currency": currency})
+        # Trim to 90-day window
+        history[product_key] = [e for e in entries if e.get("date", "") >= cutoff]
+
+    state["price_history"] = history
+    return state
+
+
+def get_price_trend(state: dict, product_key: str, days: int = 30) -> dict:
+    """Return price trend summary for a product over the last *days* days.
+
+    Returns a dict with current price, min/max over the window, directional
+    trend (up/down/stable/new), percentage change, history slice, and currency.
+    """
+    history = state.get("price_history", {}).get(product_key, [])
+    if not history:
+        return {
+            "current": None, "min_30d": None, "max_30d": None,
+            "trend": "new", "change_pct": 0.0, "history": [], "currency": "INR",
+        }
+
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    window = sorted(
+        [e for e in history if e.get("date", "") >= cutoff],
+        key=lambda e: e["date"],
+    )
+    if not window:
+        window = sorted(history, key=lambda e: e["date"])[-1:]
+
+    prices = [e["price"] for e in window]
+    currency = window[-1].get("currency", "INR")
+    current = prices[-1]
+    min_p = min(prices)
+    max_p = max(prices)
+
+    # Trend: compare last-7d average vs prior-7d average
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    fourteen_days_ago = (datetime.now() - timedelta(days=14)).strftime("%Y-%m-%d")
+    recent = [e["price"] for e in window if e["date"] >= seven_days_ago]
+    prior = [e["price"] for e in window if fourteen_days_ago <= e["date"] < seven_days_ago]
+
+    if not recent or not prior:
+        trend = "new"
+        change_pct = 0.0
+    else:
+        avg_recent = sum(recent) / len(recent)
+        avg_prior = sum(prior) / len(prior)
+        if avg_prior == 0:
+            trend = "new"
+            change_pct = 0.0
+        else:
+            change_pct = round((avg_recent - avg_prior) / avg_prior * 100, 2)
+            if change_pct > 2.0:
+                trend = "up"
+            elif change_pct < -2.0:
+                trend = "down"
+            else:
+                trend = "stable"
+
+    return {
+        "current": current,
+        "min_30d": min_p,
+        "max_30d": max_p,
+        "trend": trend,
+        "change_pct": change_pct,
+        "history": window,
+        "currency": currency,
+    }
+
+
+def generate_sparkline_svg(history: list[dict], width: int = 120, height: int = 30) -> str:
+    """Generate an inline SVG sparkline from price history entries.
+
+    Each entry is ``{"date": "...", "price": float}``.
+    Line colour: green (prices falling), red (rising), gray (stable/insufficient data).
+    """
+    if not history:
+        return (
+            f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">'
+            f'<text x="{width // 2}" y="{height // 2 + 4}" text-anchor="middle" '
+            f'font-size="10" fill="#999">no data</text></svg>'
+        )
+
+    prices = [e["price"] for e in history if isinstance(e.get("price"), (int, float))]
+    if not prices:
+        return (
+            f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">'
+            f'<text x="{width // 2}" y="{height // 2 + 4}" text-anchor="middle" '
+            f'font-size="10" fill="#999">no data</text></svg>'
+        )
+
+    # Determine trend colour
+    if len(prices) < 2:
+        colour = "#999"  # gray – single point
+    else:
+        diff = prices[-1] - prices[0]
+        total_range = max(prices) - min(prices) if max(prices) != min(prices) else 1
+        pct = abs(diff) / total_range
+        if pct < 0.05:
+            colour = "#999"   # stable
+        elif diff < 0:
+            colour = "#22c55e"  # green – prices falling (good)
+        else:
+            colour = "#ef4444"  # red – prices rising
+
+    padding = 4
+    plot_w = width - 2 * padding
+    plot_h = height - 2 * padding
+
+    min_p = min(prices)
+    max_p = max(prices)
+    p_range = max_p - min_p if max_p != min_p else 1.0
+
+    n = len(prices)
+    step = plot_w / max(n - 1, 1)
+    points = []
+    for i, p in enumerate(prices):
+        x = round(padding + i * step, 2)
+        y = round(padding + plot_h - (p - min_p) / p_range * plot_h, 2)
+        points.append(f"{x},{y}")
+
+    last_x, last_y = points[-1].split(",")
+    polyline = f'<polyline points="{" ".join(points)}" fill="none" stroke="{colour}" stroke-width="1.5" stroke-linejoin="round"/>'
+    dot = f'<circle cx="{last_x}" cy="{last_y}" r="2.5" fill="{colour}"/>'
+
+    return (
+        f'<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg">'
+        f'{polyline}{dot}</svg>'
+    )
 
 
 # Store type inference from domain
@@ -2341,7 +3083,14 @@ def send_toast(title: str, message: str, severity: str = "info"):
 
 def write_desktop_summary(state: dict, changes: list[dict], run_status: dict):
     """Write a quick-glance summary file to the desktop, overwritten each run."""
-    summary_path = Path(r"C:\Users\seduggal\Desktop\LLM-Monitor-Latest.txt")
+    # Detect OneDrive Desktop redirect
+    desktop_candidates = [
+        Path(os.path.expandvars(r"%USERPROFILE%\OneDrive\Desktop")),
+        Path(os.path.expandvars(r"%USERPROFILE%\OneDrive - Microsoft\Desktop")),
+        Path(os.path.expandvars(r"%USERPROFILE%\Desktop")),
+    ]
+    desktop_dir = next((p for p in desktop_candidates if p.is_dir()), desktop_candidates[-1])
+    summary_path = desktop_dir / "LLM-Monitor-Latest.txt"
     dashboard_uri = "file:///" + str(DASHBOARD_FILE).replace("\\", "/")
 
     rec = state.get("recommendation", {})
@@ -2743,12 +3492,77 @@ _DASHBOARD_CSS = """
   }
   .footer a { color: var(--accent); text-decoration: none; }
 
+  .modal-actions { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border, #333); }
+  .discuss-btn { padding: 8px 16px; border-radius: 6px; background: var(--accent, #3b82f6); color: #fff; border: none; cursor: pointer; font-size: 0.85rem; }
+  .discuss-btn:hover { opacity: 0.9; }
+  .copied-toast { margin-left: 12px; color: #10b981; font-size: 0.85rem; }
+  #priceHistorySection { margin-top: 16px; padding: 12px; background: var(--bg, #0d1117); border-radius: 8px; }
+  #priceHistorySection h3 { font-size: 1rem; margin-bottom: 8px; }
+  #modalPriceMeta { font-size: 0.8rem; color: var(--dim); margin-top: 8px; }
+
   @media (max-width: 600px) {
     .timeline-cards, .detail-cards { grid-template-columns: 1fr; }
     .header h1 { font-size: 1.1em; }
     .content { padding: 16px; }
     .modal-pane { width: 100vw; max-width: 100vw; }
     .modal-body { padding: 16px; }
+  }
+
+  /* ── Mobile Responsive ── */
+  @media (max-width: 768px) {
+    body { padding: 8px; }
+    .nav-bar { flex-wrap: wrap; gap: 4px; padding: 8px; }
+    .nav-link { font-size: 0.75rem; padding: 4px 8px; }
+    .nav-time { display: none; }
+    .header h1 { font-size: 1.3rem; }
+    .content { padding: 0 4px; }
+
+    /* Readiness hero — stack vertically */
+    .readiness-hero { grid-template-columns: 1fr !important; gap: 16px !important; padding: 16px !important; }
+    .gauge-number { font-size: 2.5rem !important; }
+
+    /* Decision banner */
+    .decision-banner { flex-direction: column; gap: 8px; padding: 12px 16px; }
+    .decision-action { font-size: 1rem; }
+
+    /* Price ticker — wrap instead of scroll */
+    .price-ticker { flex-wrap: wrap !important; gap: 8px !important; }
+    .ticker-item { padding: 6px 12px !important; }
+
+    /* Cards grid — single column */
+    .timeline-grid, .card-grid, .price-grid, .learn-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    /* Category links — wrap */
+    .cat-links { gap: 8px !important; }
+    .cat-link { font-size: 0.75rem !important; padding: 6px 10px !important; }
+
+    /* Filter buttons — smaller */
+    .filter-bar, .signal-filters { flex-wrap: wrap; gap: 4px; }
+    .filter-btn, .signal-btn { font-size: 0.7rem; padding: 3px 8px; }
+
+    /* Modal — full screen on mobile */
+    .modal-pane { width: 95vw !important; max-height: 90vh !important; margin: 5vh auto !important; padding: 16px !important; }
+
+    /* Tables — horizontal scroll */
+    .model-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { font-size: 0.75rem; }
+
+    /* Learning cards */
+    .learn-card { padding: 12px !important; }
+    .learn-actions { flex-wrap: wrap; }
+
+    /* Footer */
+    .footer { font-size: 0.7rem; flex-direction: column; text-align: center; }
+  }
+
+  @media (max-width: 480px) {
+    .nav-bar { justify-content: center; }
+    .readiness-bars .bar-label { width: 80px !important; font-size: 0.75rem !important; }
+    .gauge-number { font-size: 2rem !important; }
+    .ticker-item { flex-wrap: wrap; justify-content: center; }
+    .decision-banner { text-align: center; }
   }
 """
 
@@ -2784,6 +3598,17 @@ _MODAL_OVERLAY_HTML = """
           <tbody id="modalLinksBody"></tbody>
         </table>
         <div class="no-links" id="noLinks" style="display:none">No reference links available for this item.</div>
+      </div>
+
+      <div id="priceHistorySection" style="display:none">
+        <h3>📈 Price History</h3>
+        <div id="modalPriceChart"></div>
+        <div id="modalPriceMeta"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="discuss-btn" onclick="discussInCli()">💬 Discuss in Copilot CLI</button>
+        <span id="copiedToast" class="copied-toast" style="display:none">✓ Copied to clipboard!</span>
       </div>
     </div>
   </div>
@@ -2893,6 +3718,20 @@ function openModal(itemKey) {
     noLinks.style.display = '';
   }
 
+  // Price history
+  const priceSection = document.getElementById('priceHistorySection');
+  const priceData = modalData[itemKey]?.priceHistory;
+  if (priceData && priceData.sparklineSvg) {
+    document.getElementById('modalPriceChart').innerHTML = priceData.sparklineSvg;
+    document.getElementById('modalPriceMeta').innerHTML =
+      'Current: <b>' + priceData.current + '</b> | ' +
+      '30d range: ' + priceData.min + ' – ' + priceData.max + ' | ' +
+      'Trend: ' + priceData.trend;
+    priceSection.style.display = '';
+  } else {
+    priceSection.style.display = 'none';
+  }
+
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2982,8 +3821,27 @@ function openRecModal() {
     noLinks.style.display = '';
   }
 
+  // Hide price history in recommendation modal
+  const phSec = document.getElementById('priceHistorySection');
+  if (phSec) phSec.style.display = 'none';
+  const phChart = document.getElementById('modalPriceChart');
+  if (phChart) phChart.innerHTML = '';
+  const phMeta = document.getElementById('modalPriceMeta');
+  if (phMeta) phMeta.innerHTML = '';
+
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function discussInCli() {
+  const title = document.getElementById('modalTitle').textContent;
+  const summary = document.getElementById('modalSummary').textContent;
+  const cmd = 'copilot -p "Tell me more about: ' + title + '. Context: ' + summary.substring(0, 200) + '"';
+  navigator.clipboard.writeText(cmd).then(() => {
+    const toast = document.getElementById('copiedToast');
+    toast.style.display = 'inline';
+    setTimeout(() => { toast.style.display = 'none'; }, 2000);
+  });
 }
 
 function escH(s) {
@@ -3027,6 +3885,8 @@ def _generate_nav_html(active_page: str, now: str) -> str:
         ("models", "\U0001F9E0 Models & Agents", "models.html"),
         ("efficiency", "\U0001F52C Efficiency", "efficiency.html"),
         ("deals", "\U0001F4B0 Deals & News", "deals.html"),
+        ("learning", "\U0001F4DA Learning", "learning.html"),
+        ("weekly", "\U0001F4CA Weekly", "weekly.html"),
     ]
     links = []
     for key, label, filename in pages:
@@ -3159,147 +4019,305 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
     """Generate the main summary page content."""
     nav_html = _generate_nav_html("summary", now)
 
-    # Status bar
-    status_items = []
-    for cat_key, cat_data in checks.items():
-        if not isinstance(cat_data, dict):
-            continue
-        for item_key, item_val in cat_data.items():
-            if isinstance(item_val, dict):
-                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
-                    if bk in item_val:
-                        label = item_key.replace("_", " ").title()
-                        val = item_val[bk]
-                        color = "var(--green)" if val else "var(--red)"
-                        status_items.append(f'<span class="status-pill" style="border-color:{color}"><span class="dot" style="background:{color}"></span>{_esc(label)}</span>')
-    status_bar = " ".join(status_items) if status_items else '<span class="dim">No data yet</span>'
+    # ── Inline CSS for new dashboard sections ────────────────────────────
+    dashboard_css = """<style>
+/* Readiness Hero */
+.readiness-hero { display: grid; grid-template-columns: 200px 1fr 1fr; gap: 24px; padding: 24px; background: var(--bg2); border-radius: 12px; margin-bottom: 24px; }
+.gauge-number { font-size: 3rem; font-weight: 700; color: var(--accent); }
+.gauge-label { font-size: 0.9rem; color: var(--dim); }
+.gauge-trend { font-size: 0.85rem; margin-top: 4px; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { width: 120px; font-size: 0.85rem; }
+.bar-track { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.bar-score { width: 30px; text-align: right; font-size: 0.85rem; font-weight: 600; }
 
-    # Timeline HTML
-    timeline_html = ""
-    for entry in reversed(timeline):
-        ts = entry.get("timestamp", "")
-        date_label = entry.get("date_label", ts)
-        items = entry.get("items", [])
-        if not items:
-            continue
+/* Decision Banner */
+.decision-banner { padding: 16px 24px; border-radius: 8px; display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.decision-wait { background: linear-gradient(135deg, #1e3a5f, #1a1a2e); border-left: 4px solid #3b82f6; }
+.decision-buy { background: linear-gradient(135deg, #1a3d2e, #1a1a2e); border-left: 4px solid #10b981; }
+.decision-urgent { background: linear-gradient(135deg, #3d1a1a, #1a1a2e); border-left: 4px solid #ef4444; }
+.decision-action { font-size: 1.2rem; font-weight: 700; }
+.decision-detail { flex: 1; }
+.decision-confidence { font-size: 0.8rem; color: var(--dim); }
 
-        cards_html = ""
-        for item in items:
-            key = item.get("key", "")
-            label = item.get("label", key)
-            data = item.get("data", {})
-            severity = item.get("severity", "info")
-            is_new = item.get("is_new", False)
-            cat = item.get("category", "other")
-            icon = cat_icons.get(cat, "\U0001F4E6")
-            cat_label = cat_labels.get(cat, cat.replace("_", " ").title())
+/* Price Ticker */
+.price-ticker { display: flex; gap: 16px; overflow-x: auto; padding: 12px 0; margin-bottom: 24px; }
+.ticker-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg2); border-radius: 8px; white-space: nowrap; min-width: fit-content; }
+.ticker-name { font-size: 0.8rem; color: var(--dim); }
+.ticker-price { font-weight: 600; }
+.ticker-trend { font-size: 0.9rem; }
+.trend-up { color: #ef4444; }
+.trend-down { color: #10b981; }
+.trend-stable { color: var(--dim); }
 
-            info = ""
-            flags_html = ""
-            if isinstance(data, dict):
-                info = data.get("info", "")
-                for bk in ("announced", "in_stock", "available", "found", "has_deals"):
-                    if bk in data:
-                        val = data[bk]
-                        color = "var(--green)" if val else "var(--dim)"
-                        bl = bk.replace("_", " ").title()
-                        flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
-                freshness = data.get("freshness", "")
-                if freshness == "fresh_verified":
-                    flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>\U0001F7E2 Fresh</span>'
-                elif freshness == "partial":
-                    flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>\U0001F7E1 Partial</span>'
-                elif freshness == "stale":
-                    stale_h = data.get("stale_hours", "?")
-                    flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>\U0001F534 Stale ({stale_h}h)</span>'
-            elif isinstance(data, str):
-                info = data
+/* Category Links */
+.cat-links { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.cat-link { padding: 8px 16px; background: var(--bg2); border-radius: 8px; text-decoration: none; color: var(--fg); font-size: 0.85rem; border: 1px solid var(--border, #333); }
+.cat-link:hover { border-color: var(--accent); }
 
-            sev_class = f"sev-{severity}"
-            new_badge = '<span class="badge new">NEW</span>' if is_new else '<span class="badge update">UPDATED</span>'
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .readiness-hero { grid-template-columns: 1fr; }
+  .price-ticker { flex-wrap: wrap; }
+}
+</style>"""
 
-            has_analysis = bool(enrichment.get(key, {}).get("analysis", ""))
-            detail_indicator = '<span class="detail-hint">\U0001F4D6 Click for details</span>' if has_analysis else '<span class="detail-hint">\u2197 Click for info</span>'
+    # ── 1. Readiness Hero ────────────────────────────────────────────────
+    readiness = state.get("readiness_score", {})
+    if readiness and isinstance(readiness, dict):
+        overall = readiness.get("overall", 0)
+        trend_raw = readiness.get("trend", "stable")
+        trend_map = {"improving": "\u2191 improving", "declining": "\u2193 declining", "stable": "\u2192 stable"}
+        trend_display = trend_map.get(trend_raw, "\u2192 stable")
+        trend_color = "#10b981" if trend_raw == "improving" else "#ef4444" if trend_raw == "declining" else "var(--dim)"
 
-            cards_html += (
-                f'\n            <div class="timeline-card {sev_class} clickable" onclick="openModal(\'{_esc(key)}\')"'
-                f'\n                 data-search="{_esc(label)} {_esc(info)} {_esc(cat_label)}" data-item="{_esc(key)}">'
-                f'\n              <div class="card-top">'
-                f'\n                <span class="card-icon">{icon}</span>'
-                f'\n                <span class="card-cat">{_esc(cat_label)}</span>'
-                f'\n                {new_badge}'
-                f'\n              </div>'
-                f'\n              <div class="card-title">{_esc(label)}</div>'
-                + (f'\n              <div class="card-flags">{flags_html}</div>' if flags_html else '')
-                + f'\n              <div class="card-info">{_esc(str(info)[:150])}{"…" if len(str(info)) > 150 else ""}</div>'
-                f'\n              {detail_indicator}'
-                f'\n            </div>'
+        dimensions = [
+            ("\U0001F5A5\uFE0F", "Hardware", readiness.get("hardware", {})),
+            ("\U0001F9E0", "Models", readiness.get("models", {})),
+            ("\U0001F527", "Tools", readiness.get("tools", {})),
+            ("\U0001F4B0", "Cost", readiness.get("cost", {})),
+        ]
+
+        def _bar_color(score):
+            if score >= 75:
+                return "#10b981"
+            if score >= 50:
+                return "#f59e0b"
+            if score >= 25:
+                return "#f97316"
+            return "#ef4444"
+
+        bars_html = ""
+        for icon, label, dim_data in dimensions:
+            score = dim_data.get("score", 0) if isinstance(dim_data, dict) else 0
+            bars_html += (
+                f'<div class="bar-row">'
+                f'<span class="bar-label">{icon} {_esc(label)}</span>'
+                f'<div class="bar-track"><div class="bar-fill" style="width:{score}%;background:{_bar_color(score)}"></div></div>'
+                f'<span class="bar-score">{score}</span>'
+                f'</div>'
             )
 
+        all_blockers = []
+        for _icon, _label, dim_data in dimensions:
+            if isinstance(dim_data, dict):
+                for b in dim_data.get("blockers", []):
+                    all_blockers.append(b)
+
+        blockers_html = ""
+        if all_blockers:
+            blocker_items = "".join(f"<li>{_esc(b)}</li>" for b in all_blockers[:6])
+            blockers_html = f'<div class="readiness-blockers"><h4>\U0001F6A7 Blockers</h4><ul>{blocker_items}</ul></div>'
+        else:
+            blockers_html = '<div class="readiness-blockers"><h4>\u2705 No blockers</h4></div>'
+
+        hero_html = (
+            f'<div class="readiness-hero">'
+            f'<div class="readiness-gauge">'
+            f'<div class="gauge-number">{overall}%</div>'
+            f'<div class="gauge-label">Agent Readiness</div>'
+            f'<div class="gauge-trend" style="color:{trend_color}">{trend_display}</div>'
+            f'</div>'
+            f'<div class="readiness-bars">{bars_html}</div>'
+            f'{blockers_html}'
+            f'</div>'
+        )
+    else:
+        hero_html = (
+            '<div class="readiness-hero">'
+            '<div class="readiness-gauge">'
+            '<div class="gauge-number" style="color:var(--dim)">—</div>'
+            '<div class="gauge-label">Agent Readiness</div>'
+            '<div class="gauge-trend" style="color:var(--dim)">Not yet scored</div>'
+            '</div>'
+            '<div class="readiness-bars"><div style="color:var(--dim);padding:12px">Awaiting first analysis run…</div></div>'
+            '<div class="readiness-blockers"></div>'
+            '</div>'
+        )
+
+    # ── 2. Decision Banner ───────────────────────────────────────────────
+    rec = state.get("recommendation", {})
+    if rec and isinstance(rec, dict):
+        rec_action = rec.get("recommendation", "wait")
+        rec_best = rec.get("best_option", "")
+        rec_summary_text = rec.get("summary", "")
+        rec_confidence = rec.get("confidence", "medium")
+        rec_wait = rec.get("wait_for", "")
+
+        action_map = {
+            "wait": ("\u23F3 WAIT", "decision-wait"),
+            "buy_now": ("\u2705 BUY NOW", "decision-buy"),
+            "urgent": ("\U0001F6A8 URGENT", "decision-urgent"),
+        }
+        action_label, action_class = action_map.get(rec_action, ("\u23F3 WAIT", "decision-wait"))
+
+        detail_text = rec_summary_text or rec_best or ""
+        if rec_wait and not detail_text:
+            detail_text = rec_wait
+        if not detail_text:
+            detail_text = "Analysis in progress"
+
+        decision_html = (
+            f'<div class="decision-banner {action_class}" onclick="openRecModal()" style="cursor:pointer">'
+            f'<div class="decision-action">{action_label}</div>'
+            f'<div class="decision-detail">{_esc(str(detail_text)[:200])}</div>'
+            f'<div class="decision-confidence">{_esc(rec_confidence.title())} Confidence</div>'
+            f'</div>'
+        )
+    else:
+        decision_html = (
+            '<div class="decision-banner decision-wait">'
+            '<div class="decision-action">\u23F3 WAIT</div>'
+            '<div class="decision-detail">No recommendation yet — awaiting first analysis</div>'
+            '<div class="decision-confidence"></div>'
+            '</div>'
+        )
+
+    # ── 3. Price Ticker ──────────────────────────────────────────────────
+    price_history = state.get("price_history", {})
+    ticker_items_html = ""
+    for product_key in sorted(price_history.keys()):
+        trend_data = get_price_trend(state, product_key)
+        current = trend_data.get("current")
+        if current is None:
+            continue
+        trend = trend_data.get("trend", "new")
+        currency = trend_data.get("currency", "INR")
+        history_slice = trend_data.get("history", [])
+
+        trend_arrow_map = {"up": ("\u2191", "trend-up"), "down": ("\u2193", "trend-down"), "stable": ("\u2192", "trend-stable"), "new": ("\u2726", "trend-stable")}
+        arrow, arrow_class = trend_arrow_map.get(trend, ("\u2192", "trend-stable"))
+
+        if currency == "USD":
+            price_str = f"${current:,.0f}"
+        else:
+            price_str = f"\u20B9{current:,.0f}"
+
+        display_name = product_key.replace("_", " ").replace(" inr", "").replace(" usd", " (USD)").title()
+        sparkline = generate_sparkline_svg(history_slice, width=80, height=24)
+
+        ticker_items_html += (
+            f'<div class="ticker-item">'
+            f'<span class="ticker-name">{_esc(display_name)}</span>'
+            f'<span class="ticker-price">{price_str}</span>'
+            f'<span class="ticker-trend {arrow_class}">{arrow}</span>'
+            f'<span class="ticker-spark">{sparkline}</span>'
+            f'</div>'
+        )
+
+    if ticker_items_html:
+        ticker_html = f'<div class="price-ticker">{ticker_items_html}</div>'
+    else:
+        ticker_html = ""
+
+    # ── 4. Today's Highlights (top 5 by severity) ────────────────────────
+    severity_order = {"critical": 0, "important": 1, "info": 2}
+    all_highlight_items = []
+    for entry in reversed(timeline):
+        for item in entry.get("items", []):
+            all_highlight_items.append((entry, item))
+
+    all_highlight_items.sort(key=lambda x: severity_order.get(x[1].get("severity", "info"), 2))
+    top_highlights = all_highlight_items[:5]
+
+    timeline_html = ""
+    for entry, item in top_highlights:
+        ts = entry.get("timestamp", "")
+        key = item.get("key", "")
+        label = item.get("label", key)
+        data = item.get("data", {})
+        severity = item.get("severity", "info")
+        is_new = item.get("is_new", False)
+        cat = item.get("category", "other")
+        icon = cat_icons.get(cat, "\U0001F4E6")
+        cat_label_text = cat_labels.get(cat, cat.replace("_", " ").title())
+
+        info = ""
+        flags_html = ""
+        if isinstance(data, dict):
+            info = data.get("info", "")
+            for bk in ("announced", "in_stock", "available", "found", "has_deals"):
+                if bk in data:
+                    val = data[bk]
+                    color = "var(--green)" if val else "var(--dim)"
+                    bl = bk.replace("_", " ").title()
+                    flags_html += f'<span class="flag" style="color:{color}"><span class="dot" style="background:{color}"></span>{bl}: {"Yes" if val else "No"}</span>'
+            freshness = data.get("freshness", "")
+            if freshness == "fresh_verified":
+                flags_html += '<span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>\U0001F7E2 Fresh</span>'
+            elif freshness == "partial":
+                flags_html += '<span class="flag" style="color:var(--yellow, #f0c040)"><span class="dot" style="background:var(--yellow, #f0c040)"></span>\U0001F7E1 Partial</span>'
+            elif freshness == "stale":
+                stale_h = data.get("stale_hours", "?")
+                flags_html += f'<span class="flag" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>\U0001F534 Stale ({stale_h}h)</span>'
+        elif isinstance(data, str):
+            info = data
+
+        sev_class = f"sev-{severity}"
+        new_badge = '<span class="badge new">NEW</span>' if is_new else '<span class="badge update">UPDATED</span>'
+
+        has_analysis = bool(enrichment.get(key, {}).get("analysis", ""))
+        detail_indicator = '<span class="detail-hint">\U0001F4D6 Click for details</span>' if has_analysis else '<span class="detail-hint">\u2197 Click for info</span>'
+
         timeline_html += (
-            f'\n        <div class="timeline-group" data-date="{_esc(ts)}">'
-            f'\n          <div class="timeline-date">'
-            f'\n            <span class="date-dot"></span>'
-            f'\n            <span class="date-text">{_esc(date_label)}</span>'
-            f'\n            <span class="date-time">{_esc(ts)}</span>'
-            f'\n            <span class="date-count">{len(items)} update{"s" if len(items)!=1 else ""}</span>'
-            f'\n          </div>'
-            f'\n          <div class="timeline-cards">{cards_html}</div>'
-            f'\n        </div>'
+            f'\n            <div class="timeline-card {sev_class} clickable" onclick="openModal(\'{_esc(key)}\')"'
+            f'\n                 data-search="{_esc(label)} {_esc(info)} {_esc(cat_label_text)}" data-item="{_esc(key)}">'
+            f'\n              <div class="card-top">'
+            f'\n                <span class="card-icon">{icon}</span>'
+            f'\n                <span class="card-cat">{_esc(cat_label_text)}</span>'
+            f'\n                {new_badge}'
+            f'\n              </div>'
+            f'\n              <div class="card-title">{_esc(label)}</div>'
+            + (f'\n              <div class="card-flags">{flags_html}</div>' if flags_html else '')
+            + f'\n              <div class="card-info">{_esc(str(info)[:150])}{"…" if len(str(info)) > 150 else ""}</div>'
+            f'\n              {detail_indicator}'
+            f'\n            </div>'
         )
 
     if not timeline_html:
         timeline_html = '<div class="empty-state">No updates yet. First check will populate this timeline.</div>'
+    else:
+        timeline_html = (
+            '<div class="timeline-group">'
+            '<div class="timeline-date">'
+            '<span class="date-dot"></span>'
+            '<span class="date-text">\U0001F4CC Today\'s Highlights</span>'
+            f'<span class="date-count">{len(top_highlights)} top update{"s" if len(top_highlights) != 1 else ""}</span>'
+            '</div>'
+            f'<div class="timeline-cards">{timeline_html}</div>'
+            '</div>'
+        )
 
-    # Run status badges
+    # ── 5. Category Quick Links ──────────────────────────────────────────
+    hw_count = len(checks.get("hardware", {})) if isinstance(checks.get("hardware"), dict) else 0
+    model_count = len(checks.get("models_and_agents", {})) if isinstance(checks.get("models_and_agents"), dict) else 0
+    eff_count = len(checks.get("efficiency_and_research", {})) if isinstance(checks.get("efficiency_and_research"), dict) else 0
+    deals_count = len(checks.get("deals_and_blogs", {})) if isinstance(checks.get("deals_and_blogs"), dict) else 0
+    learning_count = len(checks.get("learning_resources", {})) if isinstance(checks.get("learning_resources"), dict) else 0
+
+    def _link_count_label(count):
+        return f"{count} item{'s' if count != 1 else ''}" if count > 0 else "New!"
+
+    cat_links_html = (
+        '<div class="cat-links">'
+        f'<a class="cat-link" href="hardware.html">\U0001F5A5\uFE0F Hardware: {_link_count_label(hw_count)}</a>'
+        f'<a class="cat-link" href="models.html">\U0001F9E0 Models: {_link_count_label(model_count)}</a>'
+        f'<a class="cat-link" href="efficiency.html">\U0001F52C Efficiency: {_link_count_label(eff_count)}</a>'
+        f'<a class="cat-link" href="deals.html">\U0001F4B0 Deals: {_link_count_label(deals_count)}</a>'
+        f'<a class="cat-link" href="learning.html">\U0001F4DA Learning: {_link_count_label(learning_count)}</a>'
+        '</div>'
+    )
+
+    # ── Run status badges ────────────────────────────────────────────────
     run_bar = ""
     for cat, st in run_status.items():
         ico = "\u2705" if st == "success" else "\u274C"
         run_bar += f'<span class="run-badge {st}">{ico} {cat.replace("_"," ")}</span> '
 
-    # Recommendation hero card
-    rec = state.get("recommendation", {})
-    rec_html = ""
-    if rec:
-        rec_action = rec.get("recommendation", "wait")
-        rec_best = rec.get("best_option", "")
-        rec_summary = rec.get("summary", "")
-        rec_model = rec.get("best_model", "")
-        rec_cost = rec.get("cost_estimate_inr", "")
-        rec_confidence = rec.get("confidence", "medium")
-        rec_wait = rec.get("wait_for", "")
-        rec_changed = rec.get("changed_since_last", "")
-        rec_milestone = rec.get("next_milestone", "")
-        rec_fallback = rec.get("fallback_now", "")
-
-        rec_html = (
-            '\n    <div class="rec-card" onclick="openRecModal()">'
-            '\n      <div class="rec-top">'
-            '\n        <span style="font-size:1.4em">\U0001F3AF</span>'
-            '\n        <span style="font-weight:700;font-size:0.85em;color:var(--dim);text-transform:uppercase;letter-spacing:1px">Today\'s Recommendation</span>'
-            f'\n        <span class="rec-badge {_esc(rec_action)}">{_esc(rec_action.replace("_"," "))}</span>'
-            f'\n        <span class="rec-confidence {_esc(rec_confidence)}">{_esc(rec_confidence)} confidence</span>'
-            '\n      </div>'
-            f'\n      <div class="rec-title">{_esc(rec_best)}</div>'
-            f'\n      <div class="rec-summary">{_esc(rec_summary)}</div>'
-            '\n      <div class="rec-meta">'
-            f'\n        <span class="rec-meta-item">\U0001F9E0 <b>{_esc(rec_model)}</b></span>'
-            f'\n        <span class="rec-meta-item">\U0001F4B0 <b>{_esc(rec_cost)}</b></span>'
-            + (f'\n        <span class="rec-meta-item">\u23F3 <b>{_esc(rec_wait[:80])}</b></span>' if rec_wait else '')
-            + '\n      </div>'
-            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\U0001F504 {_esc(rec_changed[:100])}</span></div>' if rec_changed and rec_changed != "first_run" else '')
-            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\U0001F4C5 <b>Next:</b> {_esc(rec_milestone[:100])}</span></div>' if rec_milestone else '')
-            + (f'\n      <div class="rec-extra"><span class="rec-extra-item">\u26A1 <b>Fallback:</b> {_esc(rec_fallback[:100])}</span></div>' if rec_fallback else '')
-            + '\n      <span class="rec-hint">\U0001F4D6 Click for full analysis, model config, fine-tuning guide & buy links</span>'
-            '\n    </div>'
-        )
-
-    # Quick stats
-    hw_count = len(checks.get("hardware", {})) if isinstance(checks.get("hardware"), dict) else 0
-    model_count = len(checks.get("models_and_agents", {})) if isinstance(checks.get("models_and_agents"), dict) else 0
-    deals_count = len(checks.get("deals_and_blogs", {})) if isinstance(checks.get("deals_and_blogs"), dict) else 0
-
+    # ── Assemble page ────────────────────────────────────────────────────
     body_content = (
+        f'\n{dashboard_css}'
         '\n<div class="header">'
         '\n  <div class="header-top">'
         '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
@@ -3307,25 +4325,12 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
         '\n  </div>'
         '\n</div>'
         '\n'
-        '\n<div class="search-wrap">'
-        '\n  <div class="search-row">'
-        '\n    <span class="icon">\U0001F50D</span>'
-        '\n    <input type="text" class="search-box" id="search" placeholder="Search updates... (e.g. Mac Studio, Qwen, WWDC, deals)" autocomplete="off">'
-        '\n  </div>'
-        '\n  <div class="filter-bar">'
-        '\n    <button class="filter-btn active" data-filter="all">All</button>'
-        f'\n    <button class="filter-btn" data-filter="hardware">\U0001F5A5\uFE0F Hardware ({hw_count})</button>'
-        f'\n    <button class="filter-btn" data-filter="models_and_agents">\U0001F9E0 Models ({model_count})</button>'
-        f'\n    <button class="filter-btn" data-filter="deals_and_blogs">\U0001F4B0 Deals ({deals_count})</button>'
-        '\n    <button class="filter-btn" data-filter="critical">\U0001F6A8 Critical Only</button>'
-        '\n  </div>'
-        '\n</div>'
-        '\n'
-        f'\n<div class="status-bar">{status_bar}</div>'
-        '\n'
         '\n<div class="content">'
         f'\n  <div class="run-status">{run_bar}</div>'
-        f'\n  {rec_html}'
+        f'\n  {hero_html}'
+        f'\n  {decision_html}'
+        f'\n  {ticker_html}'
+        f'\n  {cat_links_html}'
         f'\n  <div class="timeline" id="timeline">{timeline_html}</div>'
         '\n</div>'
     )
@@ -3576,6 +4581,502 @@ def _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, 
     return _generate_page_shell("Deals & News - LLM Hardware Monitor", nav_html, body_content, modal_json)
 
 
+def _extract_learning_articles(checks):
+    """Extract articles from learning_feed, handling multiple response formats."""
+    lf = checks.get("learning_feed", {})
+    # Format 1: {"articles": [{...}, ...]}
+    articles = lf.get("articles", [])
+    if isinstance(articles, list) and articles:
+        return articles
+    # Format 2: flat dict of articles {key: {title, url, ...}}
+    result = []
+    for k, v in lf.items():
+        if isinstance(v, dict) and "title" in v:
+            result.append(v)
+    if result:
+        return result
+    # Format 3: single article {title, url, ...} at top level
+    if "title" in lf and "url" in lf:
+        return [lf]
+    return []
+
+
+def _generate_learning_page(checks, enrichment, now):
+    """Generate the learning feed page with filterable article cards."""
+    nav_html = _generate_nav_html("learning", now)
+
+    articles = _extract_learning_articles(checks)
+
+    _SOURCE_CSS = {
+        "reddit": "source-reddit",
+        "youtube": "source-youtube",
+        "github": "source-github",
+        "blog": "source-blog",
+        "hn": "source-hackernews",
+        "hackernews": "source-hackernews",
+    }
+    _TYPE_ICONS = {
+        "article": "\U0001F4C4",
+        "video": "\U0001F3AC",
+        "repo": "\U0001F4E6",
+        "discussion": "\U0001F4AC",
+        "paper": "\U0001F4D1",
+    }
+
+    cards_html = ""
+    for art in articles:
+        if not isinstance(art, dict):
+            continue
+        title = _esc(art.get("title", "Untitled"))
+        url = _esc(art.get("url", "#"))
+        source = art.get("source", "blog").lower()
+        category = art.get("category", "models").lower()
+        summary = _esc(art.get("summary", ""))
+        relevance = art.get("relevance", "medium").lower()
+        art_type = art.get("type", "article").lower()
+
+        source_cls = _SOURCE_CSS.get(source, "source-blog")
+        source_label = _esc(source.replace("hn", "HN").replace("hackernews", "HN").title())
+        type_icon = _TYPE_ICONS.get(art_type, "\U0001F4C4")
+        rel_cls = f"relevance-{relevance}" if relevance in ("high", "medium") else "relevance-medium"
+        rel_label = relevance.title() + " Relevance"
+
+        topic_esc = _esc(art.get("title", "this topic")).replace("'", "\\'")
+
+        cards_html += (
+            f'\n      <div class="learn-card" data-category="{_esc(category)}" data-source="{_esc(source)}">'
+            f'\n        <div class="learn-card-top">'
+            f'\n          <span class="source-badge {source_cls}">{source_label}</span>'
+            f'\n          <span class="type-badge">{type_icon} {_esc(art_type.title())}</span>'
+            f'\n          <span class="relevance-badge {rel_cls}">{_esc(rel_label)}</span>'
+            f'\n        </div>'
+            f'\n        <h3 class="learn-title"><a href="{url}" target="_blank">{title}</a></h3>'
+            f'\n        <p class="learn-summary">{summary}</p>'
+            f'\n        <div class="learn-actions">'
+            f'\n          <a href="{url}" target="_blank" class="learn-btn">\U0001F517 Read</a>'
+            f"\n          <button class=\"learn-btn\" onclick=\"copyCliCmd('{topic_esc}')\">\U0001F4AC Discuss in CLI</button>"
+            f'\n        </div>'
+            f'\n      </div>'
+        )
+
+    if not cards_html:
+        cards_inner = (
+            '<div class="empty-state">'
+            'No learning content yet. The learning feed will be populated on the next monitor run.'
+            '</div>'
+        )
+    else:
+        cards_inner = f'<div class="learn-grid">{cards_html}\n    </div>'
+
+    learning_css = """
+<style>
+.learn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.learn-card { padding: 16px; background: var(--bg2); border-radius: 10px; border: 1px solid var(--border, #333); }
+.learn-card-top { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.learn-title { font-size: 1rem; margin-bottom: 8px; }
+.learn-title a { color: var(--accent); text-decoration: none; }
+.learn-title a:hover { text-decoration: underline; }
+.learn-summary { font-size: 0.85rem; color: var(--dim); line-height: 1.4; margin-bottom: 12px; }
+.learn-actions { display: flex; gap: 8px; }
+.learn-btn { padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; background: var(--bg); color: var(--fg); border: 1px solid var(--border, #333); text-decoration: none; }
+.learn-btn:hover { border-color: var(--accent); }
+.source-badge { padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+.source-reddit { background: #ff4500; color: white; }
+.source-youtube { background: #ff0000; color: white; }
+.source-github { background: #333; color: white; }
+.source-blog { background: #6366f1; color: white; }
+.source-hackernews { background: #ff6600; color: white; }
+.type-badge { font-size: 0.75rem; color: var(--dim); }
+.relevance-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; }
+.relevance-high { background: #10b981; color: white; }
+.relevance-medium { background: #f59e0b; color: black; }
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.filter-btn { padding: 4px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; background: var(--bg2); color: var(--fg); border: 1px solid var(--border, #333); }
+.filter-btn.active { border-color: var(--accent); background: var(--accent); color: #000; }
+.copy-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 9999; }
+.copy-toast.show { opacity: 1; }
+</style>
+"""
+
+    learning_js = """
+<script>
+function filterLearning(type, value) {
+  document.querySelectorAll('.learn-card').forEach(function(card) {
+    var matches = value === 'all' || card.dataset[type] === value;
+    card.style.display = matches ? '' : 'none';
+  });
+  document.querySelectorAll('.filter-' + type + ' .filter-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.value === value);
+  });
+}
+function copyCliCmd(topic) {
+  var cmd = 'copilot -p "Tell me more about: ' + topic + '"';
+  navigator.clipboard.writeText(cmd).then(function() {
+    var toast = document.getElementById('copy-toast');
+    if (toast) { toast.classList.add('show'); setTimeout(function(){ toast.classList.remove('show'); }, 1500); }
+  });
+}
+</script>
+"""
+
+    cat_filters = [
+        ("all", "All"),
+        ("inference", "Inference"),
+        ("training", "Training"),
+        ("agents", "Agents"),
+        ("hardware", "Hardware"),
+        ("quantization", "Quantization"),
+        ("models", "Models"),
+    ]
+    src_filters = [
+        ("all", "All"),
+        ("reddit", "Reddit"),
+        ("youtube", "YouTube"),
+        ("github", "GitHub"),
+        ("blog", "Blog"),
+        ("hn", "HN"),
+    ]
+
+    cat_btns = ""
+    for val, label in cat_filters:
+        active = " active" if val == "all" else ""
+        cat_btns += f' <button class="filter-btn{active}" data-value="{val}" onclick="filterLearning(\'category\',\'{val}\')">{label}</button>'
+
+    src_btns = ""
+    for val, label in src_filters:
+        active = " active" if val == "all" else ""
+        src_btns += f' <button class="filter-btn{active}" data-value="{val}" onclick="filterLearning(\'source\',\'{val}\')">{label}</button>'
+
+    body_content = (
+        learning_css
+        + '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F4DA Learning Feed</div>'
+        '\n  <div class="page-desc">Curated articles, videos, and discussions for staying up-to-date on local LLM hardware and inference.</div>'
+        '\n  <div class="filter-bar filter-category"><strong>Category:</strong>' + cat_btns + '</div>'
+        '\n  <div class="filter-bar filter-source"><strong>Source:</strong>' + src_btns + '</div>'
+        f'\n  {cards_inner}'
+        '\n</div>'
+        '\n<div id="copy-toast" class="copy-toast">Copied!</div>'
+        + learning_js
+    )
+
+    modal_json = json.dumps({}, ensure_ascii=False)
+    return _generate_page_shell("Learning Feed - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
+def _generate_weekly_page(state, checks, enrichment, now):
+    """Generate the weekly report page with price trends, benchmarks, readiness, and feed previews."""
+    nav_html = _generate_nav_html("weekly", now)
+
+    # Determine week range
+    today = datetime.now()
+    week_start = today - timedelta(days=today.weekday())  # Monday
+    week_end = week_start + timedelta(days=6)
+    week_label = f"Week of {week_start.strftime('%B %d')}\u2013{week_end.strftime('%d, %Y')}"
+
+    # Quick stats
+    price_history = state.get("price_history", {})
+    price_changes = 0
+    for key, hist in price_history.items():
+        if isinstance(hist, list) and len(hist) >= 2:
+            week_cutoff = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+            recent = [e for e in hist if e.get("date", "") >= week_cutoff]
+            if len(recent) >= 2 and recent[-1].get("price") != recent[0].get("price"):
+                price_changes += 1
+
+    eff_items = checks.get("efficiency_research", {})
+    breakthroughs = 0
+    notables = 0
+    if isinstance(eff_items, dict):
+        for v in eff_items.values():
+            if isinstance(v, dict):
+                sig = v.get("signal", "noise")
+                if sig == "breakthrough":
+                    breakthroughs += 1
+                elif sig == "notable":
+                    notables += 1
+
+    new_models = 0
+    model_items = checks.get("models_and_agents", {})
+    if isinstance(model_items, dict):
+        for v in model_items.values():
+            if isinstance(v, dict) and v.get("found"):
+                new_models += 1
+
+    stats_parts = []
+    if price_changes:
+        stats_parts.append(f"{price_changes} price change{'s' if price_changes != 1 else ''}")
+    if new_models:
+        stats_parts.append(f"{new_models} new model{'s' if new_models != 1 else ''}")
+    if breakthroughs:
+        stats_parts.append(f"{breakthroughs} breakthrough{'s' if breakthroughs != 1 else ''}")
+    if not stats_parts:
+        stats_parts.append("No major changes this week")
+    quick_stats = ", ".join(stats_parts)
+
+    # ── A. Weekly Summary Header ──
+    header_html = (
+        '\n<div class="weekly-section">'
+        f'\n  <h2>{_esc(week_label)}</h2>'
+        f'\n  <p style="color:var(--dim);font-size:0.9rem;">{_esc(quick_stats)}</p>'
+        '\n</div>'
+    )
+
+    # ── B. Price Trends Section ──
+    price_cards_html = ""
+    for key, hist in price_history.items():
+        if not isinstance(hist, list) or not hist:
+            continue
+        trend_data = get_price_trend(state, key)
+        if trend_data.get("current") is None:
+            continue
+        sparkline = generate_sparkline_svg(trend_data.get("history", []))
+        trend = trend_data.get("trend", "new")
+        change_pct = trend_data.get("change_pct", 0.0)
+        currency = trend_data.get("currency", "INR")
+        min_30d = trend_data.get("min_30d")
+        max_30d = trend_data.get("max_30d")
+
+        if trend == "up":
+            trend_icon = "\u2191"
+            trend_color = "#ef4444"
+        elif trend == "down":
+            trend_icon = "\u2193"
+            trend_color = "#22c55e"
+        else:
+            trend_icon = "\u2192"
+            trend_color = "#999"
+
+        name_label = key.replace("_", " ").title()
+        cur_symbol = "\u20b9" if currency == "INR" else "$"
+        price_fmt = f"{cur_symbol}{trend_data['current']:,.0f}"
+        range_text = ""
+        if min_30d is not None and max_30d is not None:
+            range_text = f"30d: {cur_symbol}{min_30d:,.0f} \u2013 {cur_symbol}{max_30d:,.0f}"
+
+        price_cards_html += (
+            f'\n      <div class="price-card">'
+            f'\n        <div class="price-card-name">{_esc(name_label)}</div>'
+            f'\n        <div class="price-card-price">{_esc(price_fmt)}'
+            f' <span style="font-size:0.7em;color:{trend_color};">{trend_icon} {abs(change_pct):.1f}%</span></div>'
+            f'\n        <div style="margin:8px 0;">{sparkline}</div>'
+            f'\n        <div class="price-card-meta"><span>{_esc(range_text)}</span></div>'
+            f'\n      </div>'
+        )
+
+    if price_cards_html:
+        price_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F4C8 Price Trends</h2>'
+            f'\n  <div class="price-grid">{price_cards_html}\n  </div>'
+            '\n</div>'
+        )
+    else:
+        price_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F4C8 Price Trends</h2>'
+            '\n  <p style="color:var(--dim);">No price history recorded yet. Trends will appear after multiple runs.</p>'
+            '\n</div>'
+        )
+
+    # ── C. Model Benchmark Table ──
+    model_table = generate_model_comparison_html(state)
+    has_models = bool(state.get("model_benchmarks", {}).get("models"))
+    if not has_models:
+        model_table = '<p style="color:var(--dim);">Model benchmarks will appear after the first run with the new prompts.</p>'
+    model_section = (
+        '\n<div class="weekly-section">'
+        '\n  <h2>\U0001F9E0 Model Benchmarks</h2>'
+        f'\n  <div style="overflow-x:auto;">{model_table}</div>'
+        '\n</div>'
+    )
+
+    # ── D. Readiness Score Trend ──
+    readiness_history = state.get("readiness_history", [])
+    if readiness_history:
+        sparkline_data = [{"date": e.get("date", ""), "price": e.get("overall", 0)} for e in readiness_history[-30:]]
+        readiness_sparkline = generate_sparkline_svg(sparkline_data, width=200, height=40)
+        latest = readiness_history[-1] if readiness_history else {}
+        overall = latest.get("overall", 0)
+        sub_scores = []
+        for sub_key in ("hardware", "models", "tools", "cost"):
+            val = latest.get(sub_key)
+            if val is not None:
+                sub_scores.append(f"{sub_key.title()}: {val}")
+        sub_text = " | ".join(sub_scores) if sub_scores else ""
+        readiness_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F3AF Readiness Score</h2>'
+            f'\n  <div style="display:flex;align-items:center;gap:24px;">'
+            f'\n    <div style="font-size:2rem;font-weight:700;">{overall}<span style="font-size:0.5em;color:var(--dim);">/100</span></div>'
+            f'\n    <div>{readiness_sparkline}</div>'
+            f'\n  </div>'
+            f'\n  <div style="color:var(--dim);font-size:0.85rem;margin-top:8px;">{_esc(sub_text)}</div>'
+            '\n</div>'
+        )
+    else:
+        readiness_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F3AF Readiness Score</h2>'
+            '\n  <p style="color:var(--dim);">No readiness history yet. Scores will appear after the first run.</p>'
+            '\n</div>'
+        )
+
+    # ── E. Learning Feed Preview ──
+    articles = _extract_learning_articles(checks)
+    learning_html = ""
+    source_css_map = {
+        "reddit": "source-reddit",
+        "youtube": "source-youtube",
+        "github": "source-github",
+        "blog": "source-blog",
+        "hackernews": "source-hackernews",
+    }
+    source_icon_map = {
+        "reddit": "\U0001F4AC",
+        "youtube": "\U0001F3AC",
+        "github": "\U0001F4BB",
+        "blog": "\U0001F4DD",
+        "hackernews": "\U0001F525",
+    }
+    for article in articles[:5]:
+        if not isinstance(article, dict):
+            continue
+        title = article.get("title", "Untitled")
+        url = article.get("url", "#")
+        source = article.get("source", "blog").lower()
+        category = article.get("category", "")
+        summary = article.get("summary", "")
+        icon = source_icon_map.get(source, "\U0001F4C4")
+        badge_cls = source_css_map.get(source, "source-blog")
+        learning_html += (
+            f'\n    <div class="learning-item">'
+            f'\n      <div class="learning-title">{icon} <a href="{_esc(url)}" target="_blank">{_esc(title)}</a>'
+            f' <span class="source-badge {badge_cls}">{_esc(source)}</span>'
+        )
+        if category:
+            learning_html += f' <span class="source-badge source-blog">{_esc(category)}</span>'
+        learning_html += (
+            f'</div>'
+            f'\n      <div class="learning-meta">{_esc(str(summary)[:200])}{"…" if len(str(summary)) > 200 else ""}</div>'
+            f'\n    </div>'
+        )
+
+    if learning_html:
+        learning_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F4DA Learning Feed</h2>'
+            + learning_html
+            + '\n  <p style="margin-top:12px;"><a href="learning.html" style="color:var(--accent);text-decoration:none;">View all &rarr;</a></p>'
+            '\n</div>'
+        )
+    else:
+        learning_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F4DA Learning Feed</h2>'
+            '\n  <p style="color:var(--dim);">No learning feed articles yet. Articles will appear after the first run.</p>'
+            '\n</div>'
+        )
+
+    # ── F. Efficiency Highlights ──
+    eff_data = checks.get("efficiency_research", {})
+    eff_html = ""
+    _SIGNAL_META = {
+        "breakthrough": {"badge": "\U0001F6A8 Breakthrough", "css": "signal-breakthrough"},
+        "notable":      {"badge": "\u2B50 Notable",      "css": "signal-notable"},
+        "noise":        {"badge": "\U0001F4CB Noise",        "css": "signal-noise"},
+    }
+    if isinstance(eff_data, dict):
+        for item_key, item_val in eff_data.items():
+            if not isinstance(item_val, dict):
+                continue
+            signal = item_val.get("signal", "noise")
+            if signal not in ("breakthrough", "notable"):
+                continue
+            info = item_val.get("info", "")
+            label = item_key.replace("_", " ").title()
+            meta = _SIGNAL_META.get(signal, _SIGNAL_META["noise"])
+            eff_html += (
+                f'\n    <div class="learning-item">'
+                f'\n      <span class="signal-badge {meta["css"]}">{meta["badge"]}</span>'
+                f' <span class="learning-title">{_esc(label)}</span>'
+                f'\n      <div class="learning-meta">{_esc(str(info)[:200])}{"…" if len(str(info)) > 200 else ""}</div>'
+                f'\n    </div>'
+            )
+
+    if eff_html:
+        efficiency_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F52C Efficiency Highlights</h2>'
+            + eff_html
+            + '\n</div>'
+        )
+    else:
+        efficiency_section = (
+            '\n<div class="weekly-section">'
+            '\n  <h2>\U0001F52C Efficiency Highlights</h2>'
+            '\n  <p style="color:var(--dim);">No breakthrough or notable efficiency findings yet.</p>'
+            '\n</div>'
+        )
+
+    # ── Inline CSS ──
+    weekly_css = (
+        '\n<style>'
+        '\n.weekly-section { margin-bottom: 32px; }'
+        '\n.weekly-section h2 { font-size: 1.3rem; margin-bottom: 16px; border-bottom: 1px solid var(--border, #333); padding-bottom: 8px; }'
+        '\n.price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }'
+        '\n.price-card { padding: 16px; background: var(--bg2); border-radius: 8px; }'
+        '\n.price-card-name { font-size: 0.85rem; color: var(--dim); }'
+        '\n.price-card-price { font-size: 1.3rem; font-weight: 700; margin: 4px 0; }'
+        '\n.price-card-meta { font-size: 0.8rem; color: var(--dim); display: flex; justify-content: space-between; }'
+        '\n.learning-item { padding: 12px 16px; background: var(--bg2); border-radius: 8px; margin-bottom: 8px; }'
+        '\n.learning-title { font-weight: 600; }'
+        '\n.learning-title a { color: var(--accent); text-decoration: none; }'
+        '\n.learning-meta { font-size: 0.8rem; color: var(--dim); margin-top: 4px; }'
+        '\n.source-badge { padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }'
+        '\n.source-reddit { background: #ff4500; color: white; }'
+        '\n.source-youtube { background: #ff0000; color: white; }'
+        '\n.source-github { background: #333; color: white; }'
+        '\n.source-blog { background: #6366f1; color: white; }'
+        '\n.source-hackernews { background: #ff6600; color: white; }'
+        '\n.signal-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }'
+        '\n.signal-breakthrough { background: #dc2626; color: #fff; }'
+        '\n.signal-notable { background: #f59e0b; color: #000; }'
+        '\n.signal-noise { background: #4b5563; color: #9ca3af; }'
+        '\n</style>'
+    )
+
+    body_content = (
+        weekly_css
+        + '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        f'\n    <div class="meta">Last check: <b>{now}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n'
+        '\n<div class="content">'
+        '\n  <div class="page-title">\U0001F4CA Weekly Report</div>'
+        + header_html
+        + price_section
+        + model_section
+        + readiness_section
+        + learning_section
+        + efficiency_section
+        + '\n</div>'
+    )
+
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell("Weekly Report - LLM Hardware Monitor", nav_html, body_content, modal_json)
+
+
 def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
     """Generate multi-page HTML dashboard with search, cards, and detail side-pane modal."""
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -3641,6 +5142,26 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
             "fallback_now": rec.get("fallback_now", ""),
         }
 
+    # Enrich modal data with price history (try both key and key_usd/key_inr variants)
+    for product_key in state.get("price_history", {}):
+        # Match price_history keys to modal_data keys (strip _usd/_inr suffix)
+        modal_key = product_key
+        if product_key not in modal_data:
+            if product_key.endswith("_usd"):
+                modal_key = product_key[:-4]
+            elif product_key.endswith("_inr"):
+                modal_key = product_key[:-4]
+        if modal_key in modal_data:
+            trend = get_price_trend(state, product_key)
+            if trend["current"] is not None:
+                modal_data[modal_key]["priceHistory"] = {
+                    "current": f"{trend['currency']} {trend['current']:,.0f}",
+                    "min": f"{trend['min_30d']:,.0f}" if trend['min_30d'] else "—",
+                    "max": f"{trend['max_30d']:,.0f}" if trend['max_30d'] else "—",
+                    "trend": {"up": "↑ Rising", "down": "↓ Falling", "stable": "→ Stable", "new": "🆕 New"}[trend["trend"]],
+                    "sparklineSvg": generate_sparkline_svg(trend["history"], width=200, height=40),
+                }
+
     # Create pages directory
     os.makedirs(PAGES_DIR, exist_ok=True)
 
@@ -3660,6 +5181,12 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
 
     deals_html = _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
     (PAGES_DIR / "deals.html").write_text(deals_html, encoding="utf-8")
+
+    learning_html = _generate_learning_page(checks, enrichment, now)
+    (PAGES_DIR / "learning.html").write_text(learning_html, encoding="utf-8")
+
+    weekly_html = _generate_weekly_page(state, checks, enrichment, now)
+    (PAGES_DIR / "weekly.html").write_text(weekly_html, encoding="utf-8")
 
     logger.info(f"Dashboard updated: {DASHBOARD_FILE} + {PAGES_DIR}")
 
@@ -3730,6 +5257,9 @@ def main():
     else:
         logger.info("Store checks: no results (all methods failed)")
 
+    # Record daily price snapshots for trend tracking
+    state = record_price_history(state, store_results or [], new_checks)
+
     # Discover new hardware from monitoring results (zero API cost)
     logger.info("--- Dynamic discovery: scanning results for new hardware ---")
     candidates = extract_discoveries_from_results(new_checks, state)
@@ -3794,6 +5324,28 @@ def main():
     else:
         logger.warning("Recommendation generation failed, keeping previous")
 
+    # Compute readiness score
+    readiness = compute_readiness_score(state, new_checks)
+    state["readiness_score"] = readiness
+    # Track history for trend
+    if "readiness_history" not in state:
+        state["readiness_history"] = []
+    state["readiness_history"].append({
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "overall": readiness["overall"],
+        "hardware": readiness["hardware"]["score"],
+        "models": readiness["models"]["score"],
+        "tools": readiness["tools"]["score"],
+        "cost": readiness["cost"]["score"],
+    })
+    state["readiness_history"] = state["readiness_history"][-90:]
+    logger.info(
+        f"Readiness score: {readiness['overall']}/100 "
+        f"(HW:{readiness['hardware']['score']} Model:{readiness['models']['score']} "
+        f"Tools:{readiness['tools']['score']} Cost:{readiness['cost']['score']}) "
+        f"Trend: {readiness['trend']}"
+    )
+
     # Send notifications — ALWAYS notify so user sees result even at 3:30 AM
     if changes:
         critical = [c for c in changes if c["severity"] == "critical"]
@@ -3831,6 +5383,7 @@ def main():
 
     # Update checks before summary so desktop summary has current data
     state["checks"] = new_checks
+    state = process_model_benchmarks(state, new_checks)
     state["last_run"] = datetime.now().isoformat()
 
     # Always write desktop summary file as fallback notification
@@ -3899,6 +5452,34 @@ def main():
 
     # Generate dashboard
     generate_dashboard(state, changes, run_status)
+
+    # Auto-push to GitHub Pages (if remote is configured)
+    try:
+        remote_check = subprocess.run(
+            ["git", "-C", str(MONITOR_DIR), "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if remote_check.returncode == 0 and remote_check.stdout.strip():
+            subprocess.run(
+                ["git", "-C", str(MONITOR_DIR), "add", "-A"],
+                capture_output=True, timeout=30,
+            )
+            subprocess.run(
+                ["git", "-C", str(MONITOR_DIR), "commit", "-m",
+                 f"Daily update {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                 "--allow-empty"],
+                capture_output=True, timeout=30,
+            )
+            push_result = subprocess.run(
+                ["git", "-C", str(MONITOR_DIR), "push"],
+                capture_output=True, text=True, timeout=60,
+            )
+            if push_result.returncode == 0:
+                logger.info("Auto-pushed to GitHub Pages")
+            else:
+                logger.warning(f"Git push failed: {push_result.stderr[:200]}")
+    except Exception as e:
+        logger.warning(f"Auto-push skipped: {e}")
 
     logger.info("Daily check complete!")
     return 0

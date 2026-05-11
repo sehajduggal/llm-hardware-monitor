@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deals & News - LLM Hardware Monitor</title>
+<title>Weekly Report - LLM Hardware Monitor</title>
 <style>
   :root {
     --bg: #0a0e14; --surface: #131920; --card: #1a2029; --border: #262f3d;
@@ -418,8 +418,31 @@
 </style>
 </head>
 <body>
-<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link active">💰 Deals & News</a><a href="learning.html" class="nav-link">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-11 17:41:19</span></nav>
+<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link">📚 Learning</a><a href="weekly.html" class="nav-link active">📊 Weekly</a><span class="nav-time">Last: 2026-05-11 17:41:19</span></nav>
 
+<style>
+.weekly-section { margin-bottom: 32px; }
+.weekly-section h2 { font-size: 1.3rem; margin-bottom: 16px; border-bottom: 1px solid var(--border, #333); padding-bottom: 8px; }
+.price-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.price-card { padding: 16px; background: var(--bg2); border-radius: 8px; }
+.price-card-name { font-size: 0.85rem; color: var(--dim); }
+.price-card-price { font-size: 1.3rem; font-weight: 700; margin: 4px 0; }
+.price-card-meta { font-size: 0.8rem; color: var(--dim); display: flex; justify-content: space-between; }
+.learning-item { padding: 12px 16px; background: var(--bg2); border-radius: 8px; margin-bottom: 8px; }
+.learning-title { font-weight: 600; }
+.learning-title a { color: var(--accent); text-decoration: none; }
+.learning-meta { font-size: 0.8rem; color: var(--dim); margin-top: 4px; }
+.source-badge { padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; font-weight: 600; }
+.source-reddit { background: #ff4500; color: white; }
+.source-youtube { background: #ff0000; color: white; }
+.source-github { background: #333; color: white; }
+.source-blog { background: #6366f1; color: white; }
+.source-hackernews { background: #ff6600; color: white; }
+.signal-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.signal-breakthrough { background: #dc2626; color: #fff; }
+.signal-notable { background: #f59e0b; color: #000; }
+.signal-noise { background: #4b5563; color: #9ca3af; }
+</style>
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
@@ -428,83 +451,127 @@
 </div>
 
 <div class="content">
-  <div class="page-title">💰 Deals & News</div>
-  <div class="page-desc">Tracking Apple India deals, marketplace pricing, r/LocalLLaMA news, trending models, and other relevant blog posts and announcements.</div>
-  <div class="detail-cards">
-        <div class="timeline-card clickable" onclick="openModal('apple_india_deals')"
-             data-search="Apple India Deals Education discount ~10% off all Macs via apple.com/in-edu/store. Mac Studio M4 Max starts ₹1,94,900 with education pricing. ICICI/Axis Bank card cashback up to ₹10,000 on Apple India direct store with up to 6-month no-cost EMI. Mac Mini M4 base spotted at ₹49,999 on Amazon India (limited-time, select bank cards) — well below MRP. No confirmed deal below ₹1,89,900 for the Mac Mini M4 Pro 48GB/512GB config specifically. Check: https://www.apple.com/in-edu/shop/buy-mac/mac-studio and https://www.apple.com/in/shop/buy-mac/mac-mini Deals &amp; News" data-item="apple_india_deals">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Apple India Deals</div>
-          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
-          <div class="card-info">Education discount ~10% off all Macs via apple.com/in-edu/store. Mac Studio M4 Max starts ₹1,94,900 with education pricing. ICICI/Axis Bank card cashb…</div>
-          <span class="detail-hint">📖 Click for details</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('strix_halo_deals')"
-             data-search="Strix Halo Deals ALERT: Bosgame M5 128GB/2TB (Ryzen AI Max+ 395) on pre-order sale for $1,699 — down from confirmed $2,799 retail, saving ~$1,100. Ships from June 10, 2026. This is the lowest 128GB Strix Halo price seen. Buy at https://www.bosgame.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395-96gb-128gb-2tb or https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395. Other brands unchanged: Framework Desktop ~$2,851+, Beelink GTR9 Pro ~$2,999, Corsair AI WS 300 ~$2,699-$3,399 (out of stock), Minisforum MS-S1 Max ~$3,199 (out of stock). Bosgame at $1,699 is the standout deal this month. Deals &amp; News" data-item="strix_halo_deals">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Strix Halo Deals</div>
-          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
-          <div class="card-info">ALERT: Bosgame M5 128GB/2TB (Ryzen AI Max+ 395) on pre-order sale for $1,699 — down from confirmed $2,799 retail, saving ~$1,100. Ships from June 10, …</div>
-          <span class="detail-hint">↗ Click for info</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('gpu_deals_india')"
-             data-search="Gpu Deals India RTX 5090 cheapest models start ~₹2,14,000 (Founder Edition/entry custom) — under ₹3.5L threshold. ASUS TUF RTX 5090 32GB ~₹3,29,522 (MRP ₹4,80,000, ~31% off). MSI Ventus 3X OC RTX 5090 ~₹3,32,349. RTX 5080 (16GB GDDR7) starts ~₹1,07,000 with select models like ZOTAC Solid, ranging ₹1,32,000–₹1,94,999 for most custom models. Summer sale discounts 10–40% active on Amazon India. Store links: https://www.amazon.in/rtx-5090/s?k=rtx+5090 | https://elitehubs.com/collections/nvidia-rtx-5080-graphic-cards | https://mdcomputers.in/catalog/graphics-card/nvidia/rtx-50-graphics-card/rtx-5090-graphics-card. RTX 5080 at ₹1.07–1.95L is the best value for 16GB VRAM local LLM use. Deals &amp; News" data-item="gpu_deals_india">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Gpu Deals India</div>
-          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Has Deals: Yes</span></div>
-          <div class="card-info">RTX 5090 cheapest models start ~₹2,14,000 (Founder Edition/entry custom) — under ₹3.5L threshold. ASUS TUF RTX 5090 32GB ~₹3,29,522 (MRP ₹4,80,000, ~3…</div>
-          <span class="detail-hint">↗ Click for info</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('mac_studio_marketplace')"
-             data-search="Mac Studio Marketplace Mac Studio M4 Max 36GB/512GB base listed on Flipkart at ₹2,14,900 (https://www.flipkart.com/apple-mac-studio-macos-sequoia-m4-max-36-gb-na-512-ssd-mini-pc/p/itmb018ff9ff706c). Amazon India (https://www.amazon.in/mac-studio-apple/s?k=mac+studio+apple) lists older models/display accessories — current M4 Max 128GB config not directly listed. For 128GB unified memory, must configure via Apple India Store (https://www.apple.com/in/mac-studio/) — estimated ₹3,00,000+ based on memory upgrade premium over ₹2,14,900 base. No refurbished M4 Max 128GB units found on Indian marketplace; Apple US refurb shows $2,289 (metadata only). No third-party India refurb listings confirmed. Deals &amp; News" data-item="mac_studio_marketplace">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Mac Studio Marketplace</div>
-          <div class="card-info">Mac Studio M4 Max 36GB/512GB base listed on Flipkart at ₹2,14,900 (https://www.flipkart.com/apple-mac-studio-macos-sequoia-m4-max-36-gb-na-512-ssd-min…</div>
-          <span class="detail-hint">↗ Click for info</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('latest_local_llm_news')"
-             data-search="Latest Local Llm News 1. GLM-4.7-Flash (THUDM/Zhipu): 30B MoE with only ~3B active parameters at inference — outperforms several dense 70B models on code and tool-use tasks, running at 60–80+ tok/s on a single RTX 4090/5090. Major r/LocalLLaMA discussion calling it the best efficiency breakthrough of 2026 for 24GB VRAM owners. (https://medium.com/@zh.milo/glm-4-7-flash-the-ultimate-2026-guide-to-local-ai-coding-assistant-93a43c3f8db3) | 2. HN top story &#x27;Local AI needs to be the norm&#x27; (May 10, 2026): Community consensus that quantized 70B models (Qwen2-72B, Llama 3 70B via GGUF/EXL2) now run interactively on Apple M4 Max 128GB and dual RTX 5090 setups, with Ollama + Open WebUI as the default local stack. (https://news.ycombinator.com/front) | 3. QLoRA fine-tuning of 7B–14B models on single 24GB GPU is now a mainstream workflow — tools like Axolotl and LLaMA-Factory have made one-command fine-tuning accessible; r/LocalLLaMA guides show sub-$500 GPU setups fine-tuning Qwen3-14B on custom datasets in under 2 hours. (https://huggingface.co/organizations/LocalLLaMA/activity/all) Deals &amp; News" data-item="latest_local_llm_news">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Latest Local Llm News</div>
-          <div class="card-info">1. GLM-4.7-Flash (THUDM/Zhipu): 30B MoE with only ~3B active parameters at inference — outperforms several dense 70B models on code and tool-use tasks…</div>
-          <span class="detail-hint">📖 Click for details</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('trending_models')"
-             data-search="Trending Models 1. Qwen3-Coder-Next (Qwen/Alibaba) — 235B MoE, 22B active params, SWE-bench Verified 58.7%, 256K context window. Runs on single 24GB VRAM GPU at Q4 quant or 48–128GB unified memory (Apple M4/M5 Max) for full precision. Top pick for multi-step agentic coding pipelines. (https://unsloth.ai/docs/models/tutorials/qwen3-coder-how-to-run-locally) | 2. Qwen3.6-27B (Qwen/Alibaba) — 27B dense, SWE-bench 77.2%, 128K context, 18–24GB VRAM. Best price-to-performance for local coding agents on 24GB VRAM or Mac Studio 48GB+. Dominates HuggingFace trending charts for coding. (https://www.morphllm.com/best-ollama-models) | 3. DeepSeek V3.2 — 671B total / 37B active MoE, SWE-bench 56.1%, 160K context, runs on 24GB VRAM with CPU offload or natively on 128GB unified memory. Top choice for reasoning-heavy algorithmic coding tasks on Mac Studio M4 Max 128GB. (https://overchat.ai/ai-hub/best-local-llm-for-coding) Deals &amp; News" data-item="trending_models">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">Trending Models</div>
-          <div class="card-info">1. Qwen3-Coder-Next (Qwen/Alibaba) — 235B MoE, 22B active params, SWE-bench Verified 58.7%, 256K context window. Runs on single 24GB VRAM GPU at Q4 qu…</div>
-          <span class="detail-hint">↗ Click for info</span>
-        </div>
-        <div class="timeline-card clickable" onclick="openModal('new_products_from_blogs')"
-             data-search="New Products From Blogs 1. ONEXStation Mini AI PC — AMD Ryzen AI Max+ 395, 128GB LPDDR5X-8000 unified memory (up to 96GB allocatable as VRAM), Radeon 8060S (40 CU RDNA 3.5), 1TB SSD, 13 ports incl. 2.5GbE, USB4, HDMI. Price: $2,999. Announced April 2026. In stock at Onexplayer store. Source: https://videocardz.com/newz/onexstation-announced-mini-ai-pc-with-ryzen-ai-max-395-for-2999 | 2. Bosgame M5 AI Mini Desktop (pre-order sale) — AMD Ryzen AI Max+ 395, 128GB LPDDR5X-8533, Radeon 8060S, 2TB Gen4 NVMe, Wi-Fi 7, USB4. Price: $1,699 (promotional pre-order, ships June 10 2026, down from $2,799). Source: https://www.notebookcheck.net/Bosgame-M5-AI-Mini-Desktop-Pricing-and-release-date-set-for-new-AMD-Ryzen-AI-Max-395-mini-PC.1024582.0.html | 3. ASUS TUF Gaming A14 FA401EA (2026 Strix Halo update) — AMD Ryzen AI Max+ 392, up to 64GB DDR5 (48GB allocatable as VRAM), Radeon 8060S iGPU, 14-inch laptop form factor. Price TBD but expected well under $5,000 based on prior TUF lineup. Announced CES 2026 / updated early 2026. Source: https://www.notebookcheck.net/Now-with-48-GB-VRAM-Asus-updates-14-inch-gaming-laptop-with-new-version.1204358.0.html Deals &amp; News" data-item="new_products_from_blogs">
-          <div class="card-top">
-            <span class="card-icon">💰</span>
-            <span class="card-cat">Deals &amp; News</span>
-          </div>
-          <div class="card-title">New Products From Blogs</div>
-          <div class="card-flags"><span class="flag" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>Found: Yes</span></div>
-          <div class="card-info">1. ONEXStation Mini AI PC — AMD Ryzen AI Max+ 395, 128GB LPDDR5X-8000 unified memory (up to 96GB allocatable as VRAM), Radeon 8060S (40 CU RDNA 3.5), …</div>
-          <span class="detail-hint">↗ Click for info</span>
-        </div></div>
+  <div class="page-title">📊 Weekly Report</div>
+<div class="weekly-section">
+  <h2>Week of May 11–17, 2026</h2>
+  <p style="color:var(--dim);font-size:0.9rem;">2 new models, 2 breakthroughs</p>
+</div>
+<div class="weekly-section">
+  <h2>📈 Price Trends</h2>
+  <div class="price-grid">
+      <div class="price-card">
+        <div class="price-card-name">Mac Mini 48Gb India</div>
+        <div class="price-card-price">₹189,900 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: ₹189,900 – ₹189,900</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Mac Mini 48Gb Us</div>
+        <div class="price-card-price">$1,799 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $1,799 – $1,799</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Apple Refurbished Us</div>
+        <div class="price-card-price">$2,289 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $2,289 – $2,289</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Beelink Gtr9 Pro 128Gb</div>
+        <div class="price-card-price">$4,499 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $4,499 – $4,499</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Minisforum Ms S1 Max</div>
+        <div class="price-card-price">$3,199 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $3,199 – $3,199</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Bosgame M5 128Gb Usd</div>
+        <div class="price-card-price">$2,799 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $2,799 – $2,799</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Beelink Gtr9 Pro 128Gb Usd</div>
+        <div class="price-card-price">$4,499 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $4,499 – $4,499</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Minisforum Ms S1 Max Usd</div>
+        <div class="price-card-price">$3,199 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $3,199 – $3,199</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Corsair Ws300 Usd</div>
+        <div class="price-card-price">$3,400 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: $3,400 – $3,400</span></div>
+      </div>
+      <div class="price-card">
+        <div class="price-card-name">Rtx 5090 India</div>
+        <div class="price-card-price">₹278,421 <span style="font-size:0.7em;color:#999;">→ 0.0%</span></div>
+        <div style="margin:8px 0;"><svg width="120" height="30" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,26.0" fill="none" stroke="#999" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4.0" cy="26.0" r="2.5" fill="#999"/></svg></div>
+        <div class="price-card-meta"><span>30d: ₹278,421 – ₹278,421</span></div>
+      </div>
+  </div>
+</div>
+<div class="weekly-section">
+  <h2>🧠 Model Benchmarks</h2>
+  <div style="overflow-x:auto;"><p style="color:var(--dim);">Model benchmarks will appear after the first run with the new prompts.</p></div>
+</div>
+<div class="weekly-section">
+  <h2>🎯 Readiness Score</h2>
+  <div style="display:flex;align-items:center;gap:24px;">
+    <div style="font-size:2rem;font-weight:700;">41<span style="font-size:0.5em;color:var(--dim);">/100</span></div>
+    <div><svg width="200" height="40" xmlns="http://www.w3.org/2000/svg"><polyline points="4.0,4.0 196.0,36.0" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linejoin="round"/><circle cx="196.0" cy="36.0" r="2.5" fill="#22c55e"/></svg></div>
+  </div>
+  <div style="color:var(--dim);font-size:0.85rem;margin-top:8px;">Hardware: 20 | Models: 25 | Tools: 80 | Cost: 75</div>
+</div>
+<div class="weekly-section">
+  <h2>📚 Learning Feed</h2>
+    <div class="learning-item">
+      <div class="learning-title">📝 <a href="https://thecodersblog.com/faster-llm-inference-with-qwen-3-6-27b-and-mtp-2026/" target="_blank">2.5x Faster LLM Inference: Qwen3 27B Achieves Breakthrough with Multi-Token Prediction in llama.cpp</a> <span class="source-badge source-blog">blog</span> <span class="source-badge source-blog">inference</span></div>
+      <div class="learning-meta">Demonstrates how Qwen3&#x27;s built-in Multi-Token Prediction (MTP) heads enable speculative decoding natively in llama.cpp, achieving 2–2.5x token throughput without a separate draft model. Detailed bench…</div>
+    </div>
+  <p style="margin-top:12px;"><a href="learning.html" style="color:var(--accent);text-decoration:none;">View all &rarr;</a></p>
+</div>
+<div class="weekly-section">
+  <h2>🔬 Efficiency Highlights</h2>
+    <div class="learning-item">
+      <span class="signal-badge signal-breakthrough">🚨 Breakthrough</span> <span class="learning-title">Quantization Breakthroughs</span>
+      <div class="learning-meta">NVFP4 fully merged in llama.cpp build b8967 (Apr 29, 2026) with native Blackwell tensor-core MMQ kernels — 43-68% prefill speedup on RTX 5090 vs prior builds. MXFP4 stable in ik_llama.cpp (CPU AVX2/AV…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-notable">⭐ Notable</span> <span class="learning-title">Inference Engine Updates</span>
+      <div class="learning-meta">KTransformers: DeepSeek-V4-Flash support added May 2, 2026; presented at GOSIM Paris May 6; native support for Kimi-K2.6, MiniMax-M2.5, GLM-5, DeepSeek-V4. INT4 deployment = 2x speed + 50% VRAM reduct…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-breakthrough">🚨 Breakthrough</span> <span class="learning-title">Moe Offloading</span>
+      <div class="learning-meta">FATE expert caching (github.com/ongunm/llama-moe-cache, arXiv 2502.12224) achieves 1.91x speedup on Qwen3-30B-A3B with only 12GB VRAM (model needs 18.6GB): 33.74 → 64.45 tok/s. Uses cross-layer + temp…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-notable">⭐ Notable</span> <span class="learning-title">Budget Gpu Benchmarks</span>
+      <div class="learning-meta">Qwen3.6-35B-A3B (35B total, 3B active): ~101 tok/s on RTX 3090 at UD-Q4_K_XL, ~70 tok/s on RTX 4090 Q4. RTX 4060 Ti 16GB: Qwen3-30B-A3B / Qwen3.6-35B-A3B Q4_K_M ~33-35 tok/s baseline; with FATE cachin…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-notable">⭐ Notable</span> <span class="learning-title">Efficient Model Architectures</span>
+      <div class="learning-meta">Qwen3.6-35B-A3B (Apr 2026): 35B total, only 3B active per token — improved from Qwen3-30B-A3B&#x27;s 3.3B active. Agentic coding focus. Runs at 101 tok/s on RTX 3090. Gemma 4 (26B-A4B MoE): 26B total, 4B a…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-notable">⭐ Notable</span> <span class="learning-title">Memory Optimization</span>
+      <div class="learning-meta">TurboQuant (Google, ICLR 2026): KV cache compressed to 3-4 bits (vs 16-bit standard), 6x lower memory footprint, up to 8x attention logit speedup on H100. Post-training, calibration-free. Critical for…</div>
+    </div>
+    <div class="learning-item">
+      <span class="signal-badge signal-notable">⭐ Notable</span> <span class="learning-title">Community Discoveries</span>
+      <div class="learning-meta">Top r/LocalLLaMA May 2026 configs: (1) Qwen3.6-35B-A3B Q4_K_M on RTX 3090 ~101 tok/s (UD-Q4_K_XL quant) — new king of budget MoE. (2) FATE expert caching fork (llama-moe-cache) going viral: near-doubl…</div>
+    </div>
+</div>
 </div>
 
 <!-- Side Pane Modal -->
@@ -562,7 +629,7 @@
 </div>
 <script>
 // ── Modal Data ──
-const modalData = {"apple_india_deals": {"label": "Apple India Deals", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Education discount ~10% off all Macs via apple.com/in-edu/store. Mac Studio M4 Max starts ₹1,94,900 with education pricing. ICICI/Axis Bank card cashback up to ₹10,000 on Apple India direct store with up to 6-month no-cost EMI. Mac Mini M4 base spotted at ₹49,999 on Amazon India (limited-time, select bank cards) — well below MRP. No confirmed deal below ₹1,89,900 for the Mac Mini M4 Pro 48GB/512GB config specifically. Check: https://www.apple.com/in-edu/shop/buy-mac/mac-studio and https://www.apple.com/in/shop/buy-mac/mac-mini", "flags": {"has_deals": true}, "analysis": "Mac Studio is EXCLUDED from Apple India Back-to-School 2025 offer (June 17–Sep 30). Only MacBook Air/Pro/iMac qualify. No education discount, no free accessories, no cashback stacking on Mac Studio. Bank cashback (HDFC/ICICI/Axis ~5–10% on Apple products) is the only realistic saving — potentially ₹15,000–₹35,000 off on a ₹3.5L order. No official refurbished store in India. Getting 128GB Mac Studio under ₹3.5L is not feasible in 2025; minimum realistic price is ~₹3.7–4L via Apple India BTO.", "links": [{"url": "https://www.moneycontrol.com/technology/apple-s-back-to-school-offer-2025-goes-live-here-s-what-students-can-get-for-free-article-13134676.html", "title": "Apple Back to School 2025 India: What Students Get Free", "desc": "Moneycontrol coverage confirming Mac Studio exclusion from education offer, eligible products list"}, {"url": "https://www.business-standard.com/technology/tech-news/apple-announces-back-to-school-offers-on-ipads-macs-in-india-details-125061700486_1.html", "title": "Apple Back-to-School 2025 India Details - Business Standard", "desc": "Business Standard full offer breakdown with T&Cs and excluded products including Mac Studio"}, {"url": "https://www.apple.com/in-edu/store", "title": "Apple India Education Store", "desc": "Official Apple India education pricing portal — verify current eligible products and discounts"}]}, "strix_halo_deals": {"label": "Strix Halo Deals", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "ALERT: Bosgame M5 128GB/2TB (Ryzen AI Max+ 395) on pre-order sale for $1,699 — down from confirmed $2,799 retail, saving ~$1,100. Ships from June 10, 2026. This is the lowest 128GB Strix Halo price seen. Buy at https://www.bosgame.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395-96gb-128gb-2tb or https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395. Other brands unchanged: Framework Desktop ~$2,851+, Beelink GTR9 Pro ~$2,999, Corsair AI WS 300 ~$2,699-$3,399 (out of stock), Minisforum MS-S1 Max ~$3,199 (out of stock). Bosgame at $1,699 is the standout deal this month.", "flags": {"has_deals": true}, "analysis": "", "links": []}, "gpu_deals_india": {"label": "Gpu Deals India", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "RTX 5090 cheapest models start ~₹2,14,000 (Founder Edition/entry custom) — under ₹3.5L threshold. ASUS TUF RTX 5090 32GB ~₹3,29,522 (MRP ₹4,80,000, ~31% off). MSI Ventus 3X OC RTX 5090 ~₹3,32,349. RTX 5080 (16GB GDDR7) starts ~₹1,07,000 with select models like ZOTAC Solid, ranging ₹1,32,000–₹1,94,999 for most custom models. Summer sale discounts 10–40% active on Amazon India. Store links: https://www.amazon.in/rtx-5090/s?k=rtx+5090 | https://elitehubs.com/collections/nvidia-rtx-5080-graphic-cards | https://mdcomputers.in/catalog/graphics-card/nvidia/rtx-50-graphics-card/rtx-5090-graphics-card. RTX 5080 at ₹1.07–1.95L is the best value for 16GB VRAM local LLM use.", "flags": {"has_deals": true}, "analysis": "", "links": []}, "mac_studio_marketplace": {"label": "Mac Studio Marketplace", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "Mac Studio M4 Max 36GB/512GB base listed on Flipkart at ₹2,14,900 (https://www.flipkart.com/apple-mac-studio-macos-sequoia-m4-max-36-gb-na-512-ssd-mini-pc/p/itmb018ff9ff706c). Amazon India (https://www.amazon.in/mac-studio-apple/s?k=mac+studio+apple) lists older models/display accessories — current M4 Max 128GB config not directly listed. For 128GB unified memory, must configure via Apple India Store (https://www.apple.com/in/mac-studio/) — estimated ₹3,00,000+ based on memory upgrade premium over ₹2,14,900 base. No refurbished M4 Max 128GB units found on Indian marketplace; Apple US refurb shows $2,289 (metadata only). No third-party India refurb listings confirmed.", "flags": {}, "analysis": "", "links": [{"url": "https://www.amazon.in/s?k=Mac+Studio", "title": "Mac Studio Marketplace", "desc": "Default tracking link"}]}, "latest_local_llm_news": {"label": "Latest Local Llm News", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. GLM-4.7-Flash (THUDM/Zhipu): 30B MoE with only ~3B active parameters at inference — outperforms several dense 70B models on code and tool-use tasks, running at 60–80+ tok/s on a single RTX 4090/5090. Major r/LocalLLaMA discussion calling it the best efficiency breakthrough of 2026 for 24GB VRAM owners. (https://medium.com/@zh.milo/glm-4-7-flash-the-ultimate-2026-guide-to-local-ai-coding-assistant-93a43c3f8db3) | 2. HN top story 'Local AI needs to be the norm' (May 10, 2026): Community consensus that quantized 70B models (Qwen2-72B, Llama 3 70B via GGUF/EXL2) now run interactively on Apple M4 Max 128GB and dual RTX 5090 setups, with Ollama + Open WebUI as the default local stack. (https://news.ycombinator.com/front) | 3. QLoRA fine-tuning of 7B–14B models on single 24GB GPU is now a mainstream workflow — tools like Axolotl and LLaMA-Factory have made one-command fine-tuning accessible; r/LocalLLaMA guides show sub-$500 GPU setups fine-tuning Qwen3-14B on custom datasets in under 2 hours. (https://huggingface.co/organizations/LocalLLaMA/activity/all)", "flags": {}, "analysis": "Key 2025–2026 trends: (1) Strix Halo 128GB mini PCs now the go-to budget option for running 70B locally — community consensus on Reddit/HN is ~5 tok/s for 70B is 'usable for chat'. (2) Apple M4/M5 Ultra with 192–256GB remains gold standard for unified-memory inference. (3) RTX 5090 wins on pure speed but VRAM ceiling still hurts 70B. (4) AirLLM layer-wise loading now lets any GPU run 70B at reduced speed. (5) ROCm maturity improving but CUDA still preferred for fine-tuning. Bottom line for your use case: Mac Studio M4 Max 128GB or Strix Halo 128GB mini PC are the best value options today; wait for M5 if possible.", "links": [{"url": "https://introl.com/blog/local-llm-hardware-pricing-guide-2025", "title": "Local LLM Hardware Guide 2025: GPU Specs & Pricing", "desc": "Comprehensive 2025 hardware guide comparing unified memory, discrete GPU, and mini PC options for local LLM"}, {"url": "https://forum.level1techs.com/t/strix-halo-ryzen-ai-max-395-llm-benchmark-results/233796", "title": "Strix Halo LLM Benchmark Results - Level1Techs Forum", "desc": "Active community thread with real-world Strix Halo 128GB LLM benchmarks, setup tips, ROCm/Vulkan config"}, {"url": "https://stencel.io/posts/buying-gpu-for-local-models-llm.html", "title": "Buying GPU for Local LLMs - Greg's Tech Notes", "desc": "Practical guide comparing Apple Silicon unified memory vs discrete GPU for hobbyist 70B inference in 2025"}]}, "trending_models": {"label": "Trending Models", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. Qwen3-Coder-Next (Qwen/Alibaba) — 235B MoE, 22B active params, SWE-bench Verified 58.7%, 256K context window. Runs on single 24GB VRAM GPU at Q4 quant or 48–128GB unified memory (Apple M4/M5 Max) for full precision. Top pick for multi-step agentic coding pipelines. (https://unsloth.ai/docs/models/tutorials/qwen3-coder-how-to-run-locally) | 2. Qwen3.6-27B (Qwen/Alibaba) — 27B dense, SWE-bench 77.2%, 128K context, 18–24GB VRAM. Best price-to-performance for local coding agents on 24GB VRAM or Mac Studio 48GB+. Dominates HuggingFace trending charts for coding. (https://www.morphllm.com/best-ollama-models) | 3. DeepSeek V3.2 — 671B total / 37B active MoE, SWE-bench 56.1%, 160K context, runs on 24GB VRAM with CPU offload or natively on 128GB unified memory. Top choice for reasoning-heavy algorithmic coding tasks on Mac Studio M4 Max 128GB. (https://overchat.ai/ai-hub/best-local-llm-for-coding)", "flags": {}, "analysis": "", "links": [{"url": "https://huggingface.co/models?sort=trending", "title": "Trending Models", "desc": "Default tracking link"}]}, "new_products_from_blogs": {"label": "New Products From Blogs", "category": "deals_and_blogs", "categoryLabel": "Deals & News", "icon": "💰", "info": "1. ONEXStation Mini AI PC — AMD Ryzen AI Max+ 395, 128GB LPDDR5X-8000 unified memory (up to 96GB allocatable as VRAM), Radeon 8060S (40 CU RDNA 3.5), 1TB SSD, 13 ports incl. 2.5GbE, USB4, HDMI. Price: $2,999. Announced April 2026. In stock at Onexplayer store. Source: https://videocardz.com/newz/onexstation-announced-mini-ai-pc-with-ryzen-ai-max-395-for-2999 | 2. Bosgame M5 AI Mini Desktop (pre-order sale) — AMD Ryzen AI Max+ 395, 128GB LPDDR5X-8533, Radeon 8060S, 2TB Gen4 NVMe, Wi-Fi 7, USB4. Price: $1,699 (promotional pre-order, ships June 10 2026, down from $2,799). Source: https://www.notebookcheck.net/Bosgame-M5-AI-Mini-Desktop-Pricing-and-release-date-set-for-new-AMD-Ryzen-AI-Max-395-mini-PC.1024582.0.html | 3. ASUS TUF Gaming A14 FA401EA (2026 Strix Halo update) — AMD Ryzen AI Max+ 392, up to 64GB DDR5 (48GB allocatable as VRAM), Radeon 8060S iGPU, 14-inch laptop form factor. Price TBD but expected well under $5,000 based on prior TUF lineup. Announced CES 2026 / updated early 2026. Source: https://www.notebookcheck.net/Now-with-48-GB-VRAM-Asus-updates-14-inch-gaming-laptop-with-new-version.1204358.0.html", "flags": {"found": true}, "analysis": "", "links": []}};
+const modalData = {};
 
 // ── Search & Filter ──
 const searchBox = document.getElementById('search');
