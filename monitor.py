@@ -47,6 +47,7 @@ MONITOR_DIR = Path(__file__).parent
 STATE_FILE = MONITOR_DIR / "monitor_state.json"
 LOG_FILE = MONITOR_DIR / "monitor.log"
 DASHBOARD_FILE = MONITOR_DIR / "LLM-Hardware-Monitor.html"
+INDEX_FILE = MONITOR_DIR / "index.html"
 PAGES_DIR = MONITOR_DIR / "pages"
 
 # Call node directly with npm-loader.js to bypass .cmd metacharacter issues
@@ -3902,7 +3903,7 @@ def _esc(val):
 def _generate_nav_html(active_page: str, now: str) -> str:
     """Generate navigation bar HTML. active_page determines link targets and highlighting."""
     pages = [
-        ("summary", "\U0001F4CA Summary", "LLM-Hardware-Monitor.html"),
+        ("summary", "\U0001F4CA Summary", "index.html"),
         ("hardware", "\U0001F5A5\uFE0F Hardware", "hardware.html"),
         ("models", "\U0001F9E0 Models & Agents", "models.html"),
         ("efficiency", "\U0001F52C Efficiency", "efficiency.html"),
@@ -3914,9 +3915,9 @@ def _generate_nav_html(active_page: str, now: str) -> str:
     for key, label, filename in pages:
         active_cls = " active" if key == active_page else ""
         if active_page == "summary":
-            href = "LLM-Hardware-Monitor.html" if key == "summary" else f"pages/{filename}"
+            href = "index.html" if key == "summary" else f"pages/{filename}"
         else:
-            href = "../LLM-Hardware-Monitor.html" if key == "summary" else filename
+            href = "../index.html" if key == "summary" else filename
         links.append(f'<a href="{href}" class="nav-link{active_cls}">{label}</a>')
     return (
         '<nav class="nav-bar">'
@@ -5193,6 +5194,7 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
     # Generate and write main page
     main_html = _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline)
     DASHBOARD_FILE.write_text(main_html, encoding="utf-8")
+    INDEX_FILE.write_text(main_html, encoding="utf-8")
 
     # Generate and write detail pages
     hw_html = _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
