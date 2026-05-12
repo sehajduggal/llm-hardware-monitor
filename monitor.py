@@ -336,7 +336,9 @@ def _build_learning_prompt_context(knowledge_state: dict) -> str:
     return (
         f"MODE: CURRICULUM (progress: {learned_count}/{total} topics complete). "
         f"{known_summary} "
-        f"TEACH THESE {len(next_topics)} TOPICS in this order:\n{topics_str}\n"
+        f"CRITICAL: You MUST return EXACTLY {len(next_topics)} lessons in the 'lessons' array — one per topic listed below. "
+        f"Do NOT merge topics. Do NOT skip any. Each gets its own lesson object.\n"
+        f"TEACH THESE {len(next_topics)} TOPICS:\n{topics_str}\n"
         "The learner is building knowledge progressively to set up a local LLM coding rig in India. "
         "Budget ₹1.5-3.5L. Goal: run 30B-70B coding models at 25+ tok/s for 24/7 YOLO agents. "
         "Make each lesson build on the previous ones. Use real numbers, real models, real hardware. "
@@ -563,6 +565,8 @@ PROMPTS = {
         '"deals": "1 sentence: what specs the user should look for in deals", '
         '"recommendation": "1 sentence: what the user can now realistically evaluate"}}'
         "}} "
+        "IMPORTANT: The 'lessons' array MUST contain one lesson object PER topic listed above. "
+        "Do NOT return a single lesson. Return the FULL array. "
         "Cover ALL the listed topics. Each lesson should be thorough and educational. Return ONLY the JSON."
     ),
     "model_benchmarks": (
@@ -5259,7 +5263,108 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 .dag-node:hover text {{
   font-weight: 700 !important;
 }}
+.dag-detail-panel {{
+  margin-top: 12px;
+  padding: 16px 20px;
+  background: rgba(20, 20, 35, 0.85);
+  border: 1px solid var(--accent, #6366f1);
+  border-radius: 10px;
+  display: none;
+  animation: fadeIn 0.2s ease;
+}}
+.dag-detail-panel.visible {{ display: block; }}
+@keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(-4px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+.dag-detail-title {{ font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }}
+.dag-detail-meta {{ display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }}
+.dag-detail-meta span {{ padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }}
+.dag-detail-facts {{ margin: 8px 0; }}
+.dag-detail-facts li {{ font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }}
+.dag-detail-prereqs {{ font-size: 0.8rem; color: var(--dim, #888); margin-top: 8px; }}
+.dag-detail-prereqs a {{ color: var(--accent, #6366f1); cursor: pointer; text-decoration: underline; }}
 </style>'''
+
+    # Build topic data JSON for JS interactivity
+    topic_data = {}
+    for tid, tinfo in TOPIC_DAG.items():
+        ts = ks_topics.get(tid, {})
+        topic_data[tid] = {
+            "title": tinfo["title"],
+            "layer": tinfo["layer"],
+            "status": ts.get("status", "unseen"),
+            "confidence": ts.get("confidence", 0),
+            "key_facts": ts.get("key_facts", [])[:5],
+            "last_taught": ts.get("last_taught"),
+            "prereqs": tinfo.get("prereqs", []),
+            "prereq_titles": [TOPIC_DAG.get(p, {}).get("title", p) for p in tinfo.get("prereqs", [])],
+            "goal_tags": tinfo.get("goal_tags", []),
+        }
+    
+    topic_json = json.dumps(topic_data, ensure_ascii=False)
+    layer_names_json = json.dumps(layer_names, ensure_ascii=False)
+    
+    # Add detail panel and JS
+    svg += f'''
+<div id="dag-detail-panel" class="dag-detail-panel"></div>
+<script>
+(function() {{
+  var topics = {topic_json};
+  var layerNames = {layer_names_json};
+  var statusLabels = {{"unseen":"Not yet covered","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
+  var statusIcons = {{"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"}};
+  var panel = document.getElementById("dag-detail-panel");
+  
+  document.querySelectorAll(".dag-node").forEach(function(node) {{
+    node.style.cursor = "pointer";
+    node.addEventListener("click", function(e) {{
+      var tid = this.getAttribute("data-topic");
+      var t = topics[tid];
+      if (!t) return;
+      
+      var factsHtml = "";
+      if (t.key_facts && t.key_facts.length > 0) {{
+        factsHtml = "<div class=\\"dag-detail-facts\\"><strong>Key Facts Learned:</strong><ul>" +
+          t.key_facts.map(function(f) {{ return "<li>" + f + "</li>"; }}).join("") + "</ul></div>";
+      }} else if (t.status === "unseen") {{
+        factsHtml = "<div style=\\"font-size:0.85rem;color:var(--dim)\\">🔒 This topic hasn't been covered yet. It will be taught when prerequisites are met.</div>";
+      }}
+      
+      var prereqHtml = "";
+      if (t.prereqs && t.prereqs.length > 0) {{
+        prereqHtml = "<div class=\\"dag-detail-prereqs\\">Prerequisites: " +
+          t.prereqs.map(function(p, i) {{
+            var pStatus = topics[p] ? topics[p].status : "unseen";
+            var icon = statusIcons[pStatus] || "○";
+            return "<a onclick=\\"document.querySelector(\\'.dag-node[data-topic=\\\\\\"" + p + "\\\\\\"]\\').dispatchEvent(new Event(\\'click\\'));\\">" + icon + " " + t.prereq_titles[i] + "</a>";
+          }}).join(" → ") + "</div>";
+      }}
+      
+      var goalHtml = t.goal_tags.length ? "<span>🎯 " + t.goal_tags.join(", ").replace(/-/g, " ") + "</span>" : "";
+      var confPct = t.status !== "unseen" ? Math.round(t.confidence * 100) + "%" : "—";
+      
+      panel.innerHTML = 
+        "<div class=\\"dag-detail-title\\">" + statusIcons[t.status] + " " + t.title + "</div>" +
+        "<div class=\\"dag-detail-meta\\">" +
+        "<span>Layer " + t.layer + ": " + (layerNames[t.layer] || "") + "</span>" +
+        "<span>Status: " + statusLabels[t.status] + "</span>" +
+        "<span>Confidence: " + confPct + "</span>" +
+        (t.last_taught ? "<span>Last taught: " + t.last_taught + "</span>" : "") +
+        goalHtml +
+        "</div>" +
+        factsHtml + prereqHtml;
+      
+      panel.classList.add("visible");
+      panel.scrollIntoView({{behavior: "smooth", block: "nearest"}});
+    }});
+  }});
+  
+  // Click outside to close
+  document.addEventListener("click", function(e) {{
+    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel")) {{
+      panel.classList.remove("visible");
+    }}
+  }});
+}})();
+</script>'''
     return svg
 
 
