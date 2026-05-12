@@ -53,6 +53,10 @@ PAGES_DIR = MONITOR_DIR / "pages"
 COPILOT_CMD = "node"
 COPILOT_SCRIPT = r"C:\ProgramData\global-npm\node_modules\@github\copilot\npm-loader.js"
 
+# Session name for this run — enables "Discuss in CLI" resume
+MONITOR_SESSION_NAME = f"llm-monitor-{datetime.now().strftime('%Y-%m-%d')}"
+_session_created = False  # tracks if --name was already used this run
+
 # Copilot invocation flags — use text mode (more reliable than json for subprocess)
 COPILOT_FLAGS = [
     "--yolo",                    # no permission prompts
@@ -326,8 +330,15 @@ def run_copilot(prompt: str, timeout: int = 180) -> str:
     
     Calls node directly with the npm-loader.js script, bypassing the .cmd
     wrapper to avoid cmd.exe metacharacter interpretation issues on Windows.
+    Uses a named session so all prompts in one run share context and can be
+    resumed later via 'copilot --resume="llm-monitor-YYYY-MM-DD"'.
     """
+    global _session_created
     cmd = [COPILOT_CMD, COPILOT_SCRIPT, "-p", prompt] + COPILOT_FLAGS
+    if not _session_created:
+        cmd += ["--name", MONITOR_SESSION_NAME]
+    else:
+        cmd += ["--resume", MONITOR_SESSION_NAME]
     logger.info(f"Running Copilot prompt ({len(prompt)} chars)...")
 
     try:
@@ -353,6 +364,7 @@ def run_copilot(prompt: str, timeout: int = 180) -> str:
             logger.warning("Empty stdout from Copilot")
         else:
             logger.info(f"Got {len(output)} chars of output")
+            _session_created = True  # session now exists, use --resume next time
         return output
 
     except subprocess.TimeoutExpired:
@@ -3836,7 +3848,14 @@ function openRecModal() {
 function discussInCli() {
   const title = document.getElementById('modalTitle').textContent;
   const summary = document.getElementById('modalSummary').textContent;
-  const cmd = 'copilot -p "Tell me more about: ' + title + '. Context: ' + summary.substring(0, 200) + '"';
+  const sessionName = document.body.dataset.monitorSession || '';
+  const context = summary.substring(0, 200).replace(/"/g, '\\"');
+  let cmd;
+  if (sessionName) {
+    cmd = 'copilot --resume="' + sessionName + '" -p "I want to discuss: ' + title + '. Context from monitor: ' + context + '"';
+  } else {
+    cmd = 'copilot -p "Tell me more about: ' + title + '. Context: ' + context + '"';
+  }
   navigator.clipboard.writeText(cmd).then(() => {
     const toast = document.getElementById('copiedToast');
     toast.style.display = 'inline';
@@ -4000,7 +4019,7 @@ def _generate_page_shell(title, nav_html, body_content, modal_json):
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
         f'<title>{title}</title>\n'
         f'<style>{_DASHBOARD_CSS}</style>\n'
-        '</head>\n<body>\n'
+        f'</head>\n<body data-monitor-session="{MONITOR_SESSION_NAME}">\n'
         + nav_html + '\n'
         + body_content + '\n'
         + _MODAL_OVERLAY_HTML + '\n'
@@ -5448,6 +5467,7 @@ def main():
         "changes": changes[:5],
     })
     state["history"] = state["history"][-90:]
+    state["copilot_session"] = MONITOR_SESSION_NAME
     save_state(state)
 
     # Generate dashboard
