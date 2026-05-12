@@ -261,12 +261,12 @@ def _generate_learner_context(knowledge_state: dict, target_prompt: str) -> str:
         status = ts.get("status", "unseen")
         title = TOPIC_DAG.get(tid, {}).get("title", tid.replace("_", " ").title())
         
-        if status in ("reinforced", "applied"):
+        if status in ("introduced", "reinforced", "applied"):
             facts = ts.get("key_facts", [])
             if facts:
                 known_facts.extend(facts[:2])
-        elif status == "introduced":
-            active_learning.append(title)
+            elif status == "introduced":
+                active_learning.append(title)
         else:
             gaps.append(title)
     
@@ -5368,6 +5368,7 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
     var cmd = 'copilot --resume="llm-monitor-learning" -p "Let\\'s discuss deeper: ' + topicTitle.replace(/"/g, '\\\\"') + '"';
     navigator.clipboard.writeText(cmd).then(function() {{ showToast("CLI command copied! Paste in terminal to discuss."); }});
   }}
+  window.copyDiscussCmd = copyDiscussCmd;
   
   document.querySelectorAll(".dag-node").forEach(function(node) {{
     node.style.cursor = "pointer";
@@ -5496,6 +5497,137 @@ function showLessonTab(topicId, idx) {{
 }}
 </script>'''
     return svg
+
+
+def _build_research_insights_html(checks: dict, ks_topics: dict) -> str:
+    """Build research insights that connect efficiency/model findings to curriculum topics.
+    
+    Maps research data from other prompts back to relevant DAG topics,
+    showing how real-world findings validate or extend what was learned.
+    """
+    insights = []
+    
+    # From efficiency_research — connect to optimization/engine topics
+    eff = checks.get("efficiency_research", {})
+    if isinstance(eff, dict):
+        for key, val in eff.items():
+            if not isinstance(val, dict):
+                continue
+            info = val.get("info", "")
+            if not info or info == "No data":
+                continue
+            # Map to curriculum topics
+            topic_links = []
+            if any(k in key for k in ["quantiz", "quant", "gguf"]):
+                topic_links = ["quantization_basics", "gguf_formats"]
+            elif any(k in key for k in ["offload", "moe", "ktrans"]):
+                topic_links = ["offloading_gpu_cpu_disk", "moe_expert_routing", "ktransformers"]
+            elif any(k in key for k in ["specul", "decod"]):
+                topic_links = ["speculative_decoding", "prefill_vs_decode"]
+            elif any(k in key for k in ["vllm", "tensor", "engine"]):
+                topic_links = ["vllm_tensorrt", "llama_cpp"]
+            elif any(k in key for k in ["memory", "kv", "cache", "attention"]):
+                topic_links = ["kv_cache_growth", "memory_bandwidth_vs_compute"]
+            elif any(k in key for k in ["communit", "reddit", "local"]):
+                topic_links = ["llama_cpp", "quantization_basics"]
+            
+            if topic_links:
+                insights.append({
+                    "source": "Efficiency Research",
+                    "key": key.replace("_", " ").title(),
+                    "info": info[:200],
+                    "topics": topic_links,
+                    "icon": "⚡",
+                })
+    
+    # From model_benchmarks — connect to model topics
+    bench = checks.get("model_benchmarks", {})
+    if isinstance(bench, dict):
+        models = bench.get("top_coding_models", [])
+        if isinstance(models, list):
+            for m in models[:3]:
+                if not isinstance(m, dict):
+                    continue
+                name = m.get("name", "")
+                arch = m.get("architecture", "")
+                notes = m.get("notes", "")
+                vram = m.get("vram_q4", "")
+                topic_links = ["coding_model_traits"]
+                if "moe" in arch.lower():
+                    topic_links.append("dense_vs_moe")
+                if vram:
+                    topic_links.append("vram_calculation")
+                insights.append({
+                    "source": "Benchmark Data",
+                    "key": name,
+                    "info": f"{arch} — {notes}" if notes else f"{arch}, VRAM Q4: {vram}",
+                    "topics": topic_links,
+                    "icon": "🧠",
+                })
+    
+    # From hardware — connect to hardware mapping topics
+    hw = checks.get("hardware", {})
+    if isinstance(hw, dict):
+        for key, val in list(hw.items())[:4]:
+            if not isinstance(val, dict):
+                continue
+            info = val.get("info", "")
+            if not info:
+                continue
+            topic_links = []
+            if "mac" in key or "unified" in key:
+                topic_links = ["memory_bandwidth_vs_compute", "mlx_apple_silicon"]
+            elif "gpu" in key or "rtx" in key or "4060" in key or "5090" in key:
+                topic_links = ["vram_tiers_and_gpus", "pcie_lanes_multi_gpu"]
+            elif "ram" in key:
+                topic_links = ["ram_bandwidth_for_offload"]
+            if topic_links:
+                insights.append({
+                    "source": "Hardware Monitor",
+                    "key": key.replace("_", " ").title(),
+                    "info": info[:150],
+                    "topics": topic_links,
+                    "icon": "🖥️",
+                })
+    
+    if not insights:
+        return ""
+    
+    html = '<div class="research-grid">'
+    for ins in insights[:8]:
+        topic_pills = ""
+        for tid in ins["topics"][:3]:
+            tinfo = TOPIC_DAG.get(tid, {})
+            ts = ks_topics.get(tid, {})
+            status = ts.get("status", "unseen")
+            title = tinfo.get("title", tid.replace("_", " "))
+            status_icon = {"unseen": "○", "introduced": "◐", "reinforced": "●", "applied": "✓"}.get(status, "○")
+            topic_pills += (
+                f'<span class="research-topic-link topic-{status}" '
+                f'title="{_esc(title)}">{status_icon} {_esc(title[:25])}</span>'
+            )
+        
+        html += (
+            f'<div class="research-insight-card">'
+            f'<div class="research-insight-source">{ins["icon"]} {_esc(ins["source"])}</div>'
+            f'<div class="research-insight-key">{_esc(ins["key"])}</div>'
+            f'<div class="research-insight-info">{_esc(ins["info"])}</div>'
+            f'<div class="research-insight-topics">Related topics: {topic_pills}</div>'
+            f'</div>'
+        )
+    html += '</div>'
+    
+    # CSS for research insights
+    html += '''<style>
+.research-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.research-insight-card { padding: 14px; background: var(--bg2); border-radius: 8px; border: 1px solid var(--border, #333); border-left: 3px solid var(--accent, #6366f1); }
+.research-insight-source { font-size: 0.75rem; color: var(--dim); margin-bottom: 4px; }
+.research-insight-key { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+.research-insight-info { font-size: 0.8rem; color: var(--dim); line-height: 1.4; margin-bottom: 8px; }
+.research-insight-topics { display: flex; flex-wrap: wrap; gap: 4px; }
+.research-topic-link { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border, #444); }
+</style>'''
+    return html
 
 
 def _generate_learning_page(checks, enrichment, now, state=None):
@@ -5827,6 +5959,18 @@ function copyCliCmd(topic) {
             '\n  <div class="lessons-section">'
             '\n    <div class="section-title">\U0001F4D6 Today\'s Lessons</div>'
             f'\n    {lessons_html}'
+            '\n  </div>'
+        )
+    
+    # Research Insights section — connects research findings to curriculum topics
+    research_html = _build_research_insights_html(checks, ks_topics)
+    if research_html:
+        body_content += (
+            '\n  <div class="research-section">'
+            '\n    <div class="section-title">🔬 Research Insights (Cross-pollination)</div>'
+            '\n    <div style="font-size:0.8rem;color:var(--dim);margin-bottom:12px">'
+            'Findings from hardware, efficiency, and model research that connect to your curriculum</div>'
+            f'\n    {research_html}'
             '\n  </div>'
         )
     

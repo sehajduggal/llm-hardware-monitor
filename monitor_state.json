@@ -13866,7 +13866,28 @@
             "practical_exercise": "Calculate the total memory needed to run Qwen2.5-Coder-72B (72 billion parameters) at Q4 quantization with a 16K context window. Include model weights, estimated KV-cache (~6 GB at 16K for a 72B model), and 1.5 GB runtime overhead.",
             "answer": "Model weights: 72B × 0.5 bytes = 36 GB. KV-cache at 16K context: ~6 GB. Runtime overhead: 1.5 GB. Total: 36 + 6 + 1.5 = 43.5 GB minimum. This means you need a system with at least 48 GB unified memory (like Mac Mini M4 Pro 48 GB at ₹1,89,900) or 64+ GB for comfortable headroom. A single 24 GB GPU cannot run this model.",
             "hardware_implication": "This calculation directly tells you: for 70B-class coding models at Q4, you need 48-64 GB minimum memory. Systems with 128 GB (Mac Studio M4 Max, Strix Halo mini PCs like Bosgame M5 at $2,799) give you headroom for larger context windows and future bigger models. A 48 GB system (Mac Mini M4 Pro at ₹1,89,900) can run 32B models comfortably but will be tight for 70B.",
-            "resources": [],
+            "resources": [
+              {
+                "title": "LLM Visualization - How LLMs Work",
+                "url": "https://bbycroft.net/llm",
+                "type": "article"
+              },
+              {
+                "title": "GGUF Format Explained (llama.cpp wiki)",
+                "url": "https://github.com/ggerganov/llama.cpp/wiki/GGUF",
+                "type": "docs"
+              },
+              {
+                "title": "The Illustrated Transformer",
+                "url": "https://jalammar.github.io/illustrated-transformer/",
+                "type": "article"
+              },
+              {
+                "title": "r/LocalLLaMA VRAM Calculator",
+                "url": "https://www.reddit.com/r/LocalLLaMA/wiki/vram",
+                "type": "tool"
+              }
+            ],
             "date": "2026-05-12"
           }
         ]
