@@ -355,14 +355,18 @@ def _update_knowledge_state(knowledge_state: dict, learning_response: dict) -> d
     
     # Handle case where AI returns flat dict instead of lessons array
     if not lessons and isinstance(learning_response, dict):
-        # Try to extract lessons from various formats
-        for key, val in learning_response.items():
-            if isinstance(val, dict) and "topic_id" in val:
-                lessons.append(val)
-            elif isinstance(val, list):
-                for item in val:
-                    if isinstance(item, dict) and "topic_id" in item:
-                        lessons.append(item)
+        # Case 1: The response itself IS a single lesson (has topic_id at top level)
+        if "topic_id" in learning_response:
+            lessons = [learning_response]
+        else:
+            # Case 2: Dict of lesson objects keyed by name
+            for key, val in learning_response.items():
+                if isinstance(val, dict) and "topic_id" in val:
+                    lessons.append(val)
+                elif isinstance(val, list):
+                    for item in val:
+                        if isinstance(item, dict) and "topic_id" in item:
+                            lessons.append(item)
     
     today = datetime.now().strftime("%Y-%m-%d")
     lessons_completed = 0
@@ -5046,15 +5050,18 @@ def _generate_learning_page(checks, enrichment, now, state=None):
     lessons_html = ""
     lf = checks.get("learning_feed", {})
     lessons_data = lf.get("lessons", [])
-    # Also handle flat dict format
+    # Handle flat dict format: single lesson at top level
     if not lessons_data and isinstance(lf, dict):
-        for key, val in lf.items():
-            if isinstance(val, dict) and ("content" in val or "title" in val):
-                lessons_data.append(val)
-            elif isinstance(val, list):
-                for item in val:
-                    if isinstance(item, dict) and ("content" in item or "title" in item):
-                        lessons_data.append(item)
+        if "topic_id" in lf or "content" in lf:
+            lessons_data = [lf]
+        else:
+            for key, val in lf.items():
+                if isinstance(val, dict) and ("content" in val or "title" in val):
+                    lessons_data.append(val)
+                elif isinstance(val, list):
+                    for item in val:
+                        if isinstance(item, dict) and ("content" in item or "title" in item):
+                            lessons_data.append(item)
     
     for lesson in lessons_data:
         if not isinstance(lesson, dict):
