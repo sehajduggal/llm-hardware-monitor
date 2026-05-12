@@ -417,8 +417,8 @@
   }
 </style>
 </head>
-<body data-run-id="31b7" data-run-date="2026-05-12">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 17:12</span></nav>
+<body data-run-id="9b56" data-run-date="2026-05-12">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 17:17</span></nav>
 
 <style>
 .progress-hero { background: linear-gradient(135deg, #1e1e2e, #2d2d44); border-radius: 12px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
@@ -495,7 +495,7 @@
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>2026-05-12 17:12</b></div>
+    <div class="meta">Last check: <b>2026-05-12 17:17</b></div>
   </div>
 </div>
 
@@ -690,15 +690,45 @@
 .dag-detail-facts li { font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }
 .dag-detail-prereqs { font-size: 0.8rem; color: var(--dim, #888); margin-top: 8px; }
 .dag-detail-prereqs a { color: var(--accent, #6366f1); cursor: pointer; text-decoration: underline; }
+.dag-lesson { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-top: 12px; }
+.dag-lesson-date { font-size: 0.75rem; color: var(--dim, #666); margin-bottom: 6px; }
+.dag-lesson-content { font-size: 0.85rem; line-height: 1.6; color: var(--fg, #eee); white-space: pre-wrap; max-height: 200px; overflow-y: auto; margin-bottom: 10px; }
+.dag-lesson-exercise { background: rgba(245,158,11,0.08); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 10px; }
+.dag-lesson-exercise summary { cursor: pointer; color: var(--accent, #6366f1); }
+.dag-lesson-hw { font-size: 0.83rem; color: #10b981; padding: 6px 10px; background: rgba(16,185,129,0.08); border-radius: 6px; margin-bottom: 10px; }
+.dag-resources { margin-top: 10px; }
+.dag-resources a { display: inline-block; font-size: 0.8rem; padding: 3px 10px; margin: 3px 4px 3px 0; border-radius: 4px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: var(--accent, #6366f1); text-decoration: none; }
+.dag-resources a:hover { background: rgba(99,102,241,0.2); }
+.dag-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.dag-action-btn { padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--border, #333); background: var(--bg, #1e1e2e); color: var(--fg, #eee); }
+.dag-action-btn:hover { border-color: var(--accent, #6366f1); }
+.dag-action-btn.primary { background: var(--accent, #6366f1); color: #000; border-color: var(--accent, #6366f1); }
+.dag-lesson-tabs { display: flex; gap: 4px; margin-top: 8px; margin-bottom: 8px; }
+.dag-lesson-tab { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--dim, #888); border: 1px solid transparent; }
+.dag-lesson-tab.active { border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }
 </style>
 <div id="dag-detail-panel" class="dag-detail-panel"></div>
+<div id="dag-copy-toast" class="copy-toast">Copied to clipboard!</div>
 <script>
 (function() {
-  var topics = {"tokens_and_parameters": {"title": "Tokens, Parameters & Model Sizes", "layer": 0, "status": "introduced", "confidence": 0.4, "key_facts": ["Each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16) of memory—this is your primary sizing formula", "A 70B Q4 model needs ~39 GB total memory (35 GB weights + 4 GB KV-cache/overhead) for 8K context", "Tokens/second speed depends on memory BANDWIDTH, not just capacity—546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits", "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"], "last_taught": "2026-05-12", "prereqs": [], "prereq_titles": [], "goal_tags": ["build-local-coding-rig"]}, "vram_calculation": {"title": "VRAM Calculation: How Much Memory Do You Need?", "layer": 0, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["build-local-coding-rig", "budget-optimized"]}, "context_window_math": {"title": "Context Windows: Size, Cost & Why It Matters for Agents", "layer": 0, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["long-context-agents"]}, "prefill_vs_decode": {"title": "Prefill vs Decode: The Two Phases of LLM Inference", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["run-70b-class-models"]}, "kv_cache_growth": {"title": "KV Cache: The Hidden Memory Cost of Long Conversations", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["context_window_math"], "prereq_titles": ["Context Windows: Size, Cost & Why It Matters for Agents"], "goal_tags": ["long-context-agents"]}, "memory_bandwidth_vs_compute": {"title": "Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["build-local-coding-rig"]}, "latency_vs_throughput": {"title": "Latency vs Throughput vs Concurrency for Coding Agents", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["prefill_vs_decode"], "prereq_titles": ["Prefill vs Decode: The Two Phases of LLM Inference"], "goal_tags": ["long-context-agents"]}, "quantization_basics": {"title": "Quantization 101: Shrinking Models to Fit Your Hardware", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["budget-optimized", "run-70b-class-models"]}, "gguf_formats": {"title": "GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"]}, "exl2_awq_gptq": {"title": "EXL2, AWQ, GPTQ: GPU-Optimized Quantization Formats", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"]}, "offloading_gpu_cpu_disk": {"title": "Offloading: Splitting Models Across GPU, CPU & Disk", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["memory_bandwidth_vs_compute"], "prereq_titles": ["Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?"], "goal_tags": ["budget-optimized", "build-local-coding-rig"]}, "moe_expert_routing": {"title": "MoE Expert Routing: Why Mixture-of-Experts Changes Everything", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["run-70b-class-models", "budget-optimized"]}, "speculative_decoding": {"title": "Speculative Decoding: Using Small Models to Speed Up Big Ones", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["prefill_vs_decode"], "prereq_titles": ["Prefill vs Decode: The Two Phases of LLM Inference"], "goal_tags": ["run-70b-class-models"]}, "llama_cpp": {"title": "llama.cpp: The Swiss Army Knife of Local Inference", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["gguf_formats", "offloading_gpu_cpu_disk"], "prereq_titles": ["GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?", "Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"]}, "ktransformers": {"title": "KTransformers: GPU+CPU MoE Offloading Engine", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["moe_expert_routing"], "prereq_titles": ["MoE Expert Routing: Why Mixture-of-Experts Changes Everything"], "goal_tags": ["budget-optimized"]}, "vllm_tensorrt": {"title": "vLLM & TensorRT-LLM: High-Throughput Serving Engines", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["long-context-agents"]}, "mlx_apple_silicon": {"title": "MLX: Apple Silicon's Native LLM Framework", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["memory_bandwidth_vs_compute"], "prereq_titles": ["Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?"], "goal_tags": ["build-local-coding-rig"]}, "runtime_compat": {"title": "CUDA vs ROCm vs Metal: Runtime Compatibility Guide", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["llama_cpp"], "prereq_titles": ["llama.cpp: The Swiss Army Knife of Local Inference"], "goal_tags": ["build-local-coding-rig"]}, "dense_vs_moe": {"title": "Dense vs MoE Models: Architecture Trade-offs for Local Use", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["moe_expert_routing"], "prereq_titles": ["MoE Expert Routing: Why Mixture-of-Experts Changes Everything"], "goal_tags": ["run-70b-class-models"]}, "coding_model_traits": {"title": "What Makes a Good Coding Model? Benchmarks That Matter", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["build-local-coding-rig"]}, "reasoning_chains": {"title": "Reasoning Models: Chain-of-Thought for Complex Code Tasks", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["coding_model_traits"], "prereq_titles": ["What Makes a Good Coding Model? Benchmarks That Matter"], "goal_tags": ["long-context-agents"]}, "model_selection_for_agents": {"title": "Choosing the Right Model for 24/7 Coding Agents", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["reasoning_chains", "vram_calculation"], "prereq_titles": ["Reasoning Models: Chain-of-Thought for Complex Code Tasks", "VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["build-local-coding-rig", "long-context-agents"]}, "agent_context_management": {"title": "Agent Context Management: Keeping Long Conversations Alive", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["kv_cache_growth", "context_window_math"], "prereq_titles": ["KV Cache: The Hidden Memory Cost of Long Conversations", "Context Windows: Size, Cost & Why It Matters for Agents"], "goal_tags": ["long-context-agents"]}, "yolo_coding_mode": {"title": "YOLO Coding Mode: Autonomous Agents That Write & Execute Code", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["model_selection_for_agents"], "prereq_titles": ["Choosing the Right Model for 24/7 Coding Agents"], "goal_tags": ["build-local-coding-rig"]}, "batch_concurrency": {"title": "Running Multiple Agents: Batch Size & Concurrency", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["long-context-agents"]}, "tool_use_function_calling": {"title": "Tool Use & Function Calling: How Agents Interact with Code", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["yolo_coding_mode"], "prereq_titles": ["YOLO Coding Mode: Autonomous Agents That Write & Execute Code"], "goal_tags": ["build-local-coding-rig"]}, "vram_tiers_and_gpus": {"title": "GPU VRAM Tiers: Which Card Runs Which Model?", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation", "quantization_basics"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?", "Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["build-local-coding-rig", "budget-optimized"]}, "ram_bandwidth_for_offload": {"title": "RAM Bandwidth: Why DDR5-6400 Matters for CPU Offloading", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"]}, "pcie_lanes_multi_gpu": {"title": "PCIe Lanes & Multi-GPU: When One GPU Isn't Enough", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_tiers_and_gpus"], "prereq_titles": ["GPU VRAM Tiers: Which Card Runs Which Model?"], "goal_tags": ["build-local-coding-rig"]}, "ssd_weight_loading": {"title": "SSD Speed & Model Loading: NVMe Matters", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"]}, "power_thermals_noise": {"title": "Power, Thermals & Noise: 24/7 Operation Considerations", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": [], "prereq_titles": [], "goal_tags": ["build-local-coding-rig"]}, "os_runtime_friction": {"title": "Windows vs Linux vs macOS: Practical Runtime Differences", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["runtime_compat"], "prereq_titles": ["CUDA vs ROCm vs Metal: Runtime Compatibility Guide"], "goal_tags": ["build-local-coding-rig"]}, "lora_qlora_basics": {"title": "LoRA & QLoRA: Fine-Tuning Models on Consumer Hardware", "layer": 7, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"]}, "when_to_finetune": {"title": "When to Fine-Tune vs Prompt Engineering vs RAG", "layer": 7, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["model_selection_for_agents"], "prereq_titles": ["Choosing the Right Model for 24/7 Coding Agents"], "goal_tags": ["build-local-coding-rig"]}};
+  var topics = {"tokens_and_parameters": {"title": "Tokens, Parameters & Model Sizes", "layer": 0, "status": "introduced", "confidence": 0.4, "key_facts": ["Each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16) of memory—this is your primary sizing formula", "A 70B Q4 model needs ~39 GB total memory (35 GB weights + 4 GB KV-cache/overhead) for 8K context", "Tokens/second speed depends on memory BANDWIDTH, not just capacity—546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits", "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"], "last_taught": "2026-05-12", "prereqs": [], "prereq_titles": [], "goal_tags": ["build-local-coding-rig"], "lessons": [{"title": "Tokens, Parameters & Model Sizes: The Foundation of LLM Hardware Planning", "content": "When you type a prompt into an LLM, the model doesn't see words—it sees **tokens**. A token is roughly 3-4 characters in English, so 'programming' might be 2-3 tokens. A 1000-word document is approximately 750 tokens. This matters because your hardware needs scale with both the model's size AND the number of tokens you process simultaneously (context length).\n\n**Parameters: The Model's Brain**\nParameters are the numerical weights that define what a model 'knows'. When we say Llama 3 70B, the '70B' means 70 billion parameters. More parameters generally means better reasoning, but demands more memory.\n\nHere's the critical formula you need to memorize:\n- **FP16 (full precision):** Each parameter = 2 bytes. So 70B × 2 = 140 GB memory needed.\n- **Q8 (8-bit quantization):** Each parameter = 1 byte. So 70B × 1 = 70 GB needed.\n- **Q4 (4-bit quantization):** Each parameter = 0.5 bytes. So 70B × 0.5 = 35 GB needed.\n\nQuantization compresses the model by using fewer bits per parameter. Q4 loses some quality but makes large models runnable on consumer hardware. For coding models like Qwen2.5-Coder-32B or DeepSeek-Coder-V2, Q4 quantization is generally acceptable—you lose maybe 2-5% quality but cut memory needs in half versus Q8.\n\n**But wait—there's overhead!** The formula above gives you the model weights only. You also need memory for:\n1. **KV-cache** (stores attention state for your context window): For a 70B model at 8K context, add ~2-4 GB. At 32K context, add ~8-16 GB.\n2. **Runtime buffers**: Add ~1-2 GB overhead for the inference engine (llama.cpp, vLLM, etc.).\n\n**Real-world example for your budget:**\n- Qwen2.5-Coder-32B at Q4: 32 × 0.5 = 16 GB base + ~2 GB KV-cache + 1 GB overhead = ~19 GB minimum\n- DeepSeek-Coder-V2-Lite 16B at Q8: 16 × 1 = 16 GB + ~1.5 GB = ~17.5 GB\n- Llama 3.1 70B at Q4: 70 × 0.5 = 35 GB + ~4 GB = ~39 GB minimum\n\n**Tokens per second (tok/s)** is your speed metric. For coding agents running 24/7, you want 25+ tok/s. Speed depends on memory bandwidth, no", "key_takeaways": ["Each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16) of memory—this is your primary sizing formula", "A 70B Q4 model needs ~39 GB total memory (35 GB weights + 4 GB KV-cache/overhead) for 8K context", "Tokens/second speed depends on memory BANDWIDTH, not just capacity—546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits", "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"], "prerequisite_recap": "This is your first lesson—no prerequisites. We start from zero.", "practical_exercise": "Calculate the total memory needed to run Qwen2.5-Coder-72B (72 billion parameters) at Q4 quantization with a 16K context window. Include model weights, estimated KV-cache (~6 GB at 16K for a 72B model), and 1.5 GB runtime overhead.", "answer": "Model weights: 72B × 0.5 bytes = 36 GB. KV-cache at 16K context: ~6 GB. Runtime overhead: 1.5 GB. Total: 36 + 6 + 1.5 = 43.5 GB minimum. This means you need a system with at least 48 GB unified memory (like Mac Mini M4 Pro 48 GB at ₹1,89,900) or 64+ GB for comfortable headroom. A single 24 GB GPU cannot run this model.", "hardware_implication": "This calculation directly tells you: for 70B-class coding models at Q4, you need 48-64 GB minimum memory. Systems with 128 GB (Mac Studio M4 Max, Strix Halo mini PCs like Bosgame M5 at $2,799) give you headroom for larger context windows and future bigger models. A 48 GB system (Mac Mini M4 Pro at ₹1,89,900) can run 32B models comfortably but will be tight for 70B.", "resources": [], "date": "2026-05-12"}]}, "vram_calculation": {"title": "VRAM Calculation: How Much Memory Do You Need?", "layer": 0, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["build-local-coding-rig", "budget-optimized"], "lessons": []}, "context_window_math": {"title": "Context Windows: Size, Cost & Why It Matters for Agents", "layer": 0, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["long-context-agents"], "lessons": []}, "prefill_vs_decode": {"title": "Prefill vs Decode: The Two Phases of LLM Inference", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["tokens_and_parameters"], "prereq_titles": ["Tokens, Parameters & Model Sizes"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "kv_cache_growth": {"title": "KV Cache: The Hidden Memory Cost of Long Conversations", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["context_window_math"], "prereq_titles": ["Context Windows: Size, Cost & Why It Matters for Agents"], "goal_tags": ["long-context-agents"], "lessons": []}, "memory_bandwidth_vs_compute": {"title": "Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "latency_vs_throughput": {"title": "Latency vs Throughput vs Concurrency for Coding Agents", "layer": 1, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["prefill_vs_decode"], "prereq_titles": ["Prefill vs Decode: The Two Phases of LLM Inference"], "goal_tags": ["long-context-agents"], "lessons": []}, "quantization_basics": {"title": "Quantization 101: Shrinking Models to Fit Your Hardware", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["budget-optimized", "run-70b-class-models"], "lessons": []}, "gguf_formats": {"title": "GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "exl2_awq_gptq": {"title": "EXL2, AWQ, GPTQ: GPU-Optimized Quantization Formats", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "offloading_gpu_cpu_disk": {"title": "Offloading: Splitting Models Across GPU, CPU & Disk", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["memory_bandwidth_vs_compute"], "prereq_titles": ["Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?"], "goal_tags": ["budget-optimized", "build-local-coding-rig"], "lessons": []}, "moe_expert_routing": {"title": "MoE Expert Routing: Why Mixture-of-Experts Changes Everything", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["run-70b-class-models", "budget-optimized"], "lessons": []}, "speculative_decoding": {"title": "Speculative Decoding: Using Small Models to Speed Up Big Ones", "layer": 2, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["prefill_vs_decode"], "prereq_titles": ["Prefill vs Decode: The Two Phases of LLM Inference"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "llama_cpp": {"title": "llama.cpp: The Swiss Army Knife of Local Inference", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["gguf_formats", "offloading_gpu_cpu_disk"], "prereq_titles": ["GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?", "Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "ktransformers": {"title": "KTransformers: GPU+CPU MoE Offloading Engine", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["moe_expert_routing"], "prereq_titles": ["MoE Expert Routing: Why Mixture-of-Experts Changes Everything"], "goal_tags": ["budget-optimized"], "lessons": []}, "vllm_tensorrt": {"title": "vLLM & TensorRT-LLM: High-Throughput Serving Engines", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["long-context-agents"], "lessons": []}, "mlx_apple_silicon": {"title": "MLX: Apple Silicon's Native LLM Framework", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["memory_bandwidth_vs_compute"], "prereq_titles": ["Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "runtime_compat": {"title": "CUDA vs ROCm vs Metal: Runtime Compatibility Guide", "layer": 3, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["llama_cpp"], "prereq_titles": ["llama.cpp: The Swiss Army Knife of Local Inference"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "dense_vs_moe": {"title": "Dense vs MoE Models: Architecture Trade-offs for Local Use", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["moe_expert_routing"], "prereq_titles": ["MoE Expert Routing: Why Mixture-of-Experts Changes Everything"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "coding_model_traits": {"title": "What Makes a Good Coding Model? Benchmarks That Matter", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "reasoning_chains": {"title": "Reasoning Models: Chain-of-Thought for Complex Code Tasks", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["coding_model_traits"], "prereq_titles": ["What Makes a Good Coding Model? Benchmarks That Matter"], "goal_tags": ["long-context-agents"], "lessons": []}, "model_selection_for_agents": {"title": "Choosing the Right Model for 24/7 Coding Agents", "layer": 4, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["reasoning_chains", "vram_calculation"], "prereq_titles": ["Reasoning Models: Chain-of-Thought for Complex Code Tasks", "VRAM Calculation: How Much Memory Do You Need?"], "goal_tags": ["build-local-coding-rig", "long-context-agents"], "lessons": []}, "agent_context_management": {"title": "Agent Context Management: Keeping Long Conversations Alive", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["kv_cache_growth", "context_window_math"], "prereq_titles": ["KV Cache: The Hidden Memory Cost of Long Conversations", "Context Windows: Size, Cost & Why It Matters for Agents"], "goal_tags": ["long-context-agents"], "lessons": []}, "yolo_coding_mode": {"title": "YOLO Coding Mode: Autonomous Agents That Write & Execute Code", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["model_selection_for_agents"], "prereq_titles": ["Choosing the Right Model for 24/7 Coding Agents"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "batch_concurrency": {"title": "Running Multiple Agents: Batch Size & Concurrency", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["latency_vs_throughput"], "prereq_titles": ["Latency vs Throughput vs Concurrency for Coding Agents"], "goal_tags": ["long-context-agents"], "lessons": []}, "tool_use_function_calling": {"title": "Tool Use & Function Calling: How Agents Interact with Code", "layer": 5, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["yolo_coding_mode"], "prereq_titles": ["YOLO Coding Mode: Autonomous Agents That Write & Execute Code"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "vram_tiers_and_gpus": {"title": "GPU VRAM Tiers: Which Card Runs Which Model?", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_calculation", "quantization_basics"], "prereq_titles": ["VRAM Calculation: How Much Memory Do You Need?", "Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["build-local-coding-rig", "budget-optimized"], "lessons": []}, "ram_bandwidth_for_offload": {"title": "RAM Bandwidth: Why DDR5-6400 Matters for CPU Offloading", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "pcie_lanes_multi_gpu": {"title": "PCIe Lanes & Multi-GPU: When One GPU Isn't Enough", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["vram_tiers_and_gpus"], "prereq_titles": ["GPU VRAM Tiers: Which Card Runs Which Model?"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "ssd_weight_loading": {"title": "SSD Speed & Model Loading: NVMe Matters", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["offloading_gpu_cpu_disk"], "prereq_titles": ["Offloading: Splitting Models Across GPU, CPU & Disk"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "power_thermals_noise": {"title": "Power, Thermals & Noise: 24/7 Operation Considerations", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": [], "prereq_titles": [], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "os_runtime_friction": {"title": "Windows vs Linux vs macOS: Practical Runtime Differences", "layer": 6, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["runtime_compat"], "prereq_titles": ["CUDA vs ROCm vs Metal: Runtime Compatibility Guide"], "goal_tags": ["build-local-coding-rig"], "lessons": []}, "lora_qlora_basics": {"title": "LoRA & QLoRA: Fine-Tuning Models on Consumer Hardware", "layer": 7, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["quantization_basics"], "prereq_titles": ["Quantization 101: Shrinking Models to Fit Your Hardware"], "goal_tags": ["run-70b-class-models"], "lessons": []}, "when_to_finetune": {"title": "When to Fine-Tune vs Prompt Engineering vs RAG", "layer": 7, "status": "unseen", "confidence": 0.0, "key_facts": [], "last_taught": null, "prereqs": ["model_selection_for_agents"], "prereq_titles": ["Choosing the Right Model for 24/7 Coding Agents"], "goal_tags": ["build-local-coding-rig"], "lessons": []}};
   var layerNames = {"0": "Foundations", "1": "Core Inference", "2": "Optimization", "3": "Engines", "4": "Models", "5": "Agents", "6": "Hardware", "7": "Fine-tune"};
   var statusLabels = {"unseen":"Not yet covered","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"};
   var statusIcons = {"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"};
+  var typeIcons = {"article":"📄","video":"🎬","docs":"📚","tool":"🔧","paper":"📑","repo":"📦"};
   var panel = document.getElementById("dag-detail-panel");
+  
+  function escHtml(s) { var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+  
+  function showToast(msg) {
+    var toast = document.getElementById("dag-copy-toast");
+    if (toast) { toast.textContent = msg; toast.classList.add("show"); setTimeout(function(){ toast.classList.remove("show"); }, 2000); }
+  }
+  
+  function copyDiscussCmd(topicTitle) {
+    var cmd = 'copilot --resume="llm-monitor-learning" -p "Let\'s discuss deeper: ' + topicTitle.replace(/"/g, '\\"') + '"';
+    navigator.clipboard.writeText(cmd).then(function() { showToast("CLI command copied! Paste in terminal to discuss."); });
+  }
   
   document.querySelectorAll(".dag-node").forEach(function(node) {
     node.style.cursor = "pointer";
@@ -707,38 +737,103 @@
       var t = topics[tid];
       if (!t) return;
       
-      var factsHtml = "";
-      if (t.key_facts && t.key_facts.length > 0) {
-        factsHtml = "<div class=\"dag-detail-facts\"><strong>Key Facts Learned:</strong><ul>" +
-          t.key_facts.map(function(f) { return "<li>" + f + "</li>"; }).join("") + "</ul></div>";
-      } else if (t.status === "unseen") {
-        factsHtml = "<div style=\"font-size:0.85rem;color:var(--dim)\">🔒 This topic hasn't been covered yet. It will be taught when prerequisites are met.</div>";
-      }
+      // Header
+      var html = "<div class=\"dag-detail-title\">" + statusIcons[t.status] + " " + escHtml(t.title) + "</div>";
+      html += "<div class=\"dag-detail-meta\">";
+      html += "<span>Layer " + t.layer + ": " + (layerNames[t.layer] || "") + "</span>";
+      html += "<span>Status: " + statusLabels[t.status] + "</span>";
+      var confPct = t.status !== "unseen" ? Math.round(t.confidence * 100) + "%" : "—";
+      html += "<span>Confidence: " + confPct + "</span>";
+      if (t.last_taught) html += "<span>Last: " + t.last_taught + "</span>";
+      if (t.goal_tags.length) html += "<span>🎯 " + t.goal_tags.join(", ").replace(/-/g, " ") + "</span>";
+      html += "</div>";
       
-      var prereqHtml = "";
+      // Prerequisites
       if (t.prereqs && t.prereqs.length > 0) {
-        prereqHtml = "<div class=\"dag-detail-prereqs\">Prerequisites: " +
+        html += "<div class=\"dag-detail-prereqs\">Prerequisites: " +
           t.prereqs.map(function(p, i) {
             var pStatus = topics[p] ? topics[p].status : "unseen";
             var icon = statusIcons[pStatus] || "○";
-            return "<a onclick=\"document.querySelector(\'.dag-node[data-topic=\\\"" + p + "\\\"]\').dispatchEvent(new Event(\'click\'));\">" + icon + " " + t.prereq_titles[i] + "</a>";
+            return "<a onclick=\"document.querySelector(\'.dag-node[data-topic=\\\"" + p + "\\\"]\').dispatchEvent(new Event(\'click\'));\">" + icon + " " + escHtml(t.prereq_titles[i]) + "</a>";
           }).join(" → ") + "</div>";
       }
       
-      var goalHtml = t.goal_tags.length ? "<span>🎯 " + t.goal_tags.join(", ").replace(/-/g, " ") + "</span>" : "";
-      var confPct = t.status !== "unseen" ? Math.round(t.confidence * 100) + "%" : "—";
+      // Lessons (the main content)
+      if (t.lessons && t.lessons.length > 0) {
+        // Tabs if multiple lessons
+        if (t.lessons.length > 1) {
+          html += "<div class=\"dag-lesson-tabs\">";
+          t.lessons.forEach(function(l, idx) {
+            var active = idx === t.lessons.length - 1 ? " active" : "";
+            html += "<span class=\"dag-lesson-tab" + active + "\" onclick=\"showLessonTab('" + tid + "'," + idx + ")\">" + (l.date || "Lesson " + (idx+1)) + "</span>";
+          });
+          html += "</div>";
+        }
+        
+        t.lessons.forEach(function(lesson, idx) {
+          var vis = idx === t.lessons.length - 1 ? "" : "display:none;";
+          html += "<div class=\"dag-lesson\" data-lesson-idx=\"" + idx + "\" data-topic-id=\"" + tid + "\" style=\"" + vis + "\">";
+          if (lesson.date) html += "<div class=\"dag-lesson-date\">📅 " + lesson.date + "</div>";
+          if (lesson.prerequisite_recap) html += "<div style=\"font-size:0.8rem;color:var(--dim);margin-bottom:8px;font-style:italic\">🔗 " + escHtml(lesson.prerequisite_recap) + "</div>";
+          if (lesson.content) html += "<div class=\"dag-lesson-content\">" + escHtml(lesson.content) + "</div>";
+          
+          // Key takeaways
+          if (lesson.key_takeaways && lesson.key_takeaways.length) {
+            html += "<div class=\"dag-detail-facts\"><strong>Key Takeaways:</strong><ul>" +
+              lesson.key_takeaways.map(function(f) { return "<li>" + escHtml(f) + "</li>"; }).join("") + "</ul></div>";
+          }
+          
+          // Exercise
+          if (lesson.practical_exercise) {
+            html += "<div class=\"dag-lesson-exercise\"><strong>🧮 Exercise:</strong> " + escHtml(lesson.practical_exercise);
+            if (lesson.answer) html += "<details><summary>Show Answer</summary><p style=\"color:#10b981\">" + escHtml(lesson.answer) + "</p></details>";
+            html += "</div>";
+          }
+          
+          // Hardware implication
+          if (lesson.hardware_implication) {
+            html += "<div class=\"dag-lesson-hw\">🖥️ " + escHtml(lesson.hardware_implication) + "</div>";
+          }
+          
+          // Resources
+          if (lesson.resources && lesson.resources.length) {
+            html += "<div class=\"dag-resources\"><strong>📚 Deep Dive Resources:</strong><br>";
+            lesson.resources.forEach(function(r) {
+              if (r.url && r.title) {
+                var icon = typeIcons[r.type] || "🔗";
+                html += "<a href=\"" + escHtml(r.url) + "\" target=\"_blank\">" + icon + " " + escHtml(r.title) + "</a>";
+              }
+            });
+            html += "</div>";
+          }
+          
+          html += "</div>";
+        });
+      } else if (t.status === "unseen") {
+        html += "<div style=\"font-size:0.85rem;color:var(--dim);margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px\">🔒 This topic hasn't been covered yet. ";
+        if (t.prereqs.length === 0) {
+          html += "It has no prerequisites — it will be taught in the next run!";
+        } else {
+          var unmet = t.prereqs.filter(function(p) { return !topics[p] || topics[p].status === "unseen"; });
+          if (unmet.length > 0) {
+            html += "Waiting for: " + unmet.map(function(p) { return topics[p] ? topics[p].title : p; }).join(", ");
+          } else {
+            html += "Prerequisites met — it will be taught in the next run!";
+          }
+        }
+        html += "</div>";
+      }
       
-      panel.innerHTML = 
-        "<div class=\"dag-detail-title\">" + statusIcons[t.status] + " " + t.title + "</div>" +
-        "<div class=\"dag-detail-meta\">" +
-        "<span>Layer " + t.layer + ": " + (layerNames[t.layer] || "") + "</span>" +
-        "<span>Status: " + statusLabels[t.status] + "</span>" +
-        "<span>Confidence: " + confPct + "</span>" +
-        (t.last_taught ? "<span>Last taught: " + t.last_taught + "</span>" : "") +
-        goalHtml +
-        "</div>" +
-        factsHtml + prereqHtml;
+      // Actions
+      html += "<div class=\"dag-actions\">";
+      html += "<button class=\"dag-action-btn primary\" onclick=\"copyDiscussCmd('" + escHtml(t.title).replace(/'/g, "\\'") + "')\">💬 Discuss in CLI</button>";
+      if (t.status !== "unseen") {
+        html += "<button class=\"dag-action-btn\" onclick=\"copyDiscussCmd('Reinforce my understanding of: " + escHtml(t.title).replace(/'/g, "\\'") + "')\">🔄 Reinforce</button>";
+        html += "<button class=\"dag-action-btn\" onclick=\"copyDiscussCmd('Give me a practical exercise for: " + escHtml(t.title).replace(/'/g, "\\'") + "')\">🧮 Practice</button>";
+      }
+      html += "</div>";
       
+      panel.innerHTML = html;
       panel.classList.add("visible");
       panel.scrollIntoView({behavior: "smooth", block: "nearest"});
     });
@@ -746,11 +841,20 @@
   
   // Click outside to close
   document.addEventListener("click", function(e) {
-    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel")) {
+    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel") && !e.target.closest(".dag-action-btn")) {
       panel.classList.remove("visible");
     }
   });
 })();
+
+function showLessonTab(topicId, idx) {
+  document.querySelectorAll(".dag-lesson[data-topic-id='" + topicId + "']").forEach(function(el, i) {
+    el.style.display = i === idx ? "" : "none";
+  });
+  document.querySelectorAll(".dag-lesson-tab").forEach(function(tab, i) {
+    tab.classList.toggle("active", i === idx);
+  });
+}
 </script>
   </div>
 

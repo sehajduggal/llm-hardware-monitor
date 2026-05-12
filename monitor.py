@@ -417,6 +417,22 @@ def _update_knowledge_state(knowledge_state: dict, learning_response: dict) -> d
         # Record reliability
         ts["reliability"] = lesson.get("reliability", "stable")
         
+        # Store full lesson history (keep last 3 lessons per topic)
+        if "lessons" not in ts:
+            ts["lessons"] = []
+        ts["lessons"].append({
+            "title": lesson.get("title", ""),
+            "content": lesson.get("content", "")[:2000],
+            "key_takeaways": new_facts[:5],
+            "prerequisite_recap": lesson.get("prerequisite_recap", ""),
+            "practical_exercise": lesson.get("practical_exercise", ""),
+            "answer": lesson.get("answer", ""),
+            "hardware_implication": lesson.get("hardware_implication", ""),
+            "resources": lesson.get("resources", [])[:5],
+            "date": today,
+        })
+        ts["lessons"] = ts["lessons"][-3:]  # keep last 3
+        
         lessons_completed += 1
     
     knowledge_state["topics"] = topics
@@ -557,6 +573,7 @@ PROMPTS = {
         '"practical_exercise": "A calculation or decision exercise the learner can try", '
         '"answer": "The answer to the exercise with reasoning", '
         '"hardware_implication": "How this knowledge affects hardware buying decisions", '
+        '"resources": [{{"title": "Resource name", "url": "https://...", "type": "article|video|docs|tool|paper"}}, ...], '
         '"reliability": "stable|emerging|experimental"}}'
         '], '
         '"learner_contexts": {{'
@@ -567,7 +584,10 @@ PROMPTS = {
         "}} "
         "IMPORTANT: The 'lessons' array MUST contain one lesson object PER topic listed above. "
         "Do NOT return a single lesson. Return the FULL array. "
-        "Cover ALL the listed topics. Each lesson should be thorough and educational. Return ONLY the JSON."
+        "Cover ALL the listed topics. Each lesson should be thorough and educational. "
+        "For 'resources', include 3-5 real URLs (documentation, blog posts, YouTube videos, GitHub repos, papers) "
+        "that help the learner go deeper on the topic. Prefer official docs, highly-rated tutorials, and practical guides. "
+        "Return ONLY the JSON."
     ),
     "model_benchmarks": (
         "You are an LLM benchmarking analyst. Today is {date}. "
@@ -5281,9 +5301,25 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 .dag-detail-facts li {{ font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }}
 .dag-detail-prereqs {{ font-size: 0.8rem; color: var(--dim, #888); margin-top: 8px; }}
 .dag-detail-prereqs a {{ color: var(--accent, #6366f1); cursor: pointer; text-decoration: underline; }}
+.dag-lesson {{ background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-top: 12px; }}
+.dag-lesson-date {{ font-size: 0.75rem; color: var(--dim, #666); margin-bottom: 6px; }}
+.dag-lesson-content {{ font-size: 0.85rem; line-height: 1.6; color: var(--fg, #eee); white-space: pre-wrap; max-height: 200px; overflow-y: auto; margin-bottom: 10px; }}
+.dag-lesson-exercise {{ background: rgba(245,158,11,0.08); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 10px; }}
+.dag-lesson-exercise summary {{ cursor: pointer; color: var(--accent, #6366f1); }}
+.dag-lesson-hw {{ font-size: 0.83rem; color: #10b981; padding: 6px 10px; background: rgba(16,185,129,0.08); border-radius: 6px; margin-bottom: 10px; }}
+.dag-resources {{ margin-top: 10px; }}
+.dag-resources a {{ display: inline-block; font-size: 0.8rem; padding: 3px 10px; margin: 3px 4px 3px 0; border-radius: 4px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: var(--accent, #6366f1); text-decoration: none; }}
+.dag-resources a:hover {{ background: rgba(99,102,241,0.2); }}
+.dag-actions {{ display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }}
+.dag-action-btn {{ padding: 6px 14px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; border: 1px solid var(--border, #333); background: var(--bg, #1e1e2e); color: var(--fg, #eee); }}
+.dag-action-btn:hover {{ border-color: var(--accent, #6366f1); }}
+.dag-action-btn.primary {{ background: var(--accent, #6366f1); color: #000; border-color: var(--accent, #6366f1); }}
+.dag-lesson-tabs {{ display: flex; gap: 4px; margin-top: 8px; margin-bottom: 8px; }}
+.dag-lesson-tab {{ padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--dim, #888); border: 1px solid transparent; }}
+.dag-lesson-tab.active {{ border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }}
 </style>'''
 
-    # Build topic data JSON for JS interactivity
+    # Build topic data JSON for JS interactivity (includes lessons + resources)
     topic_data = {}
     for tid, tinfo in TOPIC_DAG.items():
         ts = ks_topics.get(tid, {})
@@ -5297,21 +5333,41 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
             "prereqs": tinfo.get("prereqs", []),
             "prereq_titles": [TOPIC_DAG.get(p, {}).get("title", p) for p in tinfo.get("prereqs", [])],
             "goal_tags": tinfo.get("goal_tags", []),
+            "lessons": ts.get("lessons", []),
         }
     
     topic_json = json.dumps(topic_data, ensure_ascii=False)
     layer_names_json = json.dumps(layer_names, ensure_ascii=False)
     
+    # Get session name for discuss-in-CLI
+    sessions = {}
+    copilot_sessions = ks_topics  # We'll get from the state passed to the outer function
+    # session name will be injected from state in _generate_learning_page
+    
     # Add detail panel and JS
     svg += f'''
 <div id="dag-detail-panel" class="dag-detail-panel"></div>
+<div id="dag-copy-toast" class="copy-toast">Copied to clipboard!</div>
 <script>
 (function() {{
   var topics = {topic_json};
   var layerNames = {layer_names_json};
   var statusLabels = {{"unseen":"Not yet covered","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
   var statusIcons = {{"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"}};
+  var typeIcons = {{"article":"📄","video":"🎬","docs":"📚","tool":"🔧","paper":"📑","repo":"📦"}};
   var panel = document.getElementById("dag-detail-panel");
+  
+  function escHtml(s) {{ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }}
+  
+  function showToast(msg) {{
+    var toast = document.getElementById("dag-copy-toast");
+    if (toast) {{ toast.textContent = msg; toast.classList.add("show"); setTimeout(function(){{ toast.classList.remove("show"); }}, 2000); }}
+  }}
+  
+  function copyDiscussCmd(topicTitle) {{
+    var cmd = 'copilot --resume="llm-monitor-learning" -p "Let\\'s discuss deeper: ' + topicTitle.replace(/"/g, '\\\\"') + '"';
+    navigator.clipboard.writeText(cmd).then(function() {{ showToast("CLI command copied! Paste in terminal to discuss."); }});
+  }}
   
   document.querySelectorAll(".dag-node").forEach(function(node) {{
     node.style.cursor = "pointer";
@@ -5320,38 +5376,103 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
       var t = topics[tid];
       if (!t) return;
       
-      var factsHtml = "";
-      if (t.key_facts && t.key_facts.length > 0) {{
-        factsHtml = "<div class=\\"dag-detail-facts\\"><strong>Key Facts Learned:</strong><ul>" +
-          t.key_facts.map(function(f) {{ return "<li>" + f + "</li>"; }}).join("") + "</ul></div>";
-      }} else if (t.status === "unseen") {{
-        factsHtml = "<div style=\\"font-size:0.85rem;color:var(--dim)\\">🔒 This topic hasn't been covered yet. It will be taught when prerequisites are met.</div>";
-      }}
+      // Header
+      var html = "<div class=\\"dag-detail-title\\">" + statusIcons[t.status] + " " + escHtml(t.title) + "</div>";
+      html += "<div class=\\"dag-detail-meta\\">";
+      html += "<span>Layer " + t.layer + ": " + (layerNames[t.layer] || "") + "</span>";
+      html += "<span>Status: " + statusLabels[t.status] + "</span>";
+      var confPct = t.status !== "unseen" ? Math.round(t.confidence * 100) + "%" : "—";
+      html += "<span>Confidence: " + confPct + "</span>";
+      if (t.last_taught) html += "<span>Last: " + t.last_taught + "</span>";
+      if (t.goal_tags.length) html += "<span>🎯 " + t.goal_tags.join(", ").replace(/-/g, " ") + "</span>";
+      html += "</div>";
       
-      var prereqHtml = "";
+      // Prerequisites
       if (t.prereqs && t.prereqs.length > 0) {{
-        prereqHtml = "<div class=\\"dag-detail-prereqs\\">Prerequisites: " +
+        html += "<div class=\\"dag-detail-prereqs\\">Prerequisites: " +
           t.prereqs.map(function(p, i) {{
             var pStatus = topics[p] ? topics[p].status : "unseen";
             var icon = statusIcons[pStatus] || "○";
-            return "<a onclick=\\"document.querySelector(\\'.dag-node[data-topic=\\\\\\"" + p + "\\\\\\"]\\').dispatchEvent(new Event(\\'click\\'));\\">" + icon + " " + t.prereq_titles[i] + "</a>";
+            return "<a onclick=\\"document.querySelector(\\'.dag-node[data-topic=\\\\\\"" + p + "\\\\\\"]\\').dispatchEvent(new Event(\\'click\\'));\\">" + icon + " " + escHtml(t.prereq_titles[i]) + "</a>";
           }}).join(" → ") + "</div>";
       }}
       
-      var goalHtml = t.goal_tags.length ? "<span>🎯 " + t.goal_tags.join(", ").replace(/-/g, " ") + "</span>" : "";
-      var confPct = t.status !== "unseen" ? Math.round(t.confidence * 100) + "%" : "—";
+      // Lessons (the main content)
+      if (t.lessons && t.lessons.length > 0) {{
+        // Tabs if multiple lessons
+        if (t.lessons.length > 1) {{
+          html += "<div class=\\"dag-lesson-tabs\\">";
+          t.lessons.forEach(function(l, idx) {{
+            var active = idx === t.lessons.length - 1 ? " active" : "";
+            html += "<span class=\\"dag-lesson-tab" + active + "\\" onclick=\\"showLessonTab('" + tid + "'," + idx + ")\\">" + (l.date || "Lesson " + (idx+1)) + "</span>";
+          }});
+          html += "</div>";
+        }}
+        
+        t.lessons.forEach(function(lesson, idx) {{
+          var vis = idx === t.lessons.length - 1 ? "" : "display:none;";
+          html += "<div class=\\"dag-lesson\\" data-lesson-idx=\\"" + idx + "\\" data-topic-id=\\"" + tid + "\\" style=\\"" + vis + "\\">";
+          if (lesson.date) html += "<div class=\\"dag-lesson-date\\">📅 " + lesson.date + "</div>";
+          if (lesson.prerequisite_recap) html += "<div style=\\"font-size:0.8rem;color:var(--dim);margin-bottom:8px;font-style:italic\\">🔗 " + escHtml(lesson.prerequisite_recap) + "</div>";
+          if (lesson.content) html += "<div class=\\"dag-lesson-content\\">" + escHtml(lesson.content) + "</div>";
+          
+          // Key takeaways
+          if (lesson.key_takeaways && lesson.key_takeaways.length) {{
+            html += "<div class=\\"dag-detail-facts\\"><strong>Key Takeaways:</strong><ul>" +
+              lesson.key_takeaways.map(function(f) {{ return "<li>" + escHtml(f) + "</li>"; }}).join("") + "</ul></div>";
+          }}
+          
+          // Exercise
+          if (lesson.practical_exercise) {{
+            html += "<div class=\\"dag-lesson-exercise\\"><strong>🧮 Exercise:</strong> " + escHtml(lesson.practical_exercise);
+            if (lesson.answer) html += "<details><summary>Show Answer</summary><p style=\\"color:#10b981\\">" + escHtml(lesson.answer) + "</p></details>";
+            html += "</div>";
+          }}
+          
+          // Hardware implication
+          if (lesson.hardware_implication) {{
+            html += "<div class=\\"dag-lesson-hw\\">🖥️ " + escHtml(lesson.hardware_implication) + "</div>";
+          }}
+          
+          // Resources
+          if (lesson.resources && lesson.resources.length) {{
+            html += "<div class=\\"dag-resources\\"><strong>📚 Deep Dive Resources:</strong><br>";
+            lesson.resources.forEach(function(r) {{
+              if (r.url && r.title) {{
+                var icon = typeIcons[r.type] || "🔗";
+                html += "<a href=\\"" + escHtml(r.url) + "\\" target=\\"_blank\\">" + icon + " " + escHtml(r.title) + "</a>";
+              }}
+            }});
+            html += "</div>";
+          }}
+          
+          html += "</div>";
+        }});
+      }} else if (t.status === "unseen") {{
+        html += "<div style=\\"font-size:0.85rem;color:var(--dim);margin-top:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px\\">🔒 This topic hasn't been covered yet. ";
+        if (t.prereqs.length === 0) {{
+          html += "It has no prerequisites — it will be taught in the next run!";
+        }} else {{
+          var unmet = t.prereqs.filter(function(p) {{ return !topics[p] || topics[p].status === "unseen"; }});
+          if (unmet.length > 0) {{
+            html += "Waiting for: " + unmet.map(function(p) {{ return topics[p] ? topics[p].title : p; }}).join(", ");
+          }} else {{
+            html += "Prerequisites met — it will be taught in the next run!";
+          }}
+        }}
+        html += "</div>";
+      }}
       
-      panel.innerHTML = 
-        "<div class=\\"dag-detail-title\\">" + statusIcons[t.status] + " " + t.title + "</div>" +
-        "<div class=\\"dag-detail-meta\\">" +
-        "<span>Layer " + t.layer + ": " + (layerNames[t.layer] || "") + "</span>" +
-        "<span>Status: " + statusLabels[t.status] + "</span>" +
-        "<span>Confidence: " + confPct + "</span>" +
-        (t.last_taught ? "<span>Last taught: " + t.last_taught + "</span>" : "") +
-        goalHtml +
-        "</div>" +
-        factsHtml + prereqHtml;
+      // Actions
+      html += "<div class=\\"dag-actions\\">";
+      html += "<button class=\\"dag-action-btn primary\\" onclick=\\"copyDiscussCmd('" + escHtml(t.title).replace(/'/g, "\\\\'") + "')\\">💬 Discuss in CLI</button>";
+      if (t.status !== "unseen") {{
+        html += "<button class=\\"dag-action-btn\\" onclick=\\"copyDiscussCmd('Reinforce my understanding of: " + escHtml(t.title).replace(/'/g, "\\\\'") + "')\\">🔄 Reinforce</button>";
+        html += "<button class=\\"dag-action-btn\\" onclick=\\"copyDiscussCmd('Give me a practical exercise for: " + escHtml(t.title).replace(/'/g, "\\\\'") + "')\\">🧮 Practice</button>";
+      }}
+      html += "</div>";
       
+      panel.innerHTML = html;
       panel.classList.add("visible");
       panel.scrollIntoView({{behavior: "smooth", block: "nearest"}});
     }});
@@ -5359,11 +5480,20 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   
   // Click outside to close
   document.addEventListener("click", function(e) {{
-    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel")) {{
+    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel") && !e.target.closest(".dag-action-btn")) {{
       panel.classList.remove("visible");
     }}
   }});
 }})();
+
+function showLessonTab(topicId, idx) {{
+  document.querySelectorAll(".dag-lesson[data-topic-id='" + topicId + "']").forEach(function(el, i) {{
+    el.style.display = i === idx ? "" : "none";
+  }});
+  document.querySelectorAll(".dag-lesson-tab").forEach(function(tab, i) {{
+    tab.classList.toggle("active", i === idx);
+  }});
+}}
 </script>'''
     return svg
 

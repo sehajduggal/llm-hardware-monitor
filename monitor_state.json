@@ -13851,7 +13851,25 @@
           "Tokens/second speed depends on memory BANDWIDTH, not just capacity—546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits",
           "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"
         ],
-        "reliability": "stable"
+        "reliability": "stable",
+        "lessons": [
+          {
+            "title": "Tokens, Parameters & Model Sizes: The Foundation of LLM Hardware Planning",
+            "content": "When you type a prompt into an LLM, the model doesn't see words—it sees **tokens**. A token is roughly 3-4 characters in English, so 'programming' might be 2-3 tokens. A 1000-word document is approximately 750 tokens. This matters because your hardware needs scale with both the model's size AND the number of tokens you process simultaneously (context length).\n\n**Parameters: The Model's Brain**\nParameters are the numerical weights that define what a model 'knows'. When we say Llama 3 70B, the '70B' means 70 billion parameters. More parameters generally means better reasoning, but demands more memory.\n\nHere's the critical formula you need to memorize:\n- **FP16 (full precision):** Each parameter = 2 bytes. So 70B × 2 = 140 GB memory needed.\n- **Q8 (8-bit quantization):** Each parameter = 1 byte. So 70B × 1 = 70 GB needed.\n- **Q4 (4-bit quantization):** Each parameter = 0.5 bytes. So 70B × 0.5 = 35 GB needed.\n\nQuantization compresses the model by using fewer bits per parameter. Q4 loses some quality but makes large models runnable on consumer hardware. For coding models like Qwen2.5-Coder-32B or DeepSeek-Coder-V2, Q4 quantization is generally acceptable—you lose maybe 2-5% quality but cut memory needs in half versus Q8.\n\n**But wait—there's overhead!** The formula above gives you the model weights only. You also need memory for:\n1. **KV-cache** (stores attention state for your context window): For a 70B model at 8K context, add ~2-4 GB. At 32K context, add ~8-16 GB.\n2. **Runtime buffers**: Add ~1-2 GB overhead for the inference engine (llama.cpp, vLLM, etc.).\n\n**Real-world example for your budget:**\n- Qwen2.5-Coder-32B at Q4: 32 × 0.5 = 16 GB base + ~2 GB KV-cache + 1 GB overhead = ~19 GB minimum\n- DeepSeek-Coder-V2-Lite 16B at Q8: 16 × 1 = 16 GB + ~1.5 GB = ~17.5 GB\n- Llama 3.1 70B at Q4: 70 × 0.5 = 35 GB + ~4 GB = ~39 GB minimum\n\n**Tokens per second (tok/s)** is your speed metric. For coding agents running 24/7, you want 25+ tok/s. Speed depends on memory bandwidth, no",
+            "key_takeaways": [
+              "Each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16) of memory—this is your primary sizing formula",
+              "A 70B Q4 model needs ~39 GB total memory (35 GB weights + 4 GB KV-cache/overhead) for 8K context",
+              "Tokens/second speed depends on memory BANDWIDTH, not just capacity—546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits",
+              "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"
+            ],
+            "prerequisite_recap": "This is your first lesson—no prerequisites. We start from zero.",
+            "practical_exercise": "Calculate the total memory needed to run Qwen2.5-Coder-72B (72 billion parameters) at Q4 quantization with a 16K context window. Include model weights, estimated KV-cache (~6 GB at 16K for a 72B model), and 1.5 GB runtime overhead.",
+            "answer": "Model weights: 72B × 0.5 bytes = 36 GB. KV-cache at 16K context: ~6 GB. Runtime overhead: 1.5 GB. Total: 36 + 6 + 1.5 = 43.5 GB minimum. This means you need a system with at least 48 GB unified memory (like Mac Mini M4 Pro 48 GB at ₹1,89,900) or 64+ GB for comfortable headroom. A single 24 GB GPU cannot run this model.",
+            "hardware_implication": "This calculation directly tells you: for 70B-class coding models at Q4, you need 48-64 GB minimum memory. Systems with 128 GB (Mac Studio M4 Max, Strix Halo mini PCs like Bosgame M5 at $2,799) give you headroom for larger context windows and future bigger models. A 48 GB system (Mac Mini M4 Pro at ₹1,89,900) can run 32B models comfortably but will be tight for 70B.",
+            "resources": [],
+            "date": "2026-05-12"
+          }
+        ]
       },
       "vram_calculation": {
         "status": "unseen",
