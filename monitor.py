@@ -87,6 +87,357 @@ console = logging.StreamHandler(
 console.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
 logger.addHandler(console)
 
+# ─── Knowledge State: Progressive Learning DAG ──────────────────────────────
+
+TOPIC_DAG = {
+    # Layer 0 - Foundations
+    "tokens_and_parameters": {"layer": 0, "prereqs": [], "title": "Tokens, Parameters & Model Sizes", "goal_tags": ["build-local-coding-rig"]},
+    "vram_calculation": {"layer": 0, "prereqs": ["tokens_and_parameters"], "title": "VRAM Calculation: How Much Memory Do You Need?", "goal_tags": ["build-local-coding-rig", "budget-optimized"]},
+    "context_window_math": {"layer": 0, "prereqs": ["tokens_and_parameters"], "title": "Context Windows: Size, Cost & Why It Matters for Agents", "goal_tags": ["long-context-agents"]},
+
+    # Layer 1 - Core Inference
+    "prefill_vs_decode": {"layer": 1, "prereqs": ["tokens_and_parameters"], "title": "Prefill vs Decode: The Two Phases of LLM Inference", "goal_tags": ["run-70b-class-models"]},
+    "kv_cache_growth": {"layer": 1, "prereqs": ["context_window_math"], "title": "KV Cache: The Hidden Memory Cost of Long Conversations", "goal_tags": ["long-context-agents"]},
+    "memory_bandwidth_vs_compute": {"layer": 1, "prereqs": ["vram_calculation"], "title": "Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?", "goal_tags": ["build-local-coding-rig"]},
+    "latency_vs_throughput": {"layer": 1, "prereqs": ["prefill_vs_decode"], "title": "Latency vs Throughput vs Concurrency for Coding Agents", "goal_tags": ["long-context-agents"]},
+
+    # Layer 2 - Optimization
+    "quantization_basics": {"layer": 2, "prereqs": ["vram_calculation"], "title": "Quantization 101: Shrinking Models to Fit Your Hardware", "goal_tags": ["budget-optimized", "run-70b-class-models"]},
+    "gguf_formats": {"layer": 2, "prereqs": ["quantization_basics"], "title": "GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?", "goal_tags": ["run-70b-class-models"]},
+    "exl2_awq_gptq": {"layer": 2, "prereqs": ["quantization_basics"], "title": "EXL2, AWQ, GPTQ: GPU-Optimized Quantization Formats", "goal_tags": ["run-70b-class-models"]},
+    "offloading_gpu_cpu_disk": {"layer": 2, "prereqs": ["memory_bandwidth_vs_compute"], "title": "Offloading: Splitting Models Across GPU, CPU & Disk", "goal_tags": ["budget-optimized", "build-local-coding-rig"]},
+    "moe_expert_routing": {"layer": 2, "prereqs": ["offloading_gpu_cpu_disk"], "title": "MoE Expert Routing: Why Mixture-of-Experts Changes Everything", "goal_tags": ["run-70b-class-models", "budget-optimized"]},
+    "speculative_decoding": {"layer": 2, "prereqs": ["prefill_vs_decode"], "title": "Speculative Decoding: Using Small Models to Speed Up Big Ones", "goal_tags": ["run-70b-class-models"]},
+
+    # Layer 3 - Engines & Runtimes
+    "llama_cpp": {"layer": 3, "prereqs": ["gguf_formats", "offloading_gpu_cpu_disk"], "title": "llama.cpp: The Swiss Army Knife of Local Inference", "goal_tags": ["build-local-coding-rig"]},
+    "ktransformers": {"layer": 3, "prereqs": ["moe_expert_routing"], "title": "KTransformers: GPU+CPU MoE Offloading Engine", "goal_tags": ["budget-optimized"]},
+    "vllm_tensorrt": {"layer": 3, "prereqs": ["latency_vs_throughput"], "title": "vLLM & TensorRT-LLM: High-Throughput Serving Engines", "goal_tags": ["long-context-agents"]},
+    "mlx_apple_silicon": {"layer": 3, "prereqs": ["memory_bandwidth_vs_compute"], "title": "MLX: Apple Silicon's Native LLM Framework", "goal_tags": ["build-local-coding-rig"]},
+    "runtime_compat": {"layer": 3, "prereqs": ["llama_cpp"], "title": "CUDA vs ROCm vs Metal: Runtime Compatibility Guide", "goal_tags": ["build-local-coding-rig"]},
+
+    # Layer 4 - Models
+    "dense_vs_moe": {"layer": 4, "prereqs": ["moe_expert_routing"], "title": "Dense vs MoE Models: Architecture Trade-offs for Local Use", "goal_tags": ["run-70b-class-models"]},
+    "coding_model_traits": {"layer": 4, "prereqs": ["latency_vs_throughput"], "title": "What Makes a Good Coding Model? Benchmarks That Matter", "goal_tags": ["build-local-coding-rig"]},
+    "reasoning_chains": {"layer": 4, "prereqs": ["coding_model_traits"], "title": "Reasoning Models: Chain-of-Thought for Complex Code Tasks", "goal_tags": ["long-context-agents"]},
+    "model_selection_for_agents": {"layer": 4, "prereqs": ["reasoning_chains", "vram_calculation"], "title": "Choosing the Right Model for 24/7 Coding Agents", "goal_tags": ["build-local-coding-rig", "long-context-agents"]},
+
+    # Layer 5 - Agents & Application
+    "agent_context_management": {"layer": 5, "prereqs": ["kv_cache_growth", "context_window_math"], "title": "Agent Context Management: Keeping Long Conversations Alive", "goal_tags": ["long-context-agents"]},
+    "yolo_coding_mode": {"layer": 5, "prereqs": ["model_selection_for_agents"], "title": "YOLO Coding Mode: Autonomous Agents That Write & Execute Code", "goal_tags": ["build-local-coding-rig"]},
+    "batch_concurrency": {"layer": 5, "prereqs": ["latency_vs_throughput"], "title": "Running Multiple Agents: Batch Size & Concurrency", "goal_tags": ["long-context-agents"]},
+    "tool_use_function_calling": {"layer": 5, "prereqs": ["yolo_coding_mode"], "title": "Tool Use & Function Calling: How Agents Interact with Code", "goal_tags": ["build-local-coding-rig"]},
+
+    # Layer 6 - Hardware Mapping
+    "vram_tiers_and_gpus": {"layer": 6, "prereqs": ["vram_calculation", "quantization_basics"], "title": "GPU VRAM Tiers: Which Card Runs Which Model?", "goal_tags": ["build-local-coding-rig", "budget-optimized"]},
+    "ram_bandwidth_for_offload": {"layer": 6, "prereqs": ["offloading_gpu_cpu_disk"], "title": "RAM Bandwidth: Why DDR5-6400 Matters for CPU Offloading", "goal_tags": ["build-local-coding-rig"]},
+    "pcie_lanes_multi_gpu": {"layer": 6, "prereqs": ["vram_tiers_and_gpus"], "title": "PCIe Lanes & Multi-GPU: When One GPU Isn't Enough", "goal_tags": ["build-local-coding-rig"]},
+    "ssd_weight_loading": {"layer": 6, "prereqs": ["offloading_gpu_cpu_disk"], "title": "SSD Speed & Model Loading: NVMe Matters", "goal_tags": ["build-local-coding-rig"]},
+    "power_thermals_noise": {"layer": 6, "prereqs": [], "title": "Power, Thermals & Noise: 24/7 Operation Considerations", "goal_tags": ["build-local-coding-rig"]},
+    "os_runtime_friction": {"layer": 6, "prereqs": ["runtime_compat"], "title": "Windows vs Linux vs macOS: Practical Runtime Differences", "goal_tags": ["build-local-coding-rig"]},
+
+    # Layer 7 - Fine-tuning
+    "lora_qlora_basics": {"layer": 7, "prereqs": ["quantization_basics"], "title": "LoRA & QLoRA: Fine-Tuning Models on Consumer Hardware", "goal_tags": ["run-70b-class-models"]},
+    "when_to_finetune": {"layer": 7, "prereqs": ["model_selection_for_agents"], "title": "When to Fine-Tune vs Prompt Engineering vs RAG", "goal_tags": ["build-local-coding-rig"]},
+}
+
+USER_GOALS = [
+    {"id": "build-local-coding-rig", "label": "Build a local coding rig"},
+    {"id": "run-70b-class-models", "label": "Run 30B-70B class models locally"},
+    {"id": "long-context-agents", "label": "Run long-context YOLO agents 24/7"},
+    {"id": "budget-optimized", "label": "Best performance per rupee (₹1.5-3.5L)"},
+]
+
+
+def _init_knowledge_state() -> dict:
+    """Initialize a fresh knowledge state with all topics unseen."""
+    topics = {}
+    for tid, tinfo in TOPIC_DAG.items():
+        topics[tid] = {
+            "status": "unseen",
+            "confidence": 0.0,
+            "last_taught": None,
+            "key_facts": [],
+            "reliability": "stable",
+        }
+    return {
+        "version": 1,
+        "goals": [g["id"] for g in USER_GOALS],
+        "topics": topics,
+        "curriculum_position": {
+            "current_layer": 0,
+            "completed_layers": [],
+            "recent_detours": [],
+        },
+        "applied_insights": [],
+        "total_lessons_completed": 0,
+    }
+
+
+def _get_next_topics(knowledge_state: dict, count: int = 5) -> list[str]:
+    """Get the next topics to teach based on DAG prerequisites.
+    
+    Returns up to `count` topics whose prerequisites are all met
+    (status >= 'introduced'), prioritized by layer then goal relevance.
+    """
+    topics = knowledge_state.get("topics", {})
+    ready = []
+    for tid, tinfo in TOPIC_DAG.items():
+        ts = topics.get(tid, {})
+        if ts.get("status", "unseen") != "unseen":
+            continue  # already taught
+        # Check all prereqs are at least introduced
+        prereqs_met = True
+        for prereq in tinfo.get("prereqs", []):
+            ps = topics.get(prereq, {}).get("status", "unseen")
+            if ps == "unseen":
+                prereqs_met = False
+                break
+        if prereqs_met:
+            ready.append(tid)
+    
+    # Sort by layer (lower first), then by number of goal tags (more = higher priority)
+    ready.sort(key=lambda t: (TOPIC_DAG[t]["layer"], -len(TOPIC_DAG[t].get("goal_tags", []))))
+    return ready[:count]
+
+
+def _get_knowledge_summary(knowledge_state: dict) -> str:
+    """Get a compact summary of what has been learned so far."""
+    topics = knowledge_state.get("topics", {})
+    learned = []
+    for tid, ts in topics.items():
+        if ts.get("status") in ("introduced", "reinforced", "applied"):
+            facts = ts.get("key_facts", [])
+            title = TOPIC_DAG.get(tid, {}).get("title", tid)
+            if facts:
+                learned.append(f"{title}: {'; '.join(facts[:2])}")
+            else:
+                learned.append(title)
+    if not learned:
+        return "No topics learned yet — complete beginner."
+    return "Topics learned: " + " | ".join(learned)
+
+
+def _generate_learner_context(knowledge_state: dict, target_prompt: str) -> str:
+    """Generate a compact, task-specific learner context for a given prompt category.
+    
+    Returns max ~150 tokens of relevant context based on what the user knows
+    and what's relevant to the target prompt.
+    """
+    topics = knowledge_state.get("topics", {})
+    
+    # Collect relevant facts based on target prompt
+    relevant_topic_ids = {
+        "hardware": ["vram_calculation", "vram_tiers_and_gpus", "ram_bandwidth_for_offload",
+                      "pcie_lanes_multi_gpu", "power_thermals_noise", "os_runtime_friction",
+                      "memory_bandwidth_vs_compute", "offloading_gpu_cpu_disk"],
+        "models_and_agents": ["dense_vs_moe", "coding_model_traits", "reasoning_chains",
+                               "model_selection_for_agents", "quantization_basics",
+                               "agent_context_management", "yolo_coding_mode"],
+        "efficiency_research": ["quantization_basics", "gguf_formats", "exl2_awq_gptq",
+                                 "offloading_gpu_cpu_disk", "moe_expert_routing",
+                                 "speculative_decoding", "llama_cpp", "ktransformers",
+                                 "memory_bandwidth_vs_compute", "kv_cache_growth"],
+        "deals_and_blogs": ["vram_calculation", "vram_tiers_and_gpus", "quantization_basics",
+                             "ram_bandwidth_for_offload"],
+        "learning_feed": [],  # learning prompt builds its own context
+        "model_benchmarks": ["coding_model_traits", "dense_vs_moe", "quantization_basics",
+                              "latency_vs_throughput"],
+        "recommendation": ["vram_calculation", "quantization_basics", "offloading_gpu_cpu_disk",
+                            "model_selection_for_agents", "llama_cpp", "ktransformers",
+                            "vram_tiers_and_gpus", "ram_bandwidth_for_offload"],
+    }
+    
+    target_topics = relevant_topic_ids.get(target_prompt, [])
+    if not target_topics:
+        return ""
+    
+    known_facts = []
+    active_learning = []
+    gaps = []
+    
+    for tid in target_topics:
+        ts = topics.get(tid, {})
+        status = ts.get("status", "unseen")
+        title = TOPIC_DAG.get(tid, {}).get("title", tid.replace("_", " ").title())
+        
+        if status in ("reinforced", "applied"):
+            facts = ts.get("key_facts", [])
+            if facts:
+                known_facts.extend(facts[:2])
+        elif status == "introduced":
+            active_learning.append(title)
+        else:
+            gaps.append(title)
+    
+    parts = []
+    if known_facts:
+        parts.append(f"User knows: {'; '.join(known_facts[:5])}")
+    if active_learning:
+        parts.append(f"Currently learning: {', '.join(active_learning[:2])}")
+    if gaps and target_prompt == "recommendation":
+        parts.append(f"Knowledge gaps blocking action: {', '.join(gaps[:3])}")
+    
+    if not parts:
+        parts.append("User is a beginner — explain concepts simply, don't assume prior knowledge.")
+    
+    return " ".join(parts)
+
+
+def _build_learning_prompt_context(knowledge_state: dict) -> str:
+    """Build the dynamic context that gets injected into the learning_feed prompt.
+    
+    Tells the AI what topics to teach next, what's already been covered,
+    and what mode to operate in (curriculum vs latest-developments).
+    """
+    topics = knowledge_state.get("topics", {})
+    total = len(TOPIC_DAG)
+    learned_count = sum(1 for t in topics.values() if t.get("status") != "unseen")
+    
+    # Determine mode
+    all_introduced = all(
+        topics.get(tid, {}).get("status", "unseen") != "unseen"
+        for tid in TOPIC_DAG
+    )
+    
+    if all_introduced:
+        # Latest developments mode
+        summary = _get_knowledge_summary(knowledge_state)
+        return (
+            f"MODE: LATEST DEVELOPMENTS. The learner has completed the foundational curriculum ({learned_count}/{total} topics). "
+            f"{summary} "
+            "Now teach 3-5 NEW developments from the past 7 days: new model releases, new inference techniques, "
+            "new quantization methods, new benchmarks, new tools — that build on what the learner already knows. "
+            "Each lesson should connect the new development to existing knowledge. "
+            "Search Reddit r/LocalLLaMA, Hacker News, YouTube, and tech blogs for the latest. "
+            "Use the same topic_id format but prefix with 'latest_' (e.g., 'latest_ktransformers_v7'). "
+        )
+    
+    # Curriculum mode
+    next_topics = _get_next_topics(knowledge_state, count=5)
+    if not next_topics:
+        # Edge case: all done
+        return "MODE: LATEST DEVELOPMENTS. All foundational topics covered. Teach latest developments. "
+    
+    # Build context about what's already known
+    known_summary = _get_knowledge_summary(knowledge_state)
+    
+    # Build the teaching request
+    topic_list = []
+    for tid in next_topics:
+        tinfo = TOPIC_DAG[tid]
+        prereqs = tinfo.get("prereqs", [])
+        prereq_titles = [TOPIC_DAG.get(p, {}).get("title", p) for p in prereqs]
+        prereq_str = f" (builds on: {', '.join(prereq_titles)})" if prereq_titles else " (no prerequisites)"
+        topic_list.append(f"- topic_id: '{tid}' — {tinfo['title']}{prereq_str}")
+    
+    topics_str = "\n".join(topic_list)
+    
+    return (
+        f"MODE: CURRICULUM (progress: {learned_count}/{total} topics complete). "
+        f"{known_summary} "
+        f"TEACH THESE {len(next_topics)} TOPICS in this order:\n{topics_str}\n"
+        "The learner is building knowledge progressively to set up a local LLM coding rig in India. "
+        "Budget ₹1.5-3.5L. Goal: run 30B-70B coding models at 25+ tok/s for 24/7 YOLO agents. "
+        "Make each lesson build on the previous ones. Use real numbers, real models, real hardware. "
+        "Search the web for the latest data and examples. "
+    )
+
+
+def _update_knowledge_state(knowledge_state: dict, learning_response: dict) -> dict:
+    """Update knowledge state based on learning prompt results.
+    
+    Processes lessons from the response, updates topic statuses,
+    records key facts, and advances curriculum position.
+    """
+    topics = knowledge_state.get("topics", {})
+    lessons = learning_response.get("lessons", [])
+    
+    # Handle case where AI returns flat dict instead of lessons array
+    if not lessons and isinstance(learning_response, dict):
+        # Try to extract lessons from various formats
+        for key, val in learning_response.items():
+            if isinstance(val, dict) and "topic_id" in val:
+                lessons.append(val)
+            elif isinstance(val, list):
+                for item in val:
+                    if isinstance(item, dict) and "topic_id" in item:
+                        lessons.append(item)
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    lessons_completed = 0
+    
+    for lesson in lessons:
+        if not isinstance(lesson, dict):
+            continue
+        tid = lesson.get("topic_id", "")
+        if not tid:
+            continue
+        
+        # Get or create topic state
+        if tid not in topics:
+            # Could be a "latest_" topic in developments mode
+            topics[tid] = {
+                "status": "unseen",
+                "confidence": 0.0,
+                "last_taught": None,
+                "key_facts": [],
+                "reliability": "stable",
+            }
+        
+        ts = topics[tid]
+        old_status = ts.get("status", "unseen")
+        
+        # Advance status
+        status_order = ["unseen", "introduced", "reinforced", "applied"]
+        if old_status in status_order:
+            idx = status_order.index(old_status)
+            new_idx = min(idx + 1, len(status_order) - 1)
+            ts["status"] = status_order[new_idx]
+        
+        ts["last_taught"] = today
+        ts["confidence"] = min(1.0, ts.get("confidence", 0) + 0.4)
+        
+        # Record key facts (deduplicate)
+        new_facts = lesson.get("key_takeaways", [])
+        existing = set(ts.get("key_facts", []))
+        for fact in new_facts:
+            if isinstance(fact, str) and fact not in existing:
+                ts["key_facts"].append(fact)
+                existing.add(fact)
+        # Keep max 5 facts per topic
+        ts["key_facts"] = ts["key_facts"][:5]
+        
+        # Record reliability
+        ts["reliability"] = lesson.get("reliability", "stable")
+        
+        lessons_completed += 1
+    
+    knowledge_state["topics"] = topics
+    knowledge_state["total_lessons_completed"] = knowledge_state.get("total_lessons_completed", 0) + lessons_completed
+    
+    # Update curriculum position
+    learned_count = sum(1 for t in topics.values() if t.get("status") != "unseen")
+    knowledge_state["curriculum_position"]["current_layer"] = max(
+        (TOPIC_DAG.get(tid, {}).get("layer", 0) 
+         for tid, ts in topics.items() 
+         if ts.get("status") != "unseen"),
+        default=0
+    )
+    
+    # Track completed layers
+    completed_layers = set()
+    for layer in range(8):
+        layer_topics = [tid for tid, t in TOPIC_DAG.items() if t["layer"] == layer]
+        if layer_topics and all(topics.get(tid, {}).get("status", "unseen") != "unseen" for tid in layer_topics):
+            completed_layers.add(layer)
+    knowledge_state["curriculum_position"]["completed_layers"] = sorted(completed_layers)
+    
+    logger.info(f"Knowledge state updated: {lessons_completed} lessons, {learned_count}/{len(TOPIC_DAG)} topics covered")
+    
+    return knowledge_state
+
+
 # ─── Monitoring Prompts (by category) ────────────────────────────────────────
 
 PROMPTS = {
@@ -186,19 +537,29 @@ PROMPTS = {
         "Replace each info with real current findings. Return ONLY the JSON."
     ),
     "learning_feed": (
-        "You are a local LLM learning curator. Today is {date}. "
-        "Search Reddit r/LocalLLaMA, YouTube, Hacker News, and tech blogs for the most valuable and educational content from the past 7 days. "
-        "Focus topics: running LLMs locally, fine-tuning techniques, coding agent frameworks, hardware optimization, quantization advances, new model releases for local use. "
-        "Only include content with genuine educational value. Skip news-only items, product announcements without technical depth, and clickbait. "
-        "Return ONLY a JSON object (no markdown fences, no explanation) with 5-10 items sorted by relevance: "
-        '{{"articles": ['
-        '{{"title": "article title", "url": "real URL", "source": "reddit|youtube|hackernews|blog|github", '
-        '"category": "inference|training|agents|hardware|quantization|models", '
-        '"summary": "1-2 sentence summary of key insight", '
-        '"relevance": "high|medium", '
-        '"type": "article|video|tutorial|discussion|paper"}}'
-        "]}} "
-        "Replace placeholders with real current findings. Return ONLY the JSON."
+        "You are a progressive LLM learning tutor. Today is {date}. "
+        "{learning_context}"
+        "Return ONLY a JSON object (no markdown fences, no explanation) with this EXACT structure: "
+        '{{"lessons": ['
+        '{{"topic_id": "the_topic_id", '
+        '"title": "Human-readable lesson title", '
+        '"content": "500-800 word lesson that builds on prerequisites. Explain clearly for a beginner. '
+        'Include concrete examples with real numbers (e.g., actual VRAM calculations, actual tok/s measurements). '
+        'Reference specific models, tools, or hardware when relevant.", '
+        '"key_takeaways": ["fact 1", "fact 2", "fact 3"], '
+        '"prerequisite_recap": "1-2 sentence recap of what was learned previously that this builds on", '
+        '"practical_exercise": "A calculation or decision exercise the learner can try", '
+        '"answer": "The answer to the exercise with reasoning", '
+        '"hardware_implication": "How this knowledge affects hardware buying decisions", '
+        '"reliability": "stable|emerging|experimental"}}'
+        '], '
+        '"learner_contexts": {{'
+        '"hardware": "1 sentence: what the user now knows that is relevant to hardware choices", '
+        '"efficiency": "1 sentence: what the user now knows relevant to optimization", '
+        '"deals": "1 sentence: what specs the user should look for in deals", '
+        '"recommendation": "1 sentence: what the user can now realistically evaluate"}}'
+        "}} "
+        "Cover ALL the listed topics. Each lesson should be thorough and educational. Return ONLY the JSON."
     ),
     "model_benchmarks": (
         "You are an LLM benchmarking analyst. Today is {date}. "
@@ -4626,9 +4987,128 @@ def _extract_learning_articles(checks):
     return []
 
 
-def _generate_learning_page(checks, enrichment, now):
-    """Generate the learning feed page with filterable article cards."""
+def _generate_learning_page(checks, enrichment, now, state=None):
+    """Generate the learning feed page with curriculum progress and lesson cards."""
     nav_html = _generate_nav_html("learning", now)
+
+    # Knowledge state for curriculum display
+    ks = (state or {}).get("knowledge_state", {})
+    ks_topics = ks.get("topics", {})
+    total_topics = len(TOPIC_DAG) if TOPIC_DAG else 34
+    learned_count = sum(1 for t in ks_topics.values() if t.get("status") != "unseen")
+    progress_pct = int(100 * learned_count / total_topics) if total_topics else 0
+    
+    # Curriculum position
+    completed_layers = ks.get("curriculum_position", {}).get("completed_layers", [])
+    total_lessons = ks.get("total_lessons_completed", 0)
+    
+    # Build curriculum progress HTML
+    layer_names = {
+        0: "Foundations", 1: "Core Inference", 2: "Optimization",
+        3: "Engines & Runtimes", 4: "Models", 5: "Agents & Application",
+        6: "Hardware Mapping", 7: "Fine-tuning"
+    }
+    layer_icons = {
+        0: "🏗️", 1: "⚡", 2: "🔧", 3: "🚀", 4: "🧠", 5: "🤖", 6: "🖥️", 7: "🎯"
+    }
+    
+    # Topic pills per layer
+    dag_layers_html = ""
+    for layer_num in range(8):
+        layer_topic_ids = [tid for tid, t in TOPIC_DAG.items() if t["layer"] == layer_num]
+        if not layer_topic_ids:
+            continue
+        
+        layer_done = layer_num in completed_layers
+        layer_cls = "layer-complete" if layer_done else "layer-pending"
+        icon = layer_icons.get(layer_num, "📘")
+        name = layer_names.get(layer_num, f"Layer {layer_num}")
+        
+        pills = ""
+        for tid in layer_topic_ids:
+            ts = ks_topics.get(tid, {})
+            status = ts.get("status", "unseen")
+            title = TOPIC_DAG[tid]["title"]
+            status_cls = f"topic-{status}"
+            status_icon = {"unseen": "○", "introduced": "◐", "reinforced": "●", "applied": "✓"}.get(status, "○")
+            confidence = ts.get("confidence", 0)
+            conf_str = f" ({int(confidence*100)}%)" if status != "unseen" else ""
+            pills += f'<span class="topic-pill {status_cls}" title="{_esc(title)}{conf_str}">{status_icon} {_esc(title)}</span>'
+        
+        dag_layers_html += (
+            f'<div class="dag-layer {layer_cls}">'
+            f'<div class="layer-header">{icon} <strong>{name}</strong></div>'
+            f'<div class="layer-topics">{pills}</div>'
+            f'</div>'
+        )
+    
+    # Build recent lessons from the learning_feed checks data
+    lessons_html = ""
+    lf = checks.get("learning_feed", {})
+    lessons_data = lf.get("lessons", [])
+    # Also handle flat dict format
+    if not lessons_data and isinstance(lf, dict):
+        for key, val in lf.items():
+            if isinstance(val, dict) and ("content" in val or "title" in val):
+                lessons_data.append(val)
+            elif isinstance(val, list):
+                for item in val:
+                    if isinstance(item, dict) and ("content" in item or "title" in item):
+                        lessons_data.append(item)
+    
+    for lesson in lessons_data:
+        if not isinstance(lesson, dict):
+            continue
+        title = _esc(lesson.get("title", "Untitled Lesson"))
+        tid = _esc(lesson.get("topic_id", ""))
+        content = _esc(lesson.get("content", ""))
+        takeaways = lesson.get("key_takeaways", [])
+        recap = _esc(lesson.get("prerequisite_recap", ""))
+        exercise = _esc(lesson.get("practical_exercise", ""))
+        answer = _esc(lesson.get("answer", ""))
+        hw_impl = _esc(lesson.get("hardware_implication", ""))
+        reliability = lesson.get("reliability", "stable")
+        rel_cls = f"rel-{reliability}"
+        rel_icon = {"stable": "✅", "emerging": "🔶", "experimental": "🧪"}.get(reliability, "✅")
+        
+        takeaways_html = ""
+        for t in takeaways:
+            if isinstance(t, str):
+                takeaways_html += f'<li>{_esc(t)}</li>'
+        
+        lessons_html += (
+            f'<div class="lesson-card">'
+            f'<div class="lesson-header">'
+            f'<h3 class="lesson-title">📖 {title}</h3>'
+            f'<span class="reliability-badge {rel_cls}">{rel_icon} {reliability.title()}</span>'
+            f'</div>'
+        )
+        if recap:
+            lessons_html += f'<div class="lesson-recap">🔗 <em>Previously: {recap}</em></div>'
+        if content:
+            # Show first 500 chars with expand
+            short = content[:500]
+            if len(content) > 500:
+                lessons_html += (
+                    f'<div class="lesson-content">{short}...'
+                    f'<button class="expand-btn" onclick="this.parentElement.textContent=this.parentElement.dataset.full" '
+                    f'data-full="">Read more</button></div>'
+                    f'<div class="lesson-full" style="display:none">{content}</div>'
+                )
+            else:
+                lessons_html += f'<div class="lesson-content">{content}</div>'
+        if takeaways_html:
+            lessons_html += f'<div class="lesson-takeaways"><strong>Key Takeaways:</strong><ul>{takeaways_html}</ul></div>'
+        if exercise:
+            lessons_html += (
+                f'<div class="lesson-exercise">'
+                f'<strong>🧮 Exercise:</strong> {exercise}'
+                f'<details><summary>Show Answer</summary><p>{answer}</p></details>'
+                f'</div>'
+            )
+        if hw_impl:
+            lessons_html += f'<div class="lesson-hw">🖥️ <strong>Hardware Implication:</strong> {hw_impl}</div>'
+        lessons_html += '</div>'
 
     articles = _extract_learning_articles(checks)
 
@@ -4772,8 +5252,58 @@ function copyCliCmd(topic) {
         active = " active" if val == "all" else ""
         src_btns += f' <button class="filter-btn{active}" data-value="{val}" onclick="filterLearning(\'source\',\'{val}\')">{label}</button>'
 
+    # Enhanced CSS for curriculum view
+    curriculum_css = """
+<style>
+.progress-hero { background: linear-gradient(135deg, #1e1e2e, #2d2d44); border-radius: 12px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+.progress-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: #10b981; }
+.progress-stats { display: flex; flex-direction: column; gap: 4px; }
+.progress-bar-bg { height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin: 8px 0; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #6366f1); border-radius: 6px; transition: width 0.5s; }
+.dag-section { margin-bottom: 24px; }
+.dag-layer { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--border, #333); background: var(--bg2); }
+.dag-layer.layer-complete { border-color: #10b981; }
+.layer-header { font-size: 0.95rem; margin-bottom: 8px; }
+.layer-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-pill { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border, #444); white-space: nowrap; }
+.topic-unseen { color: var(--dim); border-color: #555; }
+.topic-introduced { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+.topic-reinforced { color: #10b981; border-color: #10b981; background: rgba(16,185,129,0.1); }
+.topic-applied { color: #6366f1; border-color: #6366f1; background: rgba(99,102,241,0.15); font-weight: 600; }
+.lessons-section { margin-top: 24px; }
+.lesson-card { background: var(--bg2); border: 1px solid var(--border, #333); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.lesson-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.lesson-title { font-size: 1.1rem; margin: 0; }
+.reliability-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
+.rel-stable { background: #10b981; color: white; }
+.rel-emerging { background: #f59e0b; color: black; }
+.rel-experimental { background: #8b5cf6; color: white; }
+.lesson-recap { font-size: 0.85rem; color: var(--dim); margin-bottom: 12px; padding: 8px 12px; background: rgba(99,102,241,0.08); border-radius: 6px; }
+.lesson-content { font-size: 0.9rem; line-height: 1.6; color: var(--fg); margin-bottom: 12px; white-space: pre-wrap; }
+.lesson-takeaways { margin-bottom: 12px; }
+.lesson-takeaways ul { margin: 4px 0 0 16px; padding: 0; }
+.lesson-takeaways li { font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }
+.lesson-exercise { background: rgba(245,158,11,0.08); padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
+.lesson-exercise details { margin-top: 8px; }
+.lesson-exercise summary { cursor: pointer; color: var(--accent); font-size: 0.85rem; }
+.lesson-exercise p { margin: 8px 0 0; color: #10b981; }
+.lesson-hw { font-size: 0.85rem; padding: 8px 12px; background: rgba(16,185,129,0.08); border-radius: 6px; }
+.expand-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem; }
+.section-title { font-size: 1.2rem; margin: 24px 0 12px; border-bottom: 1px solid var(--border, #333); padding-bottom: 8px; }
+@media (max-width: 768px) {
+  .progress-hero { grid-template-columns: 1fr; text-align: center; }
+  .dag-layer { padding: 8px 12px; }
+  .topic-pill { font-size: 0.7rem; padding: 2px 6px; }
+  .lesson-card { padding: 12px; }
+}
+</style>
+"""
+
+    # Also keep original learning CSS for article cards
+    full_css = curriculum_css + learning_css
+
     body_content = (
-        learning_css
+        full_css
         + '\n<div class="header">'
         '\n  <div class="header-top">'
         '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
@@ -4782,18 +5312,64 @@ function copyCliCmd(topic) {
         '\n</div>'
         '\n'
         '\n<div class="content">'
-        '\n  <div class="page-title">\U0001F4DA Learning Feed</div>'
-        '\n  <div class="page-desc">Curated articles, videos, and discussions for staying up-to-date on local LLM hardware and inference.</div>'
-        '\n  <div class="filter-bar filter-category"><strong>Category:</strong>' + cat_btns + '</div>'
-        '\n  <div class="filter-bar filter-source"><strong>Source:</strong>' + src_btns + '</div>'
-        f'\n  {cards_inner}'
+        '\n  <div class="page-title">\U0001F4DA Progressive Knowledge Builder</div>'
+        '\n  <div class="page-desc">Building your understanding of local LLM inference, step by step. Each run teaches new topics and unlocks advanced concepts.</div>'
+        '\n'
+        # Progress hero
+        '\n  <div class="progress-hero">'
+        f'\n    <div class="progress-circle">{progress_pct}%</div>'
+        '\n    <div class="progress-stats">'
+        f'\n      <strong>{learned_count} / {total_topics} topics covered</strong>'
+        f'\n      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:{progress_pct}%"></div></div>'
+        f'\n      <span style="color:var(--dim);font-size:0.85rem">{total_lessons} lessons completed &middot; '
+        f'Layers done: {len(completed_layers)}/8</span>'
+        '\n    </div>'
+        '\n  </div>'
+        '\n'
+        # Topic DAG
+        '\n  <div class="dag-section">'
+        '\n    <div class="section-title">\U0001F5FA\uFE0F Knowledge Map</div>'
+        '\n    <div style="font-size:0.8rem;color:var(--dim);margin-bottom:12px">'
+        '○ Unseen &nbsp; ◐ Introduced &nbsp; ● Reinforced &nbsp; ✓ Applied</div>'
+        f'\n    {dag_layers_html}'
+        '\n  </div>'
+        '\n'
+    )
+
+    # Latest lessons section
+    if lessons_html:
+        body_content += (
+            '\n  <div class="lessons-section">'
+            '\n    <div class="section-title">\U0001F4D6 Today\'s Lessons</div>'
+            f'\n    {lessons_html}'
+            '\n  </div>'
+        )
+    
+    # Legacy article cards (if any articles still exist from old format)
+    if cards_html:
+        body_content += (
+            '\n  <div class="section-title">\U0001F4F0 Latest Articles & Resources</div>'
+            '\n  <div class="filter-bar filter-category"><strong>Category:</strong>' + cat_btns + '</div>'
+            '\n  <div class="filter-bar filter-source"><strong>Source:</strong>' + src_btns + '</div>'
+            f'\n  {cards_inner}'
+        )
+    elif not lessons_html:
+        body_content += (
+            '\n  <div class="empty-state">'
+            'No lessons yet. Run the monitor to start learning! The system will teach '
+            'foundational topics first (tokens, parameters, VRAM), then progressively unlock '
+            'advanced topics (quantization, offloading, engines, models, agents).'
+            '</div>'
+        )
+
+    body_content += (
         '\n</div>'
         '\n<div id="copy-toast" class="copy-toast">Copied!</div>'
         + learning_js
     )
 
     modal_json = json.dumps({}, ensure_ascii=False)
-    return _generate_page_shell("Learning Feed - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Knowledge Builder - LLM Hardware Monitor", nav_html, body_content, modal_json)
 
 
 def _generate_weekly_page(state, checks, enrichment, now):
@@ -5209,7 +5785,7 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
     deals_html = _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
     (PAGES_DIR / "deals.html").write_text(deals_html, encoding="utf-8")
 
-    learning_html = _generate_learning_page(checks, enrichment, now)
+    learning_html = _generate_learning_page(checks, enrichment, now, state)
     (PAGES_DIR / "learning.html").write_text(learning_html, encoding="utf-8")
 
     weekly_html = _generate_weekly_page(state, checks, enrichment, now)
@@ -5226,6 +5802,10 @@ def main():
     logger.info("=" * 60)
 
     state = load_state()
+    # Ensure knowledge state exists
+    if "knowledge_state" not in state:
+        state["knowledge_state"] = _init_knowledge_state()
+        logger.info("Initialized fresh knowledge state")
     old_checks = state.get("checks", {})
     new_checks = {}
     run_status = {}
@@ -5238,11 +5818,26 @@ def main():
             time.sleep(5)  # brief pause between API calls to avoid .cmd race conditions
         first_category = False
         logger.info(f"--- Checking: {category} ---")
-        prompt = prompt_template.format(date=today)
+        
+        # For learning_feed, inject curriculum context into the prompt template
+        if category == "learning_feed":
+            ks = state.get("knowledge_state") or _init_knowledge_state()
+            learning_ctx = _build_learning_prompt_context(ks)
+            prompt = prompt_template.format(date=today, learning_context=learning_ctx)
+        else:
+            prompt = prompt_template.format(date=today)
+        
         # Inject dynamic context (known facts, discoveries, model history) per category
         dynamic_context = build_dynamic_prompt_context(state, category=category)
         if dynamic_context:
             prompt = prompt + " " + dynamic_context
+        
+        # Inject learner context from knowledge state (cross-pollination)
+        ks = state.get("knowledge_state")
+        if ks and category != "learning_feed":
+            learner_ctx = _generate_learner_context(ks, category)
+            if learner_ctx:
+                prompt = prompt + " LEARNER CONTEXT: " + learner_ctx
 
         response, parsed = run_copilot_with_retry(prompt, category=category)
 
@@ -5250,6 +5845,16 @@ def main():
             new_checks[category] = parsed
             run_status[category] = "success"
             logger.info(f"{category}: parsed successfully ({len(parsed)} items)")
+            # Update knowledge state from learning results
+            if category == "learning_feed" and parsed:
+                ks = state.get("knowledge_state") or _init_knowledge_state()
+                ks = _update_knowledge_state(ks, parsed)
+                state["knowledge_state"] = ks
+                
+                # Extract and store learner contexts for other prompts
+                learner_contexts = parsed.get("learner_contexts", {})
+                if learner_contexts:
+                    state["learner_contexts"] = learner_contexts
         else:
             run_status[category] = "error"
             if response:
