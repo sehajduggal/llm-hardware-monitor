@@ -4565,11 +4565,11 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
         }
         action_label, action_class = action_map.get(rec_action, ("\u23F3 WAIT", "decision-wait"))
 
-        detail_text = rec_summary_text or rec_best or ""
+        detail_text = rec_summary_text or rec_best or rec.get("desc", "") or ""
         if rec_wait and not detail_text:
             detail_text = rec_wait
         if not detail_text:
-            detail_text = "Analysis in progress"
+            detail_text = f"Monitoring {rec.get('title', 'options')} — run the monitor for a full analysis"
 
         decision_html = (
             f'<div class="decision-banner {action_class}" onclick="openRecModal()" style="cursor:pointer">'
@@ -5211,7 +5211,8 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
     legend_svg += '</g>'
 
     # Assemble SVG
-    svg = f'''<div class="dag-viz-container">
+    svg = f'''<div class="dag-layout">
+<div class="dag-viz-container">
 <svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
      class="dag-svg" preserveAspectRatio="xMidYMin meet">
   <defs>
@@ -5256,7 +5257,18 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   {legend_svg}
 </svg>
 </div>
+<div id="dag-detail-panel" class="dag-side-pane"></div>
+</div>
 <style>
+.dag-layout {{
+  display: grid;
+  grid-template-columns: 1fr 0;
+  gap: 0;
+  transition: grid-template-columns 0.3s ease;
+}}
+.dag-layout.pane-open {{
+  grid-template-columns: 1fr 380px;
+}}
 .dag-viz-container {{
   overflow-x: auto;
   overflow-y: hidden;
@@ -5264,7 +5276,7 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   background: rgba(20, 20, 35, 0.5);
   border: 1px solid rgba(255,255,255,0.06);
   padding: 8px;
-  margin-top: 8px;
+  min-width: 0;
 }}
 .dag-svg {{
   width: 100%;
@@ -5283,19 +5295,37 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 .dag-node:hover text {{
   font-weight: 700 !important;
 }}
-.dag-detail-panel {{
-  margin-top: 12px;
+.dag-side-pane {{
   padding: 16px 20px;
-  background: rgba(20, 20, 35, 0.85);
+  background: rgba(20, 20, 35, 0.95);
   border: 1px solid var(--accent, #6366f1);
   border-radius: 10px;
-  display: none;
-  animation: fadeIn 0.2s ease;
+  overflow-y: auto;
+  max-height: 800px;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, width 0.3s ease, padding 0.3s ease;
 }}
-.dag-detail-panel.visible {{ display: block; }}
-@keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(-4px); }} to {{ opacity: 1; transform: translateY(0); }} }}
+.dag-layout.pane-open .dag-side-pane {{
+  opacity: 1;
+  width: auto;
+  padding: 16px 20px;
+  overflow-y: auto;
+}}
+.dag-side-pane .pane-close {{
+  float: right;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--dim, #888);
+  background: none;
+  border: none;
+  padding: 0 4px;
+}}
+.dag-side-pane .pane-close:hover {{ color: var(--fg, #eee); }}
+@keyframes fadeIn {{ from {{ opacity: 0; transform: translateX(8px); }} to {{ opacity: 1; transform: translateX(0); }} }}
 .dag-detail-title {{ font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }}
-.dag-detail-meta {{ display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }}
+.dag-detail-meta {{ display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }}
 .dag-detail-meta span {{ padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }}
 .dag-detail-facts {{ margin: 8px 0; }}
 .dag-detail-facts li {{ font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }}
@@ -5317,6 +5347,10 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 .dag-lesson-tabs {{ display: flex; gap: 4px; margin-top: 8px; margin-bottom: 8px; }}
 .dag-lesson-tab {{ padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--dim, #888); border: 1px solid transparent; }}
 .dag-lesson-tab.active {{ border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }}
+@media (max-width: 900px) {{
+  .dag-layout.pane-open {{ grid-template-columns: 1fr; }}
+  .dag-side-pane {{ max-height: 50vh; border-radius: 10px; margin-top: 12px; }}
+}}
 </style>'''
 
     # Build topic data JSON for JS interactivity (includes lessons + resources)
@@ -5344,9 +5378,8 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
     copilot_sessions = ks_topics  # We'll get from the state passed to the outer function
     # session name will be injected from state in _generate_learning_page
     
-    # Add detail panel and JS
+    # Add JS (panel div is already in the layout above)
     svg += f'''
-<div id="dag-detail-panel" class="dag-detail-panel"></div>
 <div id="dag-copy-toast" class="copy-toast">Copied to clipboard!</div>
 <script>
 (function() {{
@@ -5356,6 +5389,7 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   var statusIcons = {{"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"}};
   var typeIcons = {{"article":"📄","video":"🎬","docs":"📚","tool":"🔧","paper":"📑","repo":"📦"}};
   var panel = document.getElementById("dag-detail-panel");
+  var layout = document.querySelector(".dag-layout");
   
   function escHtml(s) {{ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }}
   
@@ -5473,16 +5507,21 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
       }}
       html += "</div>";
       
-      panel.innerHTML = html;
-      panel.classList.add("visible");
-      panel.scrollIntoView({{behavior: "smooth", block: "nearest"}});
+      panel.innerHTML = "<button class=\\"pane-close\\" onclick=\\"closeDagPane()\\">✕</button>" + html;
+      layout.classList.add("pane-open");
+      panel.scrollTop = 0;
     }});
   }});
   
+  // Close pane function
+  window.closeDagPane = function() {{
+    layout.classList.remove("pane-open");
+  }};
+  
   // Click outside to close
   document.addEventListener("click", function(e) {{
-    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel") && !e.target.closest(".dag-action-btn")) {{
-      panel.classList.remove("visible");
+    if (!e.target.closest(".dag-layout") && !e.target.closest(".dag-action-btn")) {{
+      layout.classList.remove("pane-open");
     }}
   }});
 }})();

@@ -417,8 +417,8 @@
   }
 </style>
 </head>
-<body data-run-id="56ef" data-run-date="2026-05-12">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 17:24</span></nav>
+<body data-run-id="879c" data-run-date="2026-05-12">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 17:29</span></nav>
 
 <style>
 .progress-hero { background: linear-gradient(135deg, #1e1e2e, #2d2d44); border-radius: 12px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
@@ -495,7 +495,7 @@
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>2026-05-12 17:24</b></div>
+    <div class="meta">Last check: <b>2026-05-12 17:29</b></div>
   </div>
 </div>
 
@@ -514,7 +514,8 @@
 
   <div class="dag-section">
     <div class="section-title">🗺️ Knowledge Map</div>
-    <div class="dag-viz-container">
+    <div class="dag-layout">
+<div class="dag-viz-container">
 <svg viewBox="0 0 1000 1220" xmlns="http://www.w3.org/2000/svg"
      class="dag-svg" preserveAspectRatio="xMidYMin meet">
   <defs>
@@ -645,7 +646,18 @@
   <g transform="translate(800, 10)"><text x="0" y="12" font-size="10" fill="#888" font-family="system-ui, sans-serif" font-weight="600">Status</text><rect x="0" y="18" width="12" height="12" rx="3" fill="#555555" fill-opacity="0.3" stroke="#555555" stroke-width="1.5"/><text x="18" y="28" font-size="9" fill="#555555" font-family="system-ui, sans-serif">Unseen</text><rect x="0" y="36" width="12" height="12" rx="3" fill="#f59e0b" fill-opacity="0.3" stroke="#f59e0b" stroke-width="1.5"/><text x="18" y="46" font-size="9" fill="#f59e0b" font-family="system-ui, sans-serif">Introduced</text><rect x="0" y="54" width="12" height="12" rx="3" fill="#10b981" fill-opacity="0.3" stroke="#10b981" stroke-width="1.5"/><text x="18" y="64" font-size="9" fill="#10b981" font-family="system-ui, sans-serif">Reinforced</text><rect x="0" y="72" width="12" height="12" rx="3" fill="#6366f1" fill-opacity="0.3" stroke="#6366f1" stroke-width="1.5"/><text x="18" y="82" font-size="9" fill="#6366f1" font-family="system-ui, sans-serif">Applied</text></g>
 </svg>
 </div>
+<div id="dag-detail-panel" class="dag-side-pane"></div>
+</div>
 <style>
+.dag-layout {
+  display: grid;
+  grid-template-columns: 1fr 0;
+  gap: 0;
+  transition: grid-template-columns 0.3s ease;
+}
+.dag-layout.pane-open {
+  grid-template-columns: 1fr 380px;
+}
 .dag-viz-container {
   overflow-x: auto;
   overflow-y: hidden;
@@ -653,7 +665,7 @@
   background: rgba(20, 20, 35, 0.5);
   border: 1px solid rgba(255,255,255,0.06);
   padding: 8px;
-  margin-top: 8px;
+  min-width: 0;
 }
 .dag-svg {
   width: 100%;
@@ -672,19 +684,37 @@
 .dag-node:hover text {
   font-weight: 700 !important;
 }
-.dag-detail-panel {
-  margin-top: 12px;
+.dag-side-pane {
   padding: 16px 20px;
-  background: rgba(20, 20, 35, 0.85);
+  background: rgba(20, 20, 35, 0.95);
   border: 1px solid var(--accent, #6366f1);
   border-radius: 10px;
-  display: none;
-  animation: fadeIn 0.2s ease;
+  overflow-y: auto;
+  max-height: 800px;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: opacity 0.3s ease, width 0.3s ease, padding 0.3s ease;
 }
-.dag-detail-panel.visible { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.dag-layout.pane-open .dag-side-pane {
+  opacity: 1;
+  width: auto;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+.dag-side-pane .pane-close {
+  float: right;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: var(--dim, #888);
+  background: none;
+  border: none;
+  padding: 0 4px;
+}
+.dag-side-pane .pane-close:hover { color: var(--fg, #eee); }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
 .dag-detail-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
-.dag-detail-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }
+.dag-detail-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }
 .dag-detail-meta span { padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); }
 .dag-detail-facts { margin: 8px 0; }
 .dag-detail-facts li { font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }
@@ -706,8 +736,11 @@
 .dag-lesson-tabs { display: flex; gap: 4px; margin-top: 8px; margin-bottom: 8px; }
 .dag-lesson-tab { padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--dim, #888); border: 1px solid transparent; }
 .dag-lesson-tab.active { border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }
+@media (max-width: 900px) {
+  .dag-layout.pane-open { grid-template-columns: 1fr; }
+  .dag-side-pane { max-height: 50vh; border-radius: 10px; margin-top: 12px; }
+}
 </style>
-<div id="dag-detail-panel" class="dag-detail-panel"></div>
 <div id="dag-copy-toast" class="copy-toast">Copied to clipboard!</div>
 <script>
 (function() {
@@ -717,6 +750,7 @@
   var statusIcons = {"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"};
   var typeIcons = {"article":"📄","video":"🎬","docs":"📚","tool":"🔧","paper":"📑","repo":"📦"};
   var panel = document.getElementById("dag-detail-panel");
+  var layout = document.querySelector(".dag-layout");
   
   function escHtml(s) { var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
   
@@ -834,16 +868,21 @@
       }
       html += "</div>";
       
-      panel.innerHTML = html;
-      panel.classList.add("visible");
-      panel.scrollIntoView({behavior: "smooth", block: "nearest"});
+      panel.innerHTML = "<button class=\"pane-close\" onclick=\"closeDagPane()\">✕</button>" + html;
+      layout.classList.add("pane-open");
+      panel.scrollTop = 0;
     });
   });
   
+  // Close pane function
+  window.closeDagPane = function() {
+    layout.classList.remove("pane-open");
+  };
+  
   // Click outside to close
   document.addEventListener("click", function(e) {
-    if (!e.target.closest(".dag-viz-container") && !e.target.closest("#dag-detail-panel") && !e.target.closest(".dag-action-btn")) {
-      panel.classList.remove("visible");
+    if (!e.target.closest(".dag-layout") && !e.target.closest(".dag-action-btn")) {
+      layout.classList.remove("pane-open");
     }
   });
 })();
