@@ -5211,8 +5211,7 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
     legend_svg += '</g>'
 
     # Assemble SVG
-    svg = f'''<div class="dag-layout">
-<div class="dag-viz-container">
+    svg = f'''<div class="dag-viz-container">
 <svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
      class="dag-svg" preserveAspectRatio="xMidYMin meet">
   <defs>
@@ -5258,17 +5257,8 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 </svg>
 </div>
 <div id="dag-detail-panel" class="dag-side-pane"></div>
-</div>
+<div id="dag-pane-overlay" class="dag-pane-overlay"></div>
 <style>
-.dag-layout {{
-  display: grid;
-  grid-template-columns: 1fr 0;
-  gap: 0;
-  transition: grid-template-columns 0.3s ease;
-}}
-.dag-layout.pane-open {{
-  grid-template-columns: 1fr 380px;
-}}
 .dag-viz-container {{
   overflow-x: auto;
   overflow-y: hidden;
@@ -5276,7 +5266,6 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   background: rgba(20, 20, 35, 0.5);
   border: 1px solid rgba(255,255,255,0.06);
   padding: 8px;
-  min-width: 0;
 }}
 .dag-svg {{
   width: 100%;
@@ -5296,33 +5285,49 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   font-weight: 700 !important;
 }}
 .dag-side-pane {{
-  padding: 16px 20px;
-  background: rgba(20, 20, 35, 0.95);
-  border: 1px solid var(--accent, #6366f1);
-  border-radius: 10px;
+  position: fixed;
+  top: 0;
+  right: -420px;
+  width: 400px;
+  height: 100vh;
+  padding: 20px 24px;
+  background: rgba(18, 18, 30, 0.98);
+  border-left: 1px solid var(--accent, #6366f1);
   overflow-y: auto;
-  max-height: 800px;
-  opacity: 0;
-  width: 0;
-  overflow: hidden;
-  transition: opacity 0.3s ease, width 0.3s ease, padding 0.3s ease;
+  z-index: 1000;
+  transition: right 0.3s ease;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.4);
 }}
-.dag-layout.pane-open .dag-side-pane {{
-  opacity: 1;
-  width: auto;
-  padding: 16px 20px;
-  overflow-y: auto;
+.dag-side-pane.open {{
+  right: 0;
+}}
+.dag-pane-overlay {{
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.4);
+  z-index: 999;
+}}
+.dag-pane-overlay.open {{
+  display: block;
 }}
 .dag-side-pane .pane-close {{
+  position: sticky;
+  top: 0;
   float: right;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--dim, #888);
-  background: none;
+  background: rgba(18,18,30,0.9);
   border: none;
-  padding: 0 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  z-index: 10;
 }}
-.dag-side-pane .pane-close:hover {{ color: var(--fg, #eee); }}
+.dag-side-pane .pane-close:hover {{ color: var(--fg, #eee); background: rgba(99,102,241,0.2); }}
 @keyframes fadeIn {{ from {{ opacity: 0; transform: translateX(8px); }} to {{ opacity: 1; transform: translateX(0); }} }}
 .dag-detail-title {{ font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }}
 .dag-detail-meta {{ display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.8rem; color: var(--dim, #888); margin-bottom: 10px; }}
@@ -5347,9 +5352,9 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
 .dag-lesson-tabs {{ display: flex; gap: 4px; margin-top: 8px; margin-bottom: 8px; }}
 .dag-lesson-tab {{ padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; background: rgba(255,255,255,0.05); color: var(--dim, #888); border: 1px solid transparent; }}
 .dag-lesson-tab.active {{ border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }}
-@media (max-width: 900px) {{
-  .dag-layout.pane-open {{ grid-template-columns: 1fr; }}
-  .dag-side-pane {{ max-height: 50vh; border-radius: 10px; margin-top: 12px; }}
+@media (max-width: 600px) {{
+  .dag-side-pane {{ width: 100vw; right: -100vw; }}
+  .dag-side-pane.open {{ right: 0; }}
 }}
 </style>'''
 
@@ -5389,7 +5394,7 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
   var statusIcons = {{"unseen":"○","introduced":"◐","reinforced":"●","applied":"✓"}};
   var typeIcons = {{"article":"📄","video":"🎬","docs":"📚","tool":"🔧","paper":"📑","repo":"📦"}};
   var panel = document.getElementById("dag-detail-panel");
-  var layout = document.querySelector(".dag-layout");
+  var overlay = document.getElementById("dag-pane-overlay");
   
   function escHtml(s) {{ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }}
   
@@ -5508,21 +5513,22 @@ def _generate_dag_visualization(ks_topics: dict) -> str:
       html += "</div>";
       
       panel.innerHTML = "<button class=\\"pane-close\\" onclick=\\"closeDagPane()\\">✕</button>" + html;
-      layout.classList.add("pane-open");
+      panel.classList.add("open");
+      overlay.classList.add("open");
       panel.scrollTop = 0;
     }});
   }});
   
   // Close pane function
   window.closeDagPane = function() {{
-    layout.classList.remove("pane-open");
+    panel.classList.remove("open");
+    overlay.classList.remove("open");
   }};
   
-  // Click outside to close
-  document.addEventListener("click", function(e) {{
-    if (!e.target.closest(".dag-layout") && !e.target.closest(".dag-action-btn")) {{
-      layout.classList.remove("pane-open");
-    }}
+  // Click overlay to close
+  overlay.addEventListener("click", function() {{
+    panel.classList.remove("open");
+    overlay.classList.remove("open");
   }});
 }})();
 
