@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Learning Feed - LLM Hardware Monitor</title>
+<title>Knowledge Builder - LLM Hardware Monitor</title>
 <style>
   :root {
     --bg: #0a0e14; --surface: #131920; --card: #1a2029; --border: #262f3d;
@@ -417,8 +417,52 @@
   }
 </style>
 </head>
-<body data-run-id="de3e" data-run-date="2026-05-12">
-<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 15:38:09</span></nav>
+<body data-run-id="166f" data-run-date="2026-05-12">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 16:59:00</span></nav>
+
+<style>
+.progress-hero { background: linear-gradient(135deg, #1e1e2e, #2d2d44); border-radius: 12px; padding: 24px; margin-bottom: 24px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+.progress-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; color: #10b981; }
+.progress-stats { display: flex; flex-direction: column; gap: 4px; }
+.progress-bar-bg { height: 12px; background: #333; border-radius: 6px; overflow: hidden; margin: 8px 0; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #6366f1); border-radius: 6px; transition: width 0.5s; }
+.dag-section { margin-bottom: 24px; }
+.dag-layer { padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; border: 1px solid var(--border, #333); background: var(--bg2); }
+.dag-layer.layer-complete { border-color: #10b981; }
+.layer-header { font-size: 0.95rem; margin-bottom: 8px; }
+.layer-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.topic-pill { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; border: 1px solid var(--border, #444); white-space: nowrap; }
+.topic-unseen { color: var(--dim); border-color: #555; }
+.topic-introduced { color: #f59e0b; border-color: #f59e0b; background: rgba(245,158,11,0.1); }
+.topic-reinforced { color: #10b981; border-color: #10b981; background: rgba(16,185,129,0.1); }
+.topic-applied { color: #6366f1; border-color: #6366f1; background: rgba(99,102,241,0.15); font-weight: 600; }
+.lessons-section { margin-top: 24px; }
+.lesson-card { background: var(--bg2); border: 1px solid var(--border, #333); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.lesson-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.lesson-title { font-size: 1.1rem; margin: 0; }
+.reliability-badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 4px; }
+.rel-stable { background: #10b981; color: white; }
+.rel-emerging { background: #f59e0b; color: black; }
+.rel-experimental { background: #8b5cf6; color: white; }
+.lesson-recap { font-size: 0.85rem; color: var(--dim); margin-bottom: 12px; padding: 8px 12px; background: rgba(99,102,241,0.08); border-radius: 6px; }
+.lesson-content { font-size: 0.9rem; line-height: 1.6; color: var(--fg); margin-bottom: 12px; white-space: pre-wrap; }
+.lesson-takeaways { margin-bottom: 12px; }
+.lesson-takeaways ul { margin: 4px 0 0 16px; padding: 0; }
+.lesson-takeaways li { font-size: 0.85rem; margin-bottom: 4px; color: #10b981; }
+.lesson-exercise { background: rgba(245,158,11,0.08); padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
+.lesson-exercise details { margin-top: 8px; }
+.lesson-exercise summary { cursor: pointer; color: var(--accent); font-size: 0.85rem; }
+.lesson-exercise p { margin: 8px 0 0; color: #10b981; }
+.lesson-hw { font-size: 0.85rem; padding: 8px 12px; background: rgba(16,185,129,0.08); border-radius: 6px; }
+.expand-btn { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.85rem; }
+.section-title { font-size: 1.2rem; margin: 24px 0 12px; border-bottom: 1px solid var(--border, #333); padding-bottom: 8px; }
+@media (max-width: 768px) {
+  .progress-hero { grid-template-columns: 1fr; text-align: center; }
+  .dag-layer { padding: 8px 12px; }
+  .topic-pill { font-size: 0.7rem; padding: 2px 6px; }
+  .lesson-card { padding: 12px; }
+}
+</style>
 
 <style>
 .learn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
@@ -451,30 +495,30 @@
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>2026-05-12 15:38:09</b></div>
+    <div class="meta">Last check: <b>2026-05-12 16:59:00</b></div>
   </div>
 </div>
 
 <div class="content">
-  <div class="page-title">📚 Learning Feed</div>
-  <div class="page-desc">Curated articles, videos, and discussions for staying up-to-date on local LLM hardware and inference.</div>
-  <div class="filter-bar filter-category"><strong>Category:</strong> <button class="filter-btn active" data-value="all" onclick="filterLearning('category','all')">All</button> <button class="filter-btn" data-value="inference" onclick="filterLearning('category','inference')">Inference</button> <button class="filter-btn" data-value="training" onclick="filterLearning('category','training')">Training</button> <button class="filter-btn" data-value="agents" onclick="filterLearning('category','agents')">Agents</button> <button class="filter-btn" data-value="hardware" onclick="filterLearning('category','hardware')">Hardware</button> <button class="filter-btn" data-value="quantization" onclick="filterLearning('category','quantization')">Quantization</button> <button class="filter-btn" data-value="models" onclick="filterLearning('category','models')">Models</button></div>
-  <div class="filter-bar filter-source"><strong>Source:</strong> <button class="filter-btn active" data-value="all" onclick="filterLearning('source','all')">All</button> <button class="filter-btn" data-value="reddit" onclick="filterLearning('source','reddit')">Reddit</button> <button class="filter-btn" data-value="youtube" onclick="filterLearning('source','youtube')">YouTube</button> <button class="filter-btn" data-value="github" onclick="filterLearning('source','github')">GitHub</button> <button class="filter-btn" data-value="blog" onclick="filterLearning('source','blog')">Blog</button> <button class="filter-btn" data-value="hn" onclick="filterLearning('source','hn')">HN</button></div>
-  <div class="learn-grid">
-      <div class="learn-card" data-category="quantization" data-source="blog">
-        <div class="learn-card-top">
-          <span class="source-badge source-blog">Blog</span>
-          <span class="type-badge">📄 Tutorial</span>
-          <span class="relevance-badge relevance-high">High Relevance</span>
-        </div>
-        <h3 class="learn-title"><a href="https://tonisagrista.com/blog/2026/quantization/" target="_blank">GGUF Quantization Guide: Q4_K_M vs Q8_0 vs F16 — Which to Use in 2026</a></h3>
-        <p class="learn-summary">Comprehensive breakdown of GGUF quantization tiers explaining why Q4_K_M is the 2026 community sweet spot — fitting 7B models in ~4.1GB VRAM at 92-95% of FP16 quality. Covers Q3 through Q8 tradeoffs with perplexity benchmarks.</p>
-        <div class="learn-actions">
-          <a href="https://tonisagrista.com/blog/2026/quantization/" target="_blank" class="learn-btn">🔗 Read</a>
-          <button class="learn-btn" onclick="copyCliCmd('GGUF Quantization Guide: Q4_K_M vs Q8_0 vs F16 — Which to Use in 2026')">💬 Discuss in CLI</button>
-        </div>
-      </div>
+  <div class="page-title">📚 Progressive Knowledge Builder</div>
+  <div class="page-desc">Building your understanding of local LLM inference, step by step. Each run teaches new topics and unlocks advanced concepts.</div>
+
+  <div class="progress-hero">
+    <div class="progress-circle">0%</div>
+    <div class="progress-stats">
+      <strong>0 / 34 topics covered</strong>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:0%"></div></div>
+      <span style="color:var(--dim);font-size:0.85rem">0 lessons completed &middot; Layers done: 0/8</span>
     </div>
+  </div>
+
+  <div class="dag-section">
+    <div class="section-title">🗺️ Knowledge Map</div>
+    <div style="font-size:0.8rem;color:var(--dim);margin-bottom:12px">○ Unseen &nbsp; ◐ Introduced &nbsp; ● Reinforced &nbsp; ✓ Applied</div>
+    <div class="dag-layer layer-pending"><div class="layer-header">🏗️ <strong>Foundations</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="Tokens, Parameters &amp; Model Sizes">○ Tokens, Parameters &amp; Model Sizes</span><span class="topic-pill topic-unseen" title="VRAM Calculation: How Much Memory Do You Need?">○ VRAM Calculation: How Much Memory Do You Need?</span><span class="topic-pill topic-unseen" title="Context Windows: Size, Cost &amp; Why It Matters for Agents">○ Context Windows: Size, Cost &amp; Why It Matters for Agents</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">⚡ <strong>Core Inference</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="Prefill vs Decode: The Two Phases of LLM Inference">○ Prefill vs Decode: The Two Phases of LLM Inference</span><span class="topic-pill topic-unseen" title="KV Cache: The Hidden Memory Cost of Long Conversations">○ KV Cache: The Hidden Memory Cost of Long Conversations</span><span class="topic-pill topic-unseen" title="Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?">○ Memory Bandwidth vs Compute: What Actually Bottlenecks Inference?</span><span class="topic-pill topic-unseen" title="Latency vs Throughput vs Concurrency for Coding Agents">○ Latency vs Throughput vs Concurrency for Coding Agents</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🔧 <strong>Optimization</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="Quantization 101: Shrinking Models to Fit Your Hardware">○ Quantization 101: Shrinking Models to Fit Your Hardware</span><span class="topic-pill topic-unseen" title="GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?">○ GGUF Formats: Q4_K_M, Q5_K_M, Q8_0 — Which to Choose?</span><span class="topic-pill topic-unseen" title="EXL2, AWQ, GPTQ: GPU-Optimized Quantization Formats">○ EXL2, AWQ, GPTQ: GPU-Optimized Quantization Formats</span><span class="topic-pill topic-unseen" title="Offloading: Splitting Models Across GPU, CPU &amp; Disk">○ Offloading: Splitting Models Across GPU, CPU &amp; Disk</span><span class="topic-pill topic-unseen" title="MoE Expert Routing: Why Mixture-of-Experts Changes Everything">○ MoE Expert Routing: Why Mixture-of-Experts Changes Everything</span><span class="topic-pill topic-unseen" title="Speculative Decoding: Using Small Models to Speed Up Big Ones">○ Speculative Decoding: Using Small Models to Speed Up Big Ones</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🚀 <strong>Engines & Runtimes</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="llama.cpp: The Swiss Army Knife of Local Inference">○ llama.cpp: The Swiss Army Knife of Local Inference</span><span class="topic-pill topic-unseen" title="KTransformers: GPU+CPU MoE Offloading Engine">○ KTransformers: GPU+CPU MoE Offloading Engine</span><span class="topic-pill topic-unseen" title="vLLM &amp; TensorRT-LLM: High-Throughput Serving Engines">○ vLLM &amp; TensorRT-LLM: High-Throughput Serving Engines</span><span class="topic-pill topic-unseen" title="MLX: Apple Silicon&#x27;s Native LLM Framework">○ MLX: Apple Silicon&#x27;s Native LLM Framework</span><span class="topic-pill topic-unseen" title="CUDA vs ROCm vs Metal: Runtime Compatibility Guide">○ CUDA vs ROCm vs Metal: Runtime Compatibility Guide</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🧠 <strong>Models</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="Dense vs MoE Models: Architecture Trade-offs for Local Use">○ Dense vs MoE Models: Architecture Trade-offs for Local Use</span><span class="topic-pill topic-unseen" title="What Makes a Good Coding Model? Benchmarks That Matter">○ What Makes a Good Coding Model? Benchmarks That Matter</span><span class="topic-pill topic-unseen" title="Reasoning Models: Chain-of-Thought for Complex Code Tasks">○ Reasoning Models: Chain-of-Thought for Complex Code Tasks</span><span class="topic-pill topic-unseen" title="Choosing the Right Model for 24/7 Coding Agents">○ Choosing the Right Model for 24/7 Coding Agents</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🤖 <strong>Agents & Application</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="Agent Context Management: Keeping Long Conversations Alive">○ Agent Context Management: Keeping Long Conversations Alive</span><span class="topic-pill topic-unseen" title="YOLO Coding Mode: Autonomous Agents That Write &amp; Execute Code">○ YOLO Coding Mode: Autonomous Agents That Write &amp; Execute Code</span><span class="topic-pill topic-unseen" title="Running Multiple Agents: Batch Size &amp; Concurrency">○ Running Multiple Agents: Batch Size &amp; Concurrency</span><span class="topic-pill topic-unseen" title="Tool Use &amp; Function Calling: How Agents Interact with Code">○ Tool Use &amp; Function Calling: How Agents Interact with Code</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🖥️ <strong>Hardware Mapping</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="GPU VRAM Tiers: Which Card Runs Which Model?">○ GPU VRAM Tiers: Which Card Runs Which Model?</span><span class="topic-pill topic-unseen" title="RAM Bandwidth: Why DDR5-6400 Matters for CPU Offloading">○ RAM Bandwidth: Why DDR5-6400 Matters for CPU Offloading</span><span class="topic-pill topic-unseen" title="PCIe Lanes &amp; Multi-GPU: When One GPU Isn&#x27;t Enough">○ PCIe Lanes &amp; Multi-GPU: When One GPU Isn&#x27;t Enough</span><span class="topic-pill topic-unseen" title="SSD Speed &amp; Model Loading: NVMe Matters">○ SSD Speed &amp; Model Loading: NVMe Matters</span><span class="topic-pill topic-unseen" title="Power, Thermals &amp; Noise: 24/7 Operation Considerations">○ Power, Thermals &amp; Noise: 24/7 Operation Considerations</span><span class="topic-pill topic-unseen" title="Windows vs Linux vs macOS: Practical Runtime Differences">○ Windows vs Linux vs macOS: Practical Runtime Differences</span></div></div><div class="dag-layer layer-pending"><div class="layer-header">🎯 <strong>Fine-tuning</strong></div><div class="layer-topics"><span class="topic-pill topic-unseen" title="LoRA &amp; QLoRA: Fine-Tuning Models on Consumer Hardware">○ LoRA &amp; QLoRA: Fine-Tuning Models on Consumer Hardware</span><span class="topic-pill topic-unseen" title="When to Fine-Tune vs Prompt Engineering vs RAG">○ When to Fine-Tune vs Prompt Engineering vs RAG</span></div></div>
+  </div>
+
+  <div class="empty-state">No lessons yet. Run the monitor to start learning! The system will teach foundational topics first (tokens, parameters, VRAM), then progressively unlock advanced topics (quantization, offloading, engines, models, agents).</div>
 </div>
 <div id="copy-toast" class="copy-toast">Copied!</div>
 <script>
