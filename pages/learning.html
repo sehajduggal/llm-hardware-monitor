@@ -417,8 +417,8 @@
   }
 </style>
 </head>
-<body>
-<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 09:16:25</span></nav>
+<body data-run-id="de3e" data-run-date="2026-05-12">
+<nav class="nav-bar"><a href="../LLM-Hardware-Monitor.html" class="nav-link">📊 Summary</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models & Agents</a><a href="efficiency.html" class="nav-link">🔬 Efficiency</a><a href="deals.html" class="nav-link">💰 Deals & News</a><a href="learning.html" class="nav-link active">📚 Learning</a><a href="weekly.html" class="nav-link">📊 Weekly</a><span class="nav-time">Last: 2026-05-12 15:38:09</span></nav>
 
 <style>
 .learn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
@@ -451,7 +451,7 @@
 <div class="header">
   <div class="header-top">
     <h1>🖥️ LLM Hardware Monitor</h1>
-    <div class="meta">Last check: <b>2026-05-12 09:16:25</b></div>
+    <div class="meta">Last check: <b>2026-05-12 15:38:09</b></div>
   </div>
 </div>
 
@@ -461,17 +461,17 @@
   <div class="filter-bar filter-category"><strong>Category:</strong> <button class="filter-btn active" data-value="all" onclick="filterLearning('category','all')">All</button> <button class="filter-btn" data-value="inference" onclick="filterLearning('category','inference')">Inference</button> <button class="filter-btn" data-value="training" onclick="filterLearning('category','training')">Training</button> <button class="filter-btn" data-value="agents" onclick="filterLearning('category','agents')">Agents</button> <button class="filter-btn" data-value="hardware" onclick="filterLearning('category','hardware')">Hardware</button> <button class="filter-btn" data-value="quantization" onclick="filterLearning('category','quantization')">Quantization</button> <button class="filter-btn" data-value="models" onclick="filterLearning('category','models')">Models</button></div>
   <div class="filter-bar filter-source"><strong>Source:</strong> <button class="filter-btn active" data-value="all" onclick="filterLearning('source','all')">All</button> <button class="filter-btn" data-value="reddit" onclick="filterLearning('source','reddit')">Reddit</button> <button class="filter-btn" data-value="youtube" onclick="filterLearning('source','youtube')">YouTube</button> <button class="filter-btn" data-value="github" onclick="filterLearning('source','github')">GitHub</button> <button class="filter-btn" data-value="blog" onclick="filterLearning('source','blog')">Blog</button> <button class="filter-btn" data-value="hn" onclick="filterLearning('source','hn')">HN</button></div>
   <div class="learn-grid">
-      <div class="learn-card" data-category="agents" data-source="github">
+      <div class="learn-card" data-category="quantization" data-source="blog">
         <div class="learn-card-top">
-          <span class="source-badge source-github">Github</span>
-          <span class="type-badge">📑 Paper</span>
+          <span class="source-badge source-blog">Blog</span>
+          <span class="type-badge">📄 Tutorial</span>
           <span class="relevance-badge relevance-high">High Relevance</span>
         </div>
-        <h3 class="learn-title"><a href="https://huggingface.co/agentica-org/DeepSWE-Preview" target="_blank">DeepSWE-Preview: Fully Open-Source RL-Trained Coding Agent on Qwen3-32B</a></h3>
-        <p class="learn-summary">Agentica&#x27;s DeepSWE-Preview is a fully open-weight coding agent trained purely via reinforcement learning on top of Qwen3-32B, achieving #1 on SWE-Bench-Verified among open-weight models. Uses R2E-Gym framework for tool use (bash, file editing, search) and is MIT-licensed for local deployment.</p>
+        <h3 class="learn-title"><a href="https://tonisagrista.com/blog/2026/quantization/" target="_blank">GGUF Quantization Guide: Q4_K_M vs Q8_0 vs F16 — Which to Use in 2026</a></h3>
+        <p class="learn-summary">Comprehensive breakdown of GGUF quantization tiers explaining why Q4_K_M is the 2026 community sweet spot — fitting 7B models in ~4.1GB VRAM at 92-95% of FP16 quality. Covers Q3 through Q8 tradeoffs with perplexity benchmarks.</p>
         <div class="learn-actions">
-          <a href="https://huggingface.co/agentica-org/DeepSWE-Preview" target="_blank" class="learn-btn">🔗 Read</a>
-          <button class="learn-btn" onclick="copyCliCmd('DeepSWE-Preview: Fully Open-Source RL-Trained Coding Agent on Qwen3-32B')">💬 Discuss in CLI</button>
+          <a href="https://tonisagrista.com/blog/2026/quantization/" target="_blank" class="learn-btn">🔗 Read</a>
+          <button class="learn-btn" onclick="copyCliCmd('GGUF Quantization Guide: Q4_K_M vs Q8_0 vs F16 — Which to Use in 2026')">💬 Discuss in CLI</button>
         </div>
       </div>
     </div>
@@ -597,6 +597,7 @@ function openModal(itemKey) {
   const item = modalData[itemKey];
   if (!item) return;
 
+  window._currentModalSession = item.sessionName || '';
   document.getElementById('modalIcon').textContent = item.icon;
   document.getElementById('modalTitle').textContent = item.label;
   document.getElementById('modalCat').textContent = item.categoryLabel;
@@ -679,6 +680,7 @@ function openRecModal() {
   const rec = modalData['__recommendation__'];
   if (!rec) return;
 
+  window._currentModalSession = rec.sessionName || '';
   document.getElementById('modalIcon').textContent = '🎯';
   document.getElementById('modalTitle').textContent = rec.label;
   document.getElementById('modalCat').textContent = 'Daily Recommendation';
@@ -770,7 +772,14 @@ function openRecModal() {
 function discussInCli() {
   const title = document.getElementById('modalTitle').textContent;
   const summary = document.getElementById('modalSummary').textContent;
-  const cmd = 'copilot -p "Tell me more about: ' + title + '. Context: ' + summary.substring(0, 200) + '"';
+  const context = summary.substring(0, 200).replace(/"/g, '\\\\"');
+  const sessionName = window._currentModalSession || '';
+  let cmd;
+  if (sessionName) {
+    cmd = 'copilot --resume="' + sessionName + '" -p "I want to discuss: ' + title + '. Context from monitor: ' + context + '"';
+  } else {
+    cmd = 'copilot -p "Tell me more about: ' + title + '. Context: ' + context + '"';
+  }
   navigator.clipboard.writeText(cmd).then(() => {
     const toast = document.getElementById('copiedToast');
     toast.style.display = 'inline';
