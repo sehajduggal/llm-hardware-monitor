@@ -4991,6 +4991,278 @@ def _extract_learning_articles(checks):
     return []
 
 
+def _generate_dag_visualization(ks_topics: dict) -> str:
+    """Generate an interactive SVG DAG visualization of the knowledge map."""
+    # Short labels for each topic
+    SHORT_LABELS = {
+        "tokens_and_parameters": "Tokens & Params",
+        "vram_calculation": "VRAM Calc",
+        "context_window_math": "Context Windows",
+        "prefill_vs_decode": "Prefill/Decode",
+        "kv_cache_growth": "KV Cache",
+        "memory_bandwidth_vs_compute": "Mem Bandwidth",
+        "latency_vs_throughput": "Latency/Throughput",
+        "quantization_basics": "Quantization",
+        "gguf_formats": "GGUF Formats",
+        "exl2_awq_gptq": "EXL2/AWQ/GPTQ",
+        "offloading_gpu_cpu_disk": "Offloading",
+        "moe_expert_routing": "MoE Routing",
+        "speculative_decoding": "Spec Decoding",
+        "llama_cpp": "llama.cpp",
+        "ktransformers": "KTransformers",
+        "vllm_tensorrt": "vLLM/TensorRT",
+        "mlx_apple_silicon": "MLX (Apple)",
+        "runtime_compat": "Runtime Compat",
+        "dense_vs_moe": "Dense vs MoE",
+        "coding_model_traits": "Coding Models",
+        "reasoning_chains": "Reasoning",
+        "model_selection_for_agents": "Model Selection",
+        "agent_context_management": "Agent Context",
+        "yolo_coding_mode": "YOLO Mode",
+        "batch_concurrency": "Batch/Concurrency",
+        "tool_use_function_calling": "Tool Use",
+        "vram_tiers_and_gpus": "GPU VRAM Tiers",
+        "ram_bandwidth_for_offload": "RAM Bandwidth",
+        "pcie_lanes_multi_gpu": "PCIe/Multi-GPU",
+        "ssd_weight_loading": "SSD Loading",
+        "power_thermals_noise": "Power/Thermals",
+        "os_runtime_friction": "OS/Runtime",
+        "lora_qlora_basics": "LoRA/QLoRA",
+        "when_to_finetune": "When to Fine-tune",
+    }
+
+    STATUS_COLORS = {
+        "unseen": "#555555",
+        "introduced": "#f59e0b",
+        "reinforced": "#10b981",
+        "applied": "#6366f1",
+    }
+    STATUS_GLOW = {
+        "unseen": "none",
+        "introduced": "0 0 8px #f59e0b55",
+        "reinforced": "0 0 8px #10b98155",
+        "applied": "0 0 10px #6366f155",
+    }
+    ARROW_COLORS = {
+        "unseen": "#444444",
+        "introduced": "#f59e0b88",
+        "reinforced": "#10b98188",
+        "applied": "#6366f188",
+    }
+
+    layer_names = {
+        0: "Foundations", 1: "Core Inference", 2: "Optimization",
+        3: "Engines", 4: "Models", 5: "Agents",
+        6: "Hardware", 7: "Fine-tune"
+    }
+
+    # Layout parameters
+    node_w, node_h = 120, 40
+    h_gap, v_gap = 30, 100
+    top_margin, left_margin = 60, 90
+    num_layers = 8
+
+    # Group topics by layer
+    layers = {i: [] for i in range(num_layers)}
+    for tid, tdata in TOPIC_DAG.items():
+        layers[tdata["layer"]].append(tid)
+
+    # Calculate max width needed
+    max_nodes_in_layer = max(len(v) for v in layers.values()) if layers else 1
+    svg_width = max(1000, left_margin + max_nodes_in_layer * (node_w + h_gap))
+    svg_height = top_margin + num_layers * (node_h + v_gap) + 40
+
+    # Position each node
+    node_positions = {}  # tid -> (cx, cy)
+    for layer_num in range(num_layers):
+        tids = layers[layer_num]
+        n = len(tids)
+        if n == 0:
+            continue
+        total_width = n * node_w + (n - 1) * h_gap
+        start_x = (svg_width - left_margin) / 2 - total_width / 2 + left_margin
+        y = top_margin + layer_num * (node_h + v_gap)
+        for i, tid in enumerate(tids):
+            cx = start_x + i * (node_w + h_gap) + node_w / 2
+            cy = y + node_h / 2
+            node_positions[tid] = (cx, cy)
+
+    # Build SVG elements
+    arrows_svg = ""
+    nodes_svg = ""
+
+    # Draw edges (arrows from prereq to dependent)
+    for tid, tdata in TOPIC_DAG.items():
+        if tid not in node_positions:
+            continue
+        target_status = ks_topics.get(tid, {}).get("status", "unseen")
+        tx, ty = node_positions[tid]
+        target_top = (tx, ty - node_h / 2)
+
+        for prereq in tdata.get("prereqs", []):
+            if prereq not in node_positions:
+                continue
+            px, py = node_positions[prereq]
+            source_bottom = (px, py + node_h / 2)
+
+            # Cubic bezier: go down from source, up into target
+            sx, sy = source_bottom
+            ex, ey = target_top
+            mid_y = (sy + ey) / 2
+            # Control points for smooth curve
+            c1x, c1y = sx, sy + (mid_y - sy) * 0.7
+            c2x, c2y = ex, ey - (ey - mid_y) * 0.7
+
+            prereq_status = ks_topics.get(prereq, {}).get("status", "unseen")
+            arrow_color = ARROW_COLORS.get(target_status, "#444")
+            dash = 'stroke-dasharray="4 3"' if prereq_status == "unseen" else ""
+            opacity = "0.4" if target_status == "unseen" else "0.7"
+
+            arrows_svg += (
+                f'<path d="M{sx:.1f},{sy:.1f} C{c1x:.1f},{c1y:.1f} {c2x:.1f},{c2y:.1f} {ex:.1f},{ey:.1f}" '
+                f'fill="none" stroke="{arrow_color}" stroke-width="1.5" {dash} opacity="{opacity}" '
+                f'marker-end="url(#arrow-{target_status})"/>\n'
+            )
+
+    # Draw nodes
+    for tid in TOPIC_DAG:
+        if tid not in node_positions:
+            continue
+        cx, cy = node_positions[tid]
+        status = ks_topics.get(tid, {}).get("status", "unseen")
+        color = STATUS_COLORS.get(status, "#555")
+        glow = STATUS_GLOW.get(status, "none")
+        label = _esc(SHORT_LABELS.get(tid, tid[:14]))
+        full_title = _esc(TOPIC_DAG[tid].get("title", tid))
+        confidence = ks_topics.get(tid, {}).get("confidence", 0)
+        conf_str = f" ({int(confidence*100)}%)" if status != "unseen" else ""
+
+        rx, ry = cx - node_w / 2, cy - node_h / 2
+        fill_opacity = "0.15" if status == "unseen" else "0.25"
+        stroke_w = "1" if status == "unseen" else "2"
+        font_size = "10" if len(label) > 14 else "11"
+
+        filter_attr = f'filter="url(#glow-{status})"' if status != "unseen" else ""
+        nodes_svg += (
+            f'<g class="dag-node" data-topic="{tid}">'
+            f'<title>{full_title}{conf_str}</title>'
+            f'<rect x="{rx:.1f}" y="{ry:.1f}" width="{node_w}" height="{node_h}" '
+            f'rx="8" ry="8" fill="{color}" fill-opacity="{fill_opacity}" '
+            f'stroke="{color}" stroke-width="{stroke_w}" {filter_attr}/>'
+            f'<text x="{cx:.1f}" y="{cy + 4:.1f}" text-anchor="middle" '
+            f'font-size="{font_size}" fill="{color}" font-family="system-ui, sans-serif" '
+            f'font-weight="500">{label}</text>'
+            f'</g>\n'
+        )
+
+    # Layer labels on left
+    layer_labels_svg = ""
+    for layer_num in range(num_layers):
+        if not layers[layer_num]:
+            continue
+        y = top_margin + layer_num * (node_h + v_gap) + node_h / 2
+        name = layer_names.get(layer_num, f"L{layer_num}")
+        layer_labels_svg += (
+            f'<text x="10" y="{y + 4:.1f}" font-size="10" fill="#888" '
+            f'font-family="system-ui, sans-serif" font-weight="600">'
+            f'L{layer_num}</text>\n'
+            f'<text x="10" y="{y + 18:.1f}" font-size="9" fill="#666" '
+            f'font-family="system-ui, sans-serif">{_esc(name)}</text>\n'
+        )
+
+    # Legend
+    legend_x = svg_width - 200
+    legend_svg = (
+        f'<g transform="translate({legend_x}, 10)">'
+        f'<text x="0" y="12" font-size="10" fill="#888" font-family="system-ui, sans-serif" font-weight="600">Status</text>'
+    )
+    for i, (status, color) in enumerate(STATUS_COLORS.items()):
+        ly = 26 + i * 18
+        legend_svg += (
+            f'<rect x="0" y="{ly - 8}" width="12" height="12" rx="3" '
+            f'fill="{color}" fill-opacity="0.3" stroke="{color}" stroke-width="1.5"/>'
+            f'<text x="18" y="{ly + 2}" font-size="9" fill="{color}" '
+            f'font-family="system-ui, sans-serif">{status.capitalize()}</text>'
+        )
+    legend_svg += '</g>'
+
+    # Assemble SVG
+    svg = f'''<div class="dag-viz-container">
+<svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
+     class="dag-svg" preserveAspectRatio="xMidYMin meet">
+  <defs>
+    <marker id="arrow-unseen" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#444"/>
+    </marker>
+    <marker id="arrow-introduced" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b88"/>
+    </marker>
+    <marker id="arrow-reinforced" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b98188"/>
+    </marker>
+    <marker id="arrow-applied" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6366f188"/>
+    </marker>
+    <filter id="glow-introduced" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#f59e0b" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-reinforced" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#10b981" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-applied" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-color="#6366f1" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  {layer_labels_svg}
+  {arrows_svg}
+  {nodes_svg}
+  {legend_svg}
+</svg>
+</div>
+<style>
+.dag-viz-container {{
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 12px;
+  background: rgba(20, 20, 35, 0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 8px;
+  margin-top: 8px;
+}}
+.dag-svg {{
+  width: 100%;
+  min-width: 700px;
+  height: auto;
+  display: block;
+}}
+.dag-node rect {{
+  cursor: pointer;
+  transition: fill-opacity 0.2s, stroke-width 0.2s;
+}}
+.dag-node:hover rect {{
+  fill-opacity: 0.4 !important;
+  stroke-width: 2.5 !important;
+}}
+.dag-node:hover text {{
+  font-weight: 700 !important;
+}}
+</style>'''
+    return svg
+
+
 def _generate_learning_page(checks, enrichment, now, state=None):
     """Generate the learning feed page with curriculum progress and lesson cards."""
     nav_html = _generate_nav_html("learning", now)
@@ -5016,35 +5288,8 @@ def _generate_learning_page(checks, enrichment, now, state=None):
         0: "🏗️", 1: "⚡", 2: "🔧", 3: "🚀", 4: "🧠", 5: "🤖", 6: "🖥️", 7: "🎯"
     }
     
-    # Topic pills per layer
-    dag_layers_html = ""
-    for layer_num in range(8):
-        layer_topic_ids = [tid for tid, t in TOPIC_DAG.items() if t["layer"] == layer_num]
-        if not layer_topic_ids:
-            continue
-        
-        layer_done = layer_num in completed_layers
-        layer_cls = "layer-complete" if layer_done else "layer-pending"
-        icon = layer_icons.get(layer_num, "📘")
-        name = layer_names.get(layer_num, f"Layer {layer_num}")
-        
-        pills = ""
-        for tid in layer_topic_ids:
-            ts = ks_topics.get(tid, {})
-            status = ts.get("status", "unseen")
-            title = TOPIC_DAG[tid]["title"]
-            status_cls = f"topic-{status}"
-            status_icon = {"unseen": "○", "introduced": "◐", "reinforced": "●", "applied": "✓"}.get(status, "○")
-            confidence = ts.get("confidence", 0)
-            conf_str = f" ({int(confidence*100)}%)" if status != "unseen" else ""
-            pills += f'<span class="topic-pill {status_cls}" title="{_esc(title)}{conf_str}">{status_icon} {_esc(title)}</span>'
-        
-        dag_layers_html += (
-            f'<div class="dag-layer {layer_cls}">'
-            f'<div class="layer-header">{icon} <strong>{name}</strong></div>'
-            f'<div class="layer-topics">{pills}</div>'
-            f'</div>'
-        )
+    # Generate SVG DAG visualization
+    dag_viz_html = _generate_dag_visualization(ks_topics)
     
     # Build recent lessons from the learning_feed checks data
     lessons_html = ""
@@ -5336,9 +5581,7 @@ function copyCliCmd(topic) {
         # Topic DAG
         '\n  <div class="dag-section">'
         '\n    <div class="section-title">\U0001F5FA\uFE0F Knowledge Map</div>'
-        '\n    <div style="font-size:0.8rem;color:var(--dim);margin-bottom:12px">'
-        '○ Unseen &nbsp; ◐ Introduced &nbsp; ● Reinforced &nbsp; ✓ Applied</div>'
-        f'\n    {dag_layers_html}'
+        f'\n    {dag_viz_html}'
         '\n  </div>'
         '\n'
     )
