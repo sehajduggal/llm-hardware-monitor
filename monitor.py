@@ -53,9 +53,14 @@ PAGES_DIR = MONITOR_DIR / "pages"
 COPILOT_CMD = "node"
 COPILOT_SCRIPT = r"C:\ProgramData\global-npm\node_modules\@github\copilot\npm-loader.js"
 
-# Session name for this run — enables "Discuss in CLI" resume
-MONITOR_SESSION_NAME = f"llm-monitor-{datetime.now().strftime('%Y-%m-%d')}"
-_session_created = False  # tracks if --name was already used this run
+# Per-category session naming for "Discuss in CLI" resume
+import secrets
+_RUN_ID = secrets.token_hex(2)  # 4-char hex, unique per run
+_RUN_DATE = datetime.now().strftime('%Y-%m-%d')
+
+def _session_name_for(category: str) -> str:
+    """Generate a unique session name for a given prompt category."""
+    return f"llm-monitor-{category}-{_RUN_DATE}-{_RUN_ID}"
 
 # Copilot invocation flags — use text mode (more reliable than json for subprocess)
 COPILOT_FLAGS = [
@@ -325,21 +330,18 @@ def save_state(state: dict):
     STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
 
 
-def run_copilot(prompt: str, timeout: int = 180) -> str:
+def run_copilot(prompt: str, timeout: int = 180, category: str = "general") -> str:
     """Run a Copilot CLI prompt and return the raw response text.
     
     Calls node directly with the npm-loader.js script, bypassing the .cmd
     wrapper to avoid cmd.exe metacharacter interpretation issues on Windows.
-    Uses a named session so all prompts in one run share context and can be
-    resumed later via 'copilot --resume="llm-monitor-YYYY-MM-DD"'.
+    Creates a named session per category so it can be resumed later via
+    'copilot --resume="llm-monitor-{category}-{date}-{hex}"'.
     """
-    global _session_created
+    session_name = _session_name_for(category)
     cmd = [COPILOT_CMD, COPILOT_SCRIPT, "-p", prompt] + COPILOT_FLAGS
-    if not _session_created:
-        cmd += ["--name", MONITOR_SESSION_NAME]
-    else:
-        cmd += ["--resume", MONITOR_SESSION_NAME]
-    logger.info(f"Running Copilot prompt ({len(prompt)} chars)...")
+    cmd += ["--name", session_name]
+    logger.info(f"Running Copilot prompt ({len(prompt)} chars) [session={session_name}]...")
 
     try:
         result = subprocess.run(
@@ -364,7 +366,6 @@ def run_copilot(prompt: str, timeout: int = 180) -> str:
             logger.warning("Empty stdout from Copilot")
         else:
             logger.info(f"Got {len(output)} chars of output")
-            _session_created = True  # session now exists, use --resume next time
         return output
 
     except subprocess.TimeoutExpired:
@@ -493,7 +494,7 @@ def run_copilot_with_retry(prompt: str, category: str = None,
     for attempt in range(max_retries):
         if attempt > 0:
             time.sleep(3)  # brief pause before retry to avoid race conditions
-        response = run_copilot(prompt, timeout=timeout)
+        response = run_copilot(prompt, timeout=timeout, category=category or "general")
         if not response:
             logger.warning(f"Attempt {attempt + 1}/{max_retries}: empty response")
             continue
@@ -2671,7 +2672,7 @@ def run_enrichment(old_enrichment: dict, today: str, state: dict = None) -> dict
     for prompt_key, prompt_template in ENRICHMENT_PROMPTS.items():
         prompt = prompt_template.format(date=today)
         logger.info(f"--- Enrichment: {prompt_key} ---")
-        response = run_copilot(prompt, timeout=240)
+        response = run_copilot(prompt, timeout=240, category=f"enrich-{prompt_key}")
         if not response:
             logger.warning(f"Enrichment {prompt_key}: empty response, keeping cached")
             continue
@@ -2752,7 +2753,7 @@ def _run_discovery_enrichment(enrichment: dict, today: str, state: dict) -> dict
             " 1-3 REAL URLs per item. ONLY JSON."
         )
 
-        response = run_copilot(prompt, timeout=240)
+        response = run_copilot(prompt, timeout=240, category="enrich-discovery")
         if not response:
             logger.warning("Discovery enrichment: empty response")
             continue
@@ -2885,7 +2886,7 @@ def run_recommendation(checks: dict, enrichment: dict, prev_recs: list,
     """Generate daily setup recommendation based on all current data."""
     prompt = build_recommendation_prompt(checks, enrichment, prev_recs, today, state=state)
     logger.info(f"--- Daily Recommendation ({len(prompt)} chars) ---")
-    response = run_copilot(prompt, timeout=300)
+    response = run_copilot(prompt, timeout=300, category="recommendation")
     if not response:
         logger.warning("Recommendation: empty response")
         return None
@@ -3675,6 +3676,7 @@ function openModal(itemKey) {
   const item = modalData[itemKey];
   if (!item) return;
 
+  window._currentModalSession = item.sessionName || '';
   document.getElementById('modalIcon').textContent = item.icon;
   document.getElementById('modalTitle').textContent = item.label;
   document.getElementById('modalCat').textContent = item.categoryLabel;
@@ -3757,6 +3759,7 @@ function openRecModal() {
   const rec = modalData['__recommendation__'];
   if (!rec) return;
 
+  window._currentModalSession = rec.sessionName || '';
   document.getElementById('modalIcon').textContent = '🎯';
   document.getElementById('modalTitle').textContent = rec.label;
   document.getElementById('modalCat').textContent = 'Daily Recommendation';
@@ -3848,8 +3851,8 @@ function openRecModal() {
 function discussInCli() {
   const title = document.getElementById('modalTitle').textContent;
   const summary = document.getElementById('modalSummary').textContent;
-  const sessionName = document.body.dataset.monitorSession || '';
-  const context = summary.substring(0, 200).replace(/"/g, '\\"');
+  const context = summary.substring(0, 200).replace(/"/g, '\\\\"');
+  const sessionName = window._currentModalSession || '';
   let cmd;
   if (sessionName) {
     cmd = 'copilot --resume="' + sessionName + '" -p "I want to discuss: ' + title + '. Context from monitor: ' + context + '"';
@@ -3939,6 +3942,7 @@ def _build_modal_data(checks, enrichment, cat_icons, cat_labels, link_map):
                 "flags": {},
                 "analysis": "",
                 "links": [],
+                "sessionName": _session_name_for(cat_key),
             }
             if isinstance(item_val, dict):
                 entry["info"] = item_val.get("info", "")
@@ -4019,7 +4023,7 @@ def _generate_page_shell(title, nav_html, body_content, modal_json):
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
         f'<title>{title}</title>\n'
         f'<style>{_DASHBOARD_CSS}</style>\n'
-        f'</head>\n<body data-monitor-session="{MONITOR_SESSION_NAME}">\n'
+        f'</head>\n<body data-run-id="{_RUN_ID}" data-run-date="{_RUN_DATE}">\n'
         + nav_html + '\n'
         + body_content + '\n'
         + _MODAL_OVERLAY_HTML + '\n'
@@ -4491,6 +4495,7 @@ def _generate_efficiency_page(checks, enrichment, modal_data, now):
             "flags": {"found": found, "signal": signal},
             "analysis": enr.get("analysis", "") if isinstance(enr, dict) else "",
             "links": enr.get("links", []) if isinstance(enr, dict) else [],
+            "sessionName": _session_name_for("efficiency_research"),
         }
 
     if not cards_html:
@@ -5159,6 +5164,7 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
             "cost_estimate_inr": rec.get("cost_estimate_inr", ""),
             "next_milestone": rec.get("next_milestone", ""),
             "fallback_now": rec.get("fallback_now", ""),
+            "sessionName": _session_name_for("recommendation"),
         }
 
     # Enrich modal data with price history (try both key and key_usd/key_inr variants)
@@ -5467,7 +5473,11 @@ def main():
         "changes": changes[:5],
     })
     state["history"] = state["history"][-90:]
-    state["copilot_session"] = MONITOR_SESSION_NAME
+    state["copilot_sessions"] = {
+        "run_id": _RUN_ID,
+        "run_date": _RUN_DATE,
+        "pattern": f"llm-monitor-{{category}}-{_RUN_DATE}-{_RUN_ID}",
+    }
     save_state(state)
 
     # Generate dashboard
