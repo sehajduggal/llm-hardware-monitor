@@ -458,7 +458,161 @@ def _update_knowledge_state(knowledge_state: dict, learning_response: dict) -> d
     return knowledge_state
 
 
-# ─── Monitoring Prompts (by category) ────────────────────────────────────────
+# ─── Gather Prompts (v2 Pipeline: focused data collection) ───────────────────
+
+def _build_gather_context(state: dict, domain: str) -> str:
+    """Build a compact summary of what we already know for a gather domain.
+    
+    Gives the gatherer context so it can focus on genuinely NEW information.
+    Returns max ~150 words of previous-state summary.
+    """
+    analytical = state.get("analytical_state", {})
+    domain_state = analytical.get(domain, {})
+    last_run = state.get("last_run", "never")
+    
+    # Summarize existing evidence (max 5 claims)
+    evidence = domain_state.get("evidence", [])
+    known_claims = [e.get("claim", "")[:80] for e in evidence[:5]]
+    
+    context_parts = [f"Last analysis: {last_run}."]
+    if domain_state.get("current_analysis"):
+        # Truncate to ~100 words
+        analysis = domain_state["current_analysis"]
+        words = analysis.split()[:100]
+        context_parts.append(f"Current understanding: {' '.join(words)}")
+    elif known_claims:
+        context_parts.append(f"Known: {'; '.join(known_claims)}")
+    
+    confidence = domain_state.get("confidence", 0)
+    context_parts.append(f"Confidence: {confidence:.0%}.")
+    
+    return " ".join(context_parts)
+
+
+GATHER_PROMPTS = {
+    "hardware_gather": (
+        "You are a hardware market researcher for local LLM inference. Today is {date}. "
+        "CONTEXT: {gather_context} "
+        "YOUR TASK: Search the web for NEW hardware information since last analysis. "
+        "Focus areas: "
+        "- Apple Mac Studio/Mac Mini (M4 Max, M5 rumors) availability and pricing in India & US "
+        "- AMD Strix Halo 128GB mini PCs (Framework, Bosgame, Beelink, Minisforum, Corsair) "
+        "- NVIDIA RTX 5090/5080 availability and pricing in India "
+        "- Any NEW product with >=48GB unified memory or >=24GB VRAM under $5000/INR 5L "
+        "- Apple events, WWDC announcements "
+        "Return ONLY a JSON object with this EXACT structure: "
+        '{{"findings": ['
+        '{{"claim": "specific factual finding (e.g., Mac Studio M4 Max 128GB now orderable on apple.com/in at INR 4,19,900)", '
+        '"source": "where you found this (e.g., apple.com/in product page)", '
+        '"source_type": "retailer|benchmark|community|official|blog|review", '
+        '"date": "{date}", '
+        '"confidence_signal": "direct_observation|multiple_reports|single_anecdote|official_announcement", '
+        '"price": "price if applicable (e.g., INR 4,19,900 or $4,999)", '
+        '"related_domains": ["models", "optimization"]}}'
+        '], '
+        '"nothing_new": false, '
+        '"summary": "1-2 sentence summary of what changed since last analysis"'
+        "}} "
+        "Include 5-15 findings. Each finding should be a SPECIFIC, VERIFIABLE claim. "
+        "If nothing changed since last analysis, set nothing_new=true and return empty findings. "
+        "DO NOT analyze or recommend. Just gather raw facts. Return ONLY the JSON."
+    ),
+
+    "models_gather": (
+        "You are a model ecosystem researcher for local LLM coding. Today is {date}. "
+        "CONTEXT: {gather_context} "
+        "YOUR TASK: Search the web for NEW model information since last analysis. "
+        "Focus areas: "
+        "- New coding-capable model releases (any size that fits 48-128GB unified or 24-32GB VRAM) "
+        "- Benchmark results (HumanEval, SWE-bench, LiveCodeBench, Aider polyglot) "
+        "- Architecture innovations (MoE, hybrid, new attention mechanisms) "
+        "- Inference speed benchmarks on target hardware (tok/s on M4 Max, Strix Halo, RTX 5090) "
+        "- Quantization format support (GGUF, EXL2, AWQ variants) "
+        "- Coding agent frameworks supporting local models "
+        "Return ONLY a JSON object with this EXACT structure: "
+        '{{"findings": ['
+        '{{"claim": "specific factual finding (e.g., Qwen3-32B released May 2026 scoring 78.5 on HumanEval+)", '
+        '"source": "where you found this (e.g., huggingface.co/Qwen release page)", '
+        '"source_type": "retailer|benchmark|community|official|blog|review|paper", '
+        '"date": "{date}", '
+        '"confidence_signal": "direct_observation|multiple_reports|single_anecdote|official_announcement", '
+        '"benchmark_data": {{"metric": "value"}}, '
+        '"related_domains": ["hardware", "optimization"]}}'
+        '], '
+        '"nothing_new": false, '
+        '"summary": "1-2 sentence summary of what changed since last analysis"'
+        "}} "
+        "Include 5-15 findings. Each finding should be a SPECIFIC, VERIFIABLE claim with numbers. "
+        "If nothing changed, set nothing_new=true. "
+        "DO NOT analyze or recommend. Just gather raw facts. Return ONLY the JSON."
+    ),
+
+    "efficiency_gather": (
+        "You are an LLM optimization researcher. Today is {date}. "
+        "CONTEXT: {gather_context} "
+        "YOUR TASK: Search the web for NEW optimization and efficiency information since last analysis. "
+        "Focus areas: "
+        "- Inference engine updates (llama.cpp, vLLM, KTransformers, exllamav2, MLX, Ollama, SGLang) "
+        "- Quantization advances (new formats, quality improvements, VRAM savings) "
+        "- MoE offloading improvements (CPU/GPU split, expert routing efficiency) "
+        "- Memory optimization (KV cache compression, flash attention, paged attention) "
+        "- Speculative decoding advances "
+        "- Budget hardware optimization configs (running 30B+ on 16GB VRAM) "
+        "- Performance tricks from community (r/LocalLLaMA, GitHub issues/PRs) "
+        "Return ONLY a JSON object with this EXACT structure: "
+        '{{"findings": ['
+        '{{"claim": "specific factual finding (e.g., llama.cpp b4532 adds 25% speedup for MoE models via new expert scheduling)", '
+        '"source": "where you found this (e.g., github.com/ggerganov/llama.cpp/releases)", '
+        '"source_type": "retailer|benchmark|community|official|blog|review|github", '
+        '"date": "{date}", '
+        '"confidence_signal": "direct_observation|multiple_reports|single_anecdote|official_announcement", '
+        '"performance_data": "quantitative improvement if available", '
+        '"related_domains": ["hardware", "models"]}}'
+        '], '
+        '"nothing_new": false, '
+        '"summary": "1-2 sentence summary of what changed since last analysis"'
+        "}} "
+        "Include 5-15 findings. Focus on QUANTITATIVE improvements (tok/s gains, VRAM reductions, etc). "
+        "Signal levels: breakthrough (2x+ or enables new configs), notable (10-50% improvement), incremental (<10%). "
+        "DO NOT analyze or recommend. Just gather raw facts. Return ONLY the JSON."
+    ),
+
+    "community_gather": (
+        "You are a community intelligence researcher for local LLM. Today is {date}. "
+        "CONTEXT: {gather_context} "
+        "YOUR TASK: Search the web for NEW community discussions, real-world setups, and practical insights. "
+        "Focus areas: "
+        "- r/LocalLLaMA top posts (last 7 days) about running 30B-70B models "
+        "- YouTube demos/reviews of local LLM setups "
+        "- GitHub repos: new tools, configs, or scripts for local inference "
+        "- Real-world user benchmarks on target hardware (M4 Max, Strix Halo, RTX 5090, budget GPUs) "
+        "- Deals, price drops, stock alerts for target hardware in India "
+        "- Fine-tuning experiences: what works for coding tasks "
+        "- Practical agent setups: what models + frameworks people actually use for YOLO coding "
+        "Return ONLY a JSON object with this EXACT structure: "
+        '{{"findings": ['
+        '{{"claim": "specific community finding (e.g., Reddit user reports Qwen3-30B-A3B at 180 tok/s on M4 Max 128GB with llama.cpp b4530)", '
+        '"source": "where you found this (e.g., reddit.com/r/LocalLLaMA/... post title)", '
+        '"source_type": "community|reddit|youtube|github|forum|discord", '
+        '"date": "{date}", '
+        '"confidence_signal": "direct_observation|multiple_reports|single_anecdote|verified_benchmark", '
+        '"upvotes_or_engagement": "50 upvotes / 2000 views if known", '
+        '"related_domains": ["hardware", "models", "optimization"]}}'
+        '], '
+        '"nothing_new": false, '
+        '"summary": "1-2 sentence summary of community buzz since last analysis"'
+        "}} "
+        "Include 5-15 findings. Prioritize HIGH-ENGAGEMENT posts (many upvotes/comments). "
+        "Include real-world benchmark numbers when people share them. "
+        "DO NOT analyze or recommend. Just gather what the community is saying. Return ONLY the JSON."
+    ),
+}
+
+# Expected keys for gather prompt validation
+GATHER_EXPECTED_KEYS = {"findings", "nothing_new", "summary"}
+
+
+# ─── Monitoring Prompts (legacy, used as fallback) ────────────────────────────
 
 PROMPTS = {
     "hardware": (
@@ -849,19 +1003,54 @@ def _migrate_state_v2(state: dict) -> dict:
 def _run_gather_parallel(state: dict, today: str) -> dict:
     """Run all gather prompts in parallel using ThreadPoolExecutor.
     
-    Returns dict of {category: (raw_response, parsed_dict)} for each gather prompt.
-    Learning runs in parallel too since it only depends on previous state.
+    Uses new GATHER_PROMPTS (v2 pipeline) for data collection, plus legacy
+    PROMPTS for categories not yet migrated (learning_feed, model_benchmarks).
+    
+    Returns dict of {category: {response, parsed}} for each prompt.
     """
-    # Determine which categories are gather prompts (all except learning_feed)
-    gather_categories = [cat for cat in PROMPTS.keys() if cat != "learning_feed"]
+    # Mapping from gather prompt names to legacy category names for backward compat
+    # The pipeline uses new gather prompts but stores results under legacy keys
+    GATHER_TO_LEGACY = {
+        "hardware_gather": "hardware",
+        "models_gather": "models_and_agents",
+        "efficiency_gather": "efficiency_research",
+        "community_gather": "deals_and_blogs",
+    }
     
     results = {}
     
     def _run_single_gather(category: str) -> tuple:
-        """Execute a single gather prompt. Runs in thread."""
-        prompt_template = PROMPTS[category]
+        """Execute a single gather or legacy prompt. Runs in thread."""
         
-        # Format prompt
+        # Check if this is a v2 gather prompt
+        if category in GATHER_PROMPTS:
+            # Build domain-specific context
+            domain_map = {
+                "hardware_gather": "hardware",
+                "models_gather": "models",
+                "efficiency_gather": "optimization",
+                "community_gather": "hardware",  # community covers multiple domains
+            }
+            domain = domain_map.get(category, "hardware")
+            gather_ctx = _build_gather_context(state, domain)
+            prompt = GATHER_PROMPTS[category].format(date=today, gather_context=gather_ctx)
+            
+            # Use the legacy category name for session naming
+            session_cat = GATHER_TO_LEGACY.get(category, category)
+            response, parsed = run_copilot_with_retry(prompt, category=session_cat)
+            
+            # Validate gather format
+            if parsed and not _validate_gather_response(parsed):
+                logger.warning(f"[GATHER] {category}: invalid gather format, treating as legacy")
+                # Try to salvage — if it has expected legacy keys, use as-is
+            
+            return category, response, parsed
+        
+        # Legacy prompts (learning_feed, model_benchmarks)
+        prompt_template = PROMPTS.get(category)
+        if not prompt_template:
+            return category, "", None
+            
         if category == "learning_feed":
             ks = state.get("knowledge_state") or _init_knowledge_state()
             learning_ctx = _build_learning_prompt_context(ks)
@@ -884,10 +1073,10 @@ def _run_gather_parallel(state: dict, today: str) -> dict:
         response, parsed = run_copilot_with_retry(prompt, category=category)
         return category, response, parsed
     
-    # Run all gathers + learning in parallel
-    all_categories = gather_categories + ["learning_feed"]
+    # Categories to run: v2 gather prompts + legacy learning + legacy benchmarks
+    all_categories = list(GATHER_PROMPTS.keys()) + ["learning_feed", "model_benchmarks"]
     
-    with ThreadPoolExecutor(max_workers=5) as executor:
+    with ThreadPoolExecutor(max_workers=6) as executor:
         futures = {
             executor.submit(_run_single_gather, cat): cat 
             for cat in all_categories
@@ -907,6 +1096,104 @@ def _run_gather_parallel(state: dict, today: str) -> dict:
                 results[cat] = {"response": "", "parsed": None}
     
     return results
+
+
+def _validate_gather_response(parsed: dict) -> bool:
+    """Validate that a response matches the v2 gather format."""
+    if not isinstance(parsed, dict):
+        return False
+    # Must have 'findings' key (list) and 'nothing_new' (bool)
+    if "findings" not in parsed:
+        return False
+    if not isinstance(parsed["findings"], list):
+        return False
+    # Each finding should have at least 'claim' and 'source'
+    for f in parsed["findings"][:3]:  # check first 3
+        if not isinstance(f, dict):
+            return False
+        if "claim" not in f or "source" not in f:
+            return False
+    return True
+
+
+def _convert_gather_to_legacy(gather_results: dict) -> dict:
+    """Convert v2 gather results to legacy checks format for backward compat.
+    
+    The rest of the pipeline (store checks, enrichment, dashboard) still expects
+    the old format. This bridges the gap until full migration.
+    """
+    GATHER_TO_LEGACY = {
+        "hardware_gather": "hardware",
+        "models_gather": "models_and_agents",
+        "efficiency_gather": "efficiency_research",
+        "community_gather": "deals_and_blogs",
+    }
+    
+    legacy_checks = {}
+    
+    for gather_cat, result in gather_results.items():
+        parsed = result.get("parsed")
+        if not parsed:
+            continue
+            
+        legacy_cat = GATHER_TO_LEGACY.get(gather_cat)
+        
+        if legacy_cat and _validate_gather_response(parsed):
+            # Convert findings list to legacy dict format
+            legacy_dict = {}
+            findings = parsed.get("findings", [])
+            
+            if legacy_cat == "hardware":
+                # Group findings into hardware check format
+                for i, f in enumerate(findings):
+                    claim = f.get("claim", "")
+                    key = f"finding_{i}"
+                    # Try to match known hardware keys
+                    claim_lower = claim.lower()
+                    if "mac studio" in claim_lower and "m5" in claim_lower:
+                        key = "mac_studio_m5"
+                    elif "mac studio" in claim_lower and "india" in claim_lower:
+                        key = "mac_studio_128gb_india"
+                    elif "mac studio" in claim_lower:
+                        key = "mac_studio_128gb_us"
+                    elif "mac mini" in claim_lower and "india" in claim_lower:
+                        key = "mac_mini_48gb_india"
+                    elif "mac mini" in claim_lower:
+                        key = "mac_mini_48gb_us"
+                    elif "framework" in claim_lower:
+                        key = "framework_desktop_128gb"
+                    elif "strix halo" in claim_lower or "beelink" in claim_lower or "bosgame" in claim_lower:
+                        key = "strix_halo_options"
+                    elif "rtx 5090" in claim_lower:
+                        key = "rtx_5090_india"
+                    elif "wwdc" in claim_lower or "apple event" in claim_lower:
+                        key = "wwdc_apple_event"
+                    
+                    legacy_dict[key] = {
+                        "info": claim,
+                        "in_stock": "available" in claim_lower or "orderable" in claim_lower or "in stock" in claim_lower,
+                        "source": f.get("source", ""),
+                        "confidence": f.get("confidence_signal", ""),
+                    }
+                    if f.get("price"):
+                        legacy_dict[key]["price"] = f["price"]
+            else:
+                # Generic conversion for models, efficiency, community
+                for i, f in enumerate(findings):
+                    key = f"finding_{i}"
+                    legacy_dict[key] = {
+                        "info": f.get("claim", ""),
+                        "found": True,
+                        "source": f.get("source", ""),
+                        "confidence": f.get("confidence_signal", ""),
+                    }
+            
+            legacy_checks[legacy_cat] = legacy_dict
+        elif not legacy_cat:
+            # Non-gather results (learning, benchmarks) pass through directly
+            legacy_checks[gather_cat] = parsed
+    
+    return legacy_checks
 
 
 def _build_changelog_entry(domain: str, change: str, reason: str, evidence: list = None) -> dict:
@@ -942,17 +1229,26 @@ def run_pipeline(state: dict) -> dict:
     # ── STAGE 1: GATHER (parallel) ──────────────────────────────────────────
     gather_results = _run_gather_parallel(state, today)
     
-    # Process gather results into checks (backward compat with existing logic)
+    # Convert v2 gather results to legacy format for backward compatibility
+    legacy_checks = _convert_gather_to_legacy(gather_results)
+    
+    # Process all results into checks
     new_checks = {}
     run_status = {}
+    
+    # First, apply legacy-converted gather results
+    new_checks.update(legacy_checks)
     
     for category, result in gather_results.items():
         parsed = result.get("parsed")
         response = result.get("response", "")
         
         if parsed:
-            new_checks[category] = parsed
             run_status[category] = "success"
+            
+            # Non-gather results (learning, benchmarks) go directly into checks
+            if category in ("learning_feed", "model_benchmarks"):
+                new_checks[category] = parsed
             
             # Update knowledge state from learning results
             if category == "learning_feed":
@@ -968,16 +1264,33 @@ def run_pipeline(state: dict) -> dict:
                 logger.error(f"{category}: failed to parse JSON after retries")
                 raw_file = MONITOR_DIR / f"raw_{category}_{datetime.now().strftime('%Y%m%d')}.txt"
                 raw_file.write_text(response, encoding="utf-8")
-            # Keep old data
-            if category in old_checks:
-                new_checks[category] = old_checks[category]
     
-    # Store gather metadata for future pipeline stages
-    state.setdefault("pipeline_meta", {})["last_gather_results"] = {
-        cat: {"status": run_status.get(cat, "unknown")} 
-        for cat in gather_results
-    }
+    # Fill in missing categories from old checks
+    for cat in old_checks:
+        if cat not in new_checks:
+            new_checks[cat] = old_checks[cat]
+    
+    # Store raw gather findings in pipeline_meta for future researcher agent
+    raw_findings = {}
+    for cat, result in gather_results.items():
+        parsed = result.get("parsed")
+        if parsed and _validate_gather_response(parsed):
+            raw_findings[cat] = parsed.get("findings", [])
+    
+    state.setdefault("pipeline_meta", {})["last_gather_results"] = raw_findings
     state["pipeline_meta"]["last_pipeline_run"] = datetime.now().isoformat()
+    state["pipeline_meta"]["gather_status"] = {
+        cat: run_status.get(cat, "unknown") for cat in gather_results
+    }
+    
+    # Log gather summary
+    total_findings = sum(len(f) for f in raw_findings.values())
+    nothing_new_count = sum(
+        1 for cat, r in gather_results.items()
+        if r.get("parsed", {}).get("nothing_new", False)
+    )
+    logger.info(f"Gather complete: {total_findings} findings across {len(raw_findings)} domains, "
+                f"{nothing_new_count} domains unchanged")
     
     # ── STAGE 2: ANALYZE (placeholder — currently uses legacy enrichment) ──
     # TODO Phase 3: Replace with researcher agent
@@ -992,6 +1305,7 @@ def run_pipeline(state: dict) -> dict:
         "new_checks": new_checks,
         "run_status": run_status,
         "gather_results": gather_results,
+        "raw_findings": raw_findings,
     }
 
 
