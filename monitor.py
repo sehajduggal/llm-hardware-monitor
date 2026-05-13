@@ -282,15 +282,32 @@ def _generate_learner_context(knowledge_state: dict, target_prompt: str) -> str:
     return " ".join(parts)
 
 
-def _build_learning_prompt_context(knowledge_state: dict) -> str:
+def _build_learning_prompt_context(knowledge_state: dict, analytical_state: dict = None) -> str:
     """Build the dynamic context that gets injected into the learning_feed prompt.
     
     Tells the AI what topics to teach next, what's already been covered,
     and what mode to operate in (curriculum vs latest-developments).
+    Includes recent analytical findings for grounded lessons.
     """
     topics = knowledge_state.get("topics", {})
     total = len(TOPIC_DAG)
     learned_count = sum(1 for t in topics.values() if t.get("status") != "unseen")
+    
+    # Build analytical context from research findings
+    research_context = ""
+    if analytical_state:
+        snippets = []
+        for domain, ds in analytical_state.items():
+            analysis = (ds.get("current_analysis", "") or "")[:150]
+            if analysis:
+                snippets.append(f"[{domain}] {analysis}")
+        if snippets:
+            research_context = (
+                "\n\nRECENT RESEARCH FINDINGS (use these real data points in lessons):\n"
+                + "\n".join(snippets[:4])
+                + "\nReference these findings when teaching relevant concepts. "
+                "Use actual model names, prices, and benchmarks from above.\n"
+            )
     
     # Determine mode
     all_introduced = all(
@@ -309,6 +326,7 @@ def _build_learning_prompt_context(knowledge_state: dict) -> str:
             "Each lesson should connect the new development to existing knowledge. "
             "Search Reddit r/LocalLLaMA, Hacker News, YouTube, and tech blogs for the latest. "
             "Use the same topic_id format but prefix with 'latest_' (e.g., 'latest_ktransformers_v7'). "
+            + research_context
         )
     
     # Curriculum mode
@@ -341,6 +359,7 @@ def _build_learning_prompt_context(knowledge_state: dict) -> str:
         "Budget ₹1.5-3.5L. Goal: run 30B-70B coding models at 25+ tok/s for 24/7 YOLO agents. "
         "Make each lesson build on the previous ones. Use real numbers, real models, real hardware. "
         "Search the web for the latest data and examples. "
+        + research_context
     )
 
 
@@ -1053,7 +1072,8 @@ def _run_gather_parallel(state: dict, today: str) -> dict:
             
         if category == "learning_feed":
             ks = state.get("knowledge_state") or _init_knowledge_state()
-            learning_ctx = _build_learning_prompt_context(ks)
+            analytical_state = state.get("analytical_state", {})
+            learning_ctx = _build_learning_prompt_context(ks, analytical_state)
             prompt = prompt_template.format(date=today, learning_context=learning_ctx)
         else:
             prompt = prompt_template.format(date=today)
@@ -1412,6 +1432,20 @@ def _apply_researcher_output(state: dict, researcher_response: dict) -> dict:
     
     # Keep changelog capped at 180 entries
     changelog = changelog[-180:]
+    
+    # Applied mastery tracking: if researcher references topics from knowledge_state,
+    # mark them as "applied" (bidirectional learning-research integration)
+    knowledge_state = state.get("knowledge_state", {})
+    ks_topics = knowledge_state.get("topics", {})
+    if ks_topics and domain_updates:
+        # Check if any known topic_ids appear in the researcher's analysis text
+        all_analysis_text = " ".join(
+            u.get("analysis", "") for u in domain_updates.values() if isinstance(u, dict)
+        ).lower()
+        for topic_id, topic_info in ks_topics.items():
+            if topic_info.get("status") in ("introduced", "reinforced") and topic_id in all_analysis_text:
+                topic_info["status"] = "applied"
+                topic_info["applied_on"] = datetime.now().strftime("%Y-%m-%d")
     
     state["analytical_state"] = analytical_state
     state["changelog"] = changelog
