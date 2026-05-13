@@ -1446,16 +1446,155 @@ def _run_researcher(state: dict, raw_findings: dict) -> dict | None:
     else:
         logger.error("Researcher agent returned no parseable response")
         return None
+
+
+# ─── Phase 4: Critic Agent ───────────────────────────────────────────────────
+
+def _build_critic_prompt(analytical_state: dict) -> str:
+    """Build the critic prompt to review analysis for gaps and contradictions."""
+    # Compact state for critic review
+    state_for_review = {}
+    for domain, ds in analytical_state.items():
+        state_for_review[domain] = {
+            "analysis": (ds.get("current_analysis", "") or "")[:400],
+            "confidence": ds.get("confidence", 0),
+            "num_options": len(ds.get("options", [])),
+            "num_evidence": len(ds.get("evidence", [])),
+            "last_changed": ds.get("last_changed", "never"),
+            "conflicts": len(ds.get("conflicts_resolved", [])),
+        }
+    
+    prompt = (
+        "You are the LLM Homelab Critic. Your job is quality assurance of the analysis. "
+        f"Today is {datetime.now().strftime('%B %d, %Y')}. "
+        "\n\nCURRENT ANALYTICAL STATE TO REVIEW:\n"
+        f"{json.dumps(state_for_review, indent=None, default=str)}"
+        "\n\nCHECK FOR THESE ISSUES:"
+        "\n1. UNSUPPORTED CLAIMS: Any domain with confidence > 0.7 but fewer than 3 evidence items"
+        "\n2. CROSS-DOMAIN CONTRADICTIONS: Hardware page says X but models page assumes Y"
+        "\n3. STALE CLAIMS: Any domain not updated in 7+ days that might have new developments"
+        "\n4. MISSING PERSPECTIVES: Only 1 option where 3+ viable alternatives exist"
+        "\n5. INCOMPLETE ANALYSIS: Any domain with empty analysis or confidence 0"
+        "\n\nReturn ONLY a JSON object:"
+        '\n{"status": "clean|gaps_found",'
+        '\n "issues": ['
+        '\n   {"domain": "hardware", "type": "unsupported_claim|contradiction|stale|missing_options|incomplete",'
+        '\n    "severity": "high|medium|low",'
+        '\n    "description": "what is wrong",'
+        '\n    "suggestion": "what to investigate"}'
+        '\n ],'
+        '\n "loop_back_questions": ['
+        '\n   "Specific question for the researcher to investigate"'
+        '\n ],'
+        '\n "quality_score": 75'
+        '\n}'
+        "\n\nBe constructive but strict. Only flag REAL issues that would mislead the user. "
+        "\nDo NOT flag stylistic issues or minor omissions. "
+        "\nReturn ONLY the JSON."
+    )
+    return prompt
+
+
+def _run_critic(state: dict) -> dict | None:
+    """Execute the critic agent and return parsed response."""
+    analytical_state = state.get("analytical_state", {})
+    prompt = _build_critic_prompt(analytical_state)
+    
+    logger.info(f"Running critic agent ({len(prompt)} chars prompt)...")
+    response, parsed = run_copilot_with_retry(prompt, category="critic", timeout=180)
+    
+    if parsed and "status" in parsed:
+        status = parsed.get("status", "unknown")
+        issues = parsed.get("issues", [])
+        logger.info(f"Critic verdict: {status}, {len(issues)} issues found")
+        return parsed
+    elif parsed:
+        logger.warning(f"Critic response missing 'status'. Got keys: {list(parsed.keys())[:5]}")
+        return None
+    else:
+        logger.error("Critic agent returned no parseable response")
+        return None
+
+
+def _run_critique_loop(state: dict, raw_findings: dict, max_iterations: int = 2) -> dict:
+    """Run the critique loop: critic reviews, researcher fixes, repeat.
+    
+    Max iterations bounds the loop to prevent runaway API costs.
+    Returns updated state after all iterations.
+    """
+    for iteration in range(max_iterations):
+        logger.info(f"Critique iteration {iteration + 1}/{max_iterations}")
+        
+        critic_output = _run_critic(state)
+        
+        if not critic_output:
+            logger.warning("Critic failed, proceeding with current analysis")
+            break
+        
+        status = critic_output.get("status", "clean")
+        issues = critic_output.get("issues", [])
+        quality_score = critic_output.get("quality_score", 0)
+        
+        # Store critique metadata
+        state.setdefault("pipeline_meta", {})["last_critique"] = {
+            "status": status,
+            "quality_score": quality_score,
+            "issues_count": len(issues),
+            "iteration": iteration + 1,
+            "timestamp": datetime.now().isoformat(),
+        }
+        
+        if status == "clean" or not issues:
+            logger.info(f"Critic says CLEAN (quality: {quality_score}/100). No more iterations needed.")
+            break
+        
+        # Filter only high/medium severity issues
+        actionable = [i for i in issues if i.get("severity") in ("high", "medium")]
+        if not actionable:
+            logger.info(f"Critic found {len(issues)} issues but none high/medium severity. Accepting.")
+            break
+        
+        logger.info(f"Critic found {len(actionable)} actionable issues. Running researcher follow-up...")
+        
+        # Build follow-up questions from critic
+        loop_back_questions = critic_output.get("loop_back_questions", [])
+        if not loop_back_questions:
+            # Generate from issues
+            loop_back_questions = [
+                f"[{i['domain']}] {i['suggestion']}" 
+                for i in actionable[:3]
+            ]
+        
+        # Run researcher with targeted questions
+        follow_up_findings = {
+            "critic_questions": [{"claim": q, "source": "critic_agent", 
+                                  "confidence_signal": "follow_up_needed", "date": datetime.now().strftime("%Y-%m-%d")} 
+                                 for q in loop_back_questions[:3]]
+        }
+        
+        # Merge with existing raw findings for context
+        combined_findings = dict(raw_findings)
+        combined_findings["critic_followup"] = follow_up_findings["critic_questions"]
+        
+        researcher_output = _run_researcher(state, combined_findings)
+        if researcher_output:
+            state = _apply_researcher_output(state, researcher_output)
+            logger.info("Researcher follow-up applied successfully")
+        else:
+            logger.warning("Researcher follow-up failed, keeping current analysis")
+            break
+    
+    return state
+
+
+def run_pipeline(state: dict) -> dict:
     """Execute the full LLM Homelab analytical pipeline.
     
     Pipeline stages:
       1. GATHER (parallel) — collect raw findings from multiple domains
-      2. ANALYZE (sequential) — cross-reference findings with previous state [FUTURE]
-      3. CRITIQUE (sequential) — validate analysis completeness [FUTURE]
+      2. ANALYZE (sequential) — cross-reference findings with previous state
+      3. CRITIQUE (sequential) — validate analysis completeness
       4. PRESENT (sequential) — generate dashboard pages
-    
-    Currently implements Stage 1 (parallel gather) + legacy processing.
-    Stages 2-3 (researcher/critic) will be added in Phase 3-4.
     """
     today = datetime.now().strftime("%B %d, %Y")
     old_checks = state.get("checks", {})
@@ -1555,9 +1694,18 @@ def _run_researcher(state: dict, raw_findings: dict) -> dict | None:
         logger.info("Stage 2: SKIP (no new findings to analyze)")
         run_status["researcher"] = "skipped"
     
-    # ── STAGE 3: CRITIQUE (placeholder) ──
-    # TODO Phase 4: Add critic agent with bounded loop
-    logger.info("Stage 3: CRITIQUE (not yet implemented)")
+    # ── STAGE 3: CRITIQUE (bounded loop) ──
+    if run_status.get("researcher") == "success":
+        logger.info("=" * 60)
+        logger.info("LLM Homelab Pipeline - Stage 3: CRITIQUE (bounded loop)")
+        logger.info("=" * 60)
+        
+        state = _run_critique_loop(state, raw_findings, max_iterations=2)
+        run_status["critique"] = state.get("pipeline_meta", {}).get("last_critique", {}).get("status", "unknown")
+        logger.info(f"Critique complete: {run_status['critique']}")
+    else:
+        logger.info("Stage 3: SKIP (researcher did not run or failed)")
+        run_status["critique"] = "skipped"
     
     # Return processed results for the rest of main() to use
     return {
