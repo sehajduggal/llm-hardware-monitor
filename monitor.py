@@ -1054,14 +1054,29 @@ def _run_gather_parallel(state: dict, today: str) -> dict:
             gather_ctx = _build_gather_context(state, domain)
             prompt = GATHER_PROMPTS[category].format(date=today, gather_context=gather_ctx)
             
-            # Use the legacy category name for session naming
-            session_cat = GATHER_TO_LEGACY.get(category, category)
-            response, parsed = run_copilot_with_retry(prompt, category=session_cat)
+            # Use the gather category name for schema validation (not legacy name)
+            response, parsed = run_copilot_with_retry(prompt, category=category)
             
-            # Validate gather format
+            # Validate/salvage gather format
             if parsed and not _validate_gather_response(parsed):
-                logger.warning(f"[GATHER] {category}: invalid gather format, treating as legacy")
-                # Try to salvage — if it has expected legacy keys, use as-is
+                # Salvage: single finding object returned at root
+                if "claim" in parsed and "source" in parsed:
+                    logger.info(f"[GATHER] {category}: salvaging single finding as list")
+                    parsed = {"findings": [parsed], "nothing_new": False, "summary": parsed.get("claim", "")}
+                # Salvage: list of findings returned without wrapper
+                elif isinstance(parsed, list):
+                    logger.info(f"[GATHER] {category}: salvaging bare list")
+                    parsed = {"findings": parsed, "nothing_new": False, "summary": ""}
+                # Salvage: arbitrary data dict — wrap as single finding
+                elif isinstance(parsed, dict) and len(parsed) >= 3:
+                    logger.info(f"[GATHER] {category}: salvaging arbitrary data as single finding")
+                    summary = json.dumps(parsed, default=str)[:200]
+                    parsed = {"findings": [{"claim": summary, "source": "copilot_gather", 
+                                            "source_type": "ai_analysis", "date": today,
+                                            "confidence_signal": "raw_data"}], 
+                              "nothing_new": False, "summary": summary}
+                else:
+                    logger.warning(f"[GATHER] {category}: invalid gather format, passing through")
             
             return category, response, parsed
         
@@ -1102,18 +1117,27 @@ def _run_gather_parallel(state: dict, today: str) -> dict:
             for cat in all_categories
         }
         
-        for future in as_completed(futures, timeout=300):
-            cat = futures[future]
-            try:
-                category, response, parsed = future.result()
-                results[category] = {"response": response, "parsed": parsed}
-                if parsed:
-                    logger.info(f"[PARALLEL] {category}: success")
-                else:
-                    logger.warning(f"[PARALLEL] {category}: parse failed")
-            except Exception as e:
-                logger.error(f"[PARALLEL] {cat}: exception - {e}")
-                results[cat] = {"response": "", "parsed": None}
+        try:
+            for future in as_completed(futures, timeout=600):
+                cat = futures[future]
+                try:
+                    category, response, parsed = future.result()
+                    results[category] = {"response": response, "parsed": parsed}
+                    if parsed:
+                        logger.info(f"[PARALLEL] {category}: success")
+                    else:
+                        logger.warning(f"[PARALLEL] {category}: parse failed")
+                except Exception as e:
+                    logger.error(f"[PARALLEL] {cat}: exception - {e}")
+                    results[cat] = {"response": "", "parsed": None}
+        except TimeoutError:
+            logger.warning("[PARALLEL] Some futures timed out, proceeding with partial results")
+    
+    # Handle any futures that didn't complete within timeout
+    for future, cat in futures.items():
+        if cat not in results:
+            logger.warning(f"[PARALLEL] {cat}: timed out, skipping")
+            results[cat] = {"response": "", "parsed": None}
     
     return results
 
@@ -1698,7 +1722,7 @@ def run_pipeline(state: dict) -> dict:
     total_findings = sum(len(f) for f in raw_findings.values())
     nothing_new_count = sum(
         1 for cat, r in gather_results.items()
-        if r.get("parsed", {}).get("nothing_new", False)
+        if (r.get("parsed") or {}).get("nothing_new", False)
     )
     logger.info(f"Gather complete: {total_findings} findings across {len(raw_findings)} domains, "
                 f"{nothing_new_count} domains unchanged")
@@ -1811,8 +1835,13 @@ def parse_json_response(text: str) -> dict | None:
     if not text:
         return None
 
-    # Strip markdown code fences
+    # Strip markdown code fences (including closing ```)
     cleaned = re.sub(r"```(?:json)?\s*", "", text)
+    cleaned = re.sub(r"```\s*$", "", cleaned, flags=re.MULTILINE)
+    # Strip ANSI escape codes
+    cleaned = re.sub(r'\x1b\[[0-9;]*[a-zA-Z]', '', cleaned)
+    # Strip tool progress lines (● Web Search..., * Searching...)
+    cleaned = re.sub(r'^[●\u2022\*].*$', '', cleaned, flags=re.MULTILINE)
     cleaned = cleaned.strip()
 
     # Strategy 1: Try to find JSON from the last occurrence of a top-level opening brace
@@ -1865,13 +1894,61 @@ def parse_json_response(text: str) -> dict | None:
     if best_result:
         return best_result
 
-    # Strategy 2: Try direct parse of the whole text (unlikely but cheap)
+    # Strategy 2: Strip progress/tool lines and try again
+    lines = cleaned.split('\n')
+    json_lines = [l for l in lines if not l.strip().startswith(('\u25cf', '\u2022', '*')) 
+                  and 'Web Search' not in l and 'Searching' not in l]
+    cleaned2 = '\n'.join(json_lines).strip()
+    if cleaned2 != cleaned:
+        for match in re.finditer(r'\{"[a-zA-Z_]', cleaned2):
+            pos = match.start()
+            candidate = cleaned2[pos:]
+            depth = 0
+            in_string = False
+            escape_next = False
+            end_pos = None
+            for i, ch in enumerate(candidate):
+                if escape_next:
+                    escape_next = False
+                    continue
+                if ch == '\\' and in_string:
+                    escape_next = True
+                    continue
+                if ch == '"' and not escape_next:
+                    in_string = not in_string
+                    continue
+                if in_string:
+                    continue
+                if ch == '{':
+                    depth += 1
+                elif ch == '}':
+                    depth -= 1
+                    if depth == 0:
+                        end_pos = i
+                        break
+            if end_pos is not None:
+                json_str = candidate[:end_pos + 1]
+                try:
+                    parsed = json.loads(json_str)
+                    if isinstance(parsed, dict) and len(parsed) >= 2:
+                        return parsed
+                except json.JSONDecodeError:
+                    continue
+
+    # Strategy 3: Try direct parse of the whole text (unlikely but cheap)
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
         pass
 
     logger.warning(f"Could not parse JSON from response ({len(text)} chars)")
+    # Dump failed response to temp file for debugging
+    debug_file = MONITOR_DIR / f"_debug_parse_fail_{datetime.now().strftime('%H%M%S')}.txt"
+    try:
+        debug_file.write_text(text[:2000], encoding="utf-8")
+        logger.debug(f"  Dumped to {debug_file}")
+    except Exception:
+        pass
     return None
 
 
@@ -1883,6 +1960,11 @@ EXPECTED_KEYS = {
     "efficiency_research": {"quantization_breakthroughs", "inference_engine_updates", "moe_offloading"},
     "learning_feed": {"articles", "title"},
     "model_benchmarks": {"top_coding_models", "name"},
+    # v2 gather format (Phase 2) — validated separately by _validate_gather_response
+    "hardware_gather": {"findings", "nothing_new"},
+    "models_gather": {"findings", "nothing_new"},
+    "efficiency_gather": {"findings", "nothing_new"},
+    "community_gather": {"findings", "nothing_new"},
 }
 
 

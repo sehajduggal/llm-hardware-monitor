@@ -1,0 +1,43 @@
+Based on all the research gathered, here is the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M4 Max 128GB configurable on apple.com/in. Base M4 Max 36GB/512GB at ₹2,14,900. 128GB config estimated ₹3,25,000-₹3,50,000 via configurator",
+      "source": "apple.com/in, reliancedigital.in, flipkart.com",
+      "source_type": "retailer",
+      "date": "May 14, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "₹2,14,900 base; ~₹3,25,000-₹3,50,000 for 128GB",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Mini M4 Pro 48GB/512GB available on apple.com/in. Base 24GB/512GB M4 Pro is ₹1,49,900; 48GB upgrade estimated ~₹1,84,900",
+      "source": "apple.com/in, imagineonline.store",
+      "source_type": "retailer",
+      "date": "May 14, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "~₹1,84,900 for 48GB config",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio rumored for WWDC 2026 (June 8-12) reveal, but shipping may slip to October 2026 due to global DRAM shortages. Up to 256GB unified memory, 80 GPU cores, ~1100 GB/s bandwidth expected",
+      "source": "macworld.com, geeky-gadgets.com, macrumors.com",
+      "source_type": "blog",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Rumored starting at $3,999+",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple skipped M4 Ultra entirely; M5 family returns with all tiers (base, Pro, Max, Ultra). M5 Ultra uses UltraFusion to fuse two M5 Max dies",
+      "source": "techtimes.com, macrumors.com, macworld.com",
+      "source_type": "blog",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Framework Desktop with Ryzen AI Max+ 395 and 128GB LPDDR5x shipping now at $1,999 (barebones). 

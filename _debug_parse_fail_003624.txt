@@ -1,0 +1,47 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M4 Max base model available on apple.com/in starting at ₹2,14,900 with configurator for up to 128GB unified memory",
+      "source": "apple.com/in, indiaistore.com, gadgets360",
+      "source_type": "retailer",
+      "date": "May 14, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 (base M4 Max 36GB)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple M5 Mac Mini (M5 and M5 Pro) expected to be announced at WWDC June 2026, with possible shipping delays to summer/fall due to DRAM shortages",
+      "source": "macworld.com, tbreak.com, techtimes.com",
+      "source_type": "blog",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$699-$799 expected base",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Apple Mac Studio M5 Max/Ultra expected at WWDC 2026 with up to 18 CPU cores, Thunderbolt 5, and upgraded Neural Engine (claimed 3.5-4x over M4)",
+      "source": "techrepublic.com, geeky-gadgets.com",
+      "source_type": "blog",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Beelink GTR9 Pro AI Mini with Strix Halo Ryzen AI Max+ 395 and 128GB LPDDR5X available at ~$1,800",
+      "source": "hardware-corner.net",
+      "source_type": "review",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$1,800",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Minisforum BD395i MAX Mini-ITX motherboard with Strix Halo and soldered 128GB LPDDR5X-8000 available, includes PCIe 5.0 x16 slot",
+      "source": "tweaktown.com, wccftech.com",
+      "source_type": "review",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports"
