@@ -4427,7 +4427,7 @@ def send_toast(title: str, message: str, severity: str = "info"):
     - Persistent in Action Center (Scenario=Reminder + SnoozeAndDismiss)
     """
     icon = {"critical": "🚨", "important": "⚠️", "info": "ℹ️"}.get(severity, "ℹ️")
-    full_title = f"{icon} LLM Hardware Monitor"
+    full_title = f"{icon} LLM Homelab"
 
     # Escape for PowerShell
     safe_msg = message.replace("'", "''").replace('"', '`"')
@@ -4505,7 +4505,7 @@ def write_desktop_summary(state: dict, changes: list[dict], run_status: dict):
 
     lines = [
         "=" * 60,
-        "  LLM HARDWARE MONITOR — DAILY SUMMARY",
+        "  LLM Homelab — DAILY SUMMARY",
         "=" * 60,
         "",
         f"  Run Time:       {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
@@ -5288,13 +5288,13 @@ def _esc(val):
 def _generate_nav_html(active_page: str, now: str) -> str:
     """Generate navigation bar HTML. active_page determines link targets and highlighting."""
     pages = [
-        ("summary", "\U0001F4CA Summary", "index.html"),
+        ("summary", "\U0001F3E0 Situation Room", "index.html"),
         ("hardware", "\U0001F5A5\uFE0F Hardware", "hardware.html"),
-        ("models", "\U0001F9E0 Models & Agents", "models.html"),
-        ("efficiency", "\U0001F52C Efficiency", "efficiency.html"),
-        ("deals", "\U0001F4B0 Deals & News", "deals.html"),
+        ("models", "\U0001F9E0 Models", "models.html"),
+        ("efficiency", "\U0001F52C Optimization", "efficiency.html"),
+        ("timeline", "\U0001F4C8 Timeline", "timeline.html"),
         ("learning", "\U0001F4DA Learning", "learning.html"),
-        ("weekly", "\U0001F4CA Weekly", "weekly.html"),
+        ("ask", "\u2753 Ask", "ask.html"),
     ]
     links = []
     for key, label, filename in pages:
@@ -5407,17 +5407,18 @@ def _generate_page_shell(title, nav_html, body_content, modal_json):
         '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
         '<meta charset="UTF-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
-        f'<title>{title}</title>\n'
+        f'<title>LLM Homelab - {title}</title>\n'
         f'<style>{_DASHBOARD_CSS}</style>\n'
         f'</head>\n<body data-run-id="{_RUN_ID}" data-run-date="{_RUN_DATE}">\n'
         + nav_html + '\n'
         + body_content + '\n'
         + _MODAL_OVERLAY_HTML + '\n'
         + f'<div class="footer">\n'
+        f'  <strong>LLM Homelab</strong> &middot; '
         f'  Powered by <a href="https://github.com/features/copilot">GitHub Copilot CLI</a> &middot;\n'
-        f'  Checks daily at 9 AM via Windows Task Scheduler &middot;\n'
-        f'  <a href="file:///{monitor_dir_uri}/monitor.log">View Log</a> &middot;\n'
-        f'  <a href="file:///{monitor_dir_uri}/monitor_state.json">View State</a>\n'
+        f'  Auto-updates daily &middot;\n'
+        f'  <a href="file:///{monitor_dir_uri}/monitor.log">Log</a> &middot;\n'
+        f'  <a href="file:///{monitor_dir_uri}/monitor_state.json">State</a>\n'
         f'</div>\n'
         f'<script>{js}\n</script>\n'
         '</body>\n</html>'
@@ -5729,7 +5730,7 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
         f'\n{dashboard_css}'
         '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b> &middot; {len(timeline)} runs tracked</div>'
         '\n  </div>'
         '\n</div>'
@@ -5745,7 +5746,7 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
     )
 
     modal_json = json.dumps(modal_data, ensure_ascii=False, default=str)
-    return _generate_page_shell("LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
@@ -5764,7 +5765,7 @@ def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_dat
     body_content = (
         '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -5778,7 +5779,7 @@ def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_dat
 
     hw_modal = {k: v for k, v in modal_data.items() if v.get("category") == "hardware"}
     modal_json = json.dumps(hw_modal, ensure_ascii=False, default=str)
-    return _generate_page_shell("Hardware - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Hardware - LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
@@ -5797,7 +5798,7 @@ def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data,
     body_content = (
         '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -5811,7 +5812,7 @@ def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data,
 
     model_modal = {k: v for k, v in modal_data.items() if v.get("category") == "models_and_agents"}
     modal_json = json.dumps(model_modal, ensure_ascii=False, default=str)
-    return _generate_page_shell("Models & Agents - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Models & Agents - LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _generate_efficiency_page(checks, enrichment, modal_data, now):
@@ -5940,7 +5941,7 @@ def _generate_efficiency_page(checks, enrichment, modal_data, now):
         signal_css
         + '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -5955,7 +5956,7 @@ def _generate_efficiency_page(checks, enrichment, modal_data, now):
     )
 
     modal_json = json.dumps(eff_modal, ensure_ascii=False, default=str)
-    return _generate_page_shell("Efficiency Research - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Efficiency Research - LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
@@ -5974,7 +5975,7 @@ def _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, 
     body_content = (
         '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -5988,7 +5989,7 @@ def _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, 
 
     deals_modal = {k: v for k, v in modal_data.items() if v.get("category") == "deals_and_blogs"}
     modal_json = json.dumps(deals_modal, ensure_ascii=False, default=str)
-    return _generate_page_shell("Deals & News - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Deals & News - LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _extract_learning_articles(checks):
@@ -6966,7 +6967,7 @@ function copyCliCmd(topic) {
         full_css
         + '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -7039,7 +7040,7 @@ function copyCliCmd(topic) {
     )
 
     modal_json = json.dumps({}, ensure_ascii=False)
-    return _generate_page_shell("Knowledge Builder - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Knowledge Builder - LLM Homelab", nav_html, body_content, modal_json)
 
 
 def _generate_weekly_page(state, checks, enrichment, now):
@@ -7328,7 +7329,7 @@ def _generate_weekly_page(state, checks, enrichment, now):
         weekly_css
         + '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>\U0001F5A5\uFE0F LLM Hardware Monitor</h1>'
+        '\n    <h1>\U0001F5A5\uFE0F LLM Homelab</h1>'
         f'\n    <div class="meta">Last check: <b>{now}</b></div>'
         '\n  </div>'
         '\n</div>'
@@ -7345,7 +7346,143 @@ def _generate_weekly_page(state, checks, enrichment, now):
     )
 
     modal_json = json.dumps({}, ensure_ascii=False, default=str)
-    return _generate_page_shell("Weekly Report - LLM Hardware Monitor", nav_html, body_content, modal_json)
+    return _generate_page_shell("Weekly Report", nav_html, body_content, modal_json)
+
+
+def _generate_timeline_page(state: dict, now: str) -> str:
+    """Generate the analytical timeline/changelog page showing how analysis evolved."""
+    nav_html = _generate_nav_html("timeline", now)
+    
+    changelog = state.get("changelog", [])
+    analytical_state = state.get("analytical_state", {})
+    
+    # Domain color mapping
+    domain_colors = {
+        "hardware": "#3b82f6",
+        "models": "#8b5cf6",
+        "optimization": "#10b981",
+        "setup": "#f59e0b",
+    }
+    
+    # Build timeline entries (newest first)
+    entries_html = ""
+    if changelog:
+        sorted_log = sorted(changelog, key=lambda x: x.get("date", ""), reverse=True)
+        for entry in sorted_log[:50]:
+            domain = entry.get("domain", "general")
+            color = domain_colors.get(domain, "#6b7280")
+            date = entry.get("date", "Unknown")
+            change = _esc(entry.get("change", ""))
+            reason = _esc(entry.get("reason", ""))
+            evidence = entry.get("evidence", [])
+            ev_count = len(evidence) if isinstance(evidence, list) else 0
+            
+            entries_html += (
+                f'<div class="timeline-entry" style="border-left: 3px solid {color}; padding-left: 16px; margin-bottom: 16px;">'
+                f'  <div style="display:flex; gap:12px; align-items:center;">'
+                f'    <span style="font-size:0.8rem; color:var(--dim);">{_esc(date)}</span>'
+                f'    <span style="background:{color}22; color:{color}; padding:2px 8px; border-radius:4px; font-size:0.75rem;">{_esc(domain)}</span>'
+                f'    <span style="font-size:0.75rem; color:var(--dim);">{ev_count} evidence</span>'
+                f'  </div>'
+                f'  <div style="margin-top:6px; font-weight:500;">{change}</div>'
+                f'  <div style="margin-top:4px; font-size:0.85rem; color:var(--dim);">{reason}</div>'
+                f'</div>'
+            )
+    else:
+        entries_html = '<p style="color:var(--dim);">No changelog entries yet. Run the pipeline to generate analytical history.</p>'
+    
+    # Confidence evolution section
+    confidence_html = ""
+    for domain, ds in analytical_state.items():
+        conf = ds.get("confidence", 0)
+        color = domain_colors.get(domain, "#6b7280")
+        bar_width = int(conf * 100)
+        confidence_html += (
+            f'<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">'
+            f'  <span style="width:100px; font-size:0.85rem;">{_esc(domain.title())}</span>'
+            f'  <div style="flex:1; height:8px; background:var(--bg); border-radius:4px; overflow:hidden;">'
+            f'    <div style="width:{bar_width}%; height:100%; background:{color}; border-radius:4px;"></div>'
+            f'  </div>'
+            f'  <span style="width:40px; text-align:right; font-size:0.85rem; font-weight:600;">{bar_width}%</span>'
+            f'</div>'
+        )
+    
+    body_content = (
+        '<div class="container" style="max-width:900px; margin:auto; padding:24px;">'
+        '<h1 style="margin-bottom:8px;">Analysis Timeline</h1>'
+        '<p style="color:var(--dim); margin-bottom:24px;">How our analytical worldview evolved over time</p>'
+        '<div style="background:var(--bg2); border-radius:12px; padding:20px; margin-bottom:24px;">'
+        '<h3 style="margin-bottom:12px;">Current Confidence Levels</h3>'
+        + confidence_html +
+        '</div>'
+        '<h3 style="margin-bottom:16px;">Changelog</h3>'
+        + entries_html +
+        '</div>'
+    )
+    
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell("Timeline", nav_html, body_content, modal_json)
+
+
+def _generate_ask_page(state: dict, now: str) -> str:
+    """Generate the Ask page showing pending/answered questions."""
+    nav_html = _generate_nav_html("ask", now)
+    
+    questions = state.get("questions", {"pending": [], "answered": []})
+    pending = questions.get("pending", [])
+    answered = questions.get("answered", [])
+    
+    # Pending questions
+    pending_html = ""
+    if pending:
+        for q in pending:
+            question_text = _esc(q.get("q", q) if isinstance(q, dict) else str(q))
+            submitted = q.get("submitted", "") if isinstance(q, dict) else ""
+            pending_html += (
+                f'<div style="padding:12px 16px; background:var(--bg); border-radius:8px; margin-bottom:8px; border-left:3px solid #f59e0b;">'
+                f'  <div style="font-weight:500;">{question_text}</div>'
+                f'  <div style="font-size:0.8rem; color:var(--dim); margin-top:4px;">Submitted: {_esc(submitted)} &middot; Will be answered on next pipeline run</div>'
+                f'</div>'
+            )
+    else:
+        pending_html = '<p style="color:var(--dim);">No pending questions.</p>'
+    
+    # Answered questions
+    answered_html = ""
+    if answered:
+        for a in answered[-10:]:  # Show last 10
+            question_text = _esc(a.get("q", ""))
+            answer_text = _esc(a.get("answer", ""))
+            answered_on = _esc(a.get("answered_on", ""))
+            confidence = a.get("confidence", "")
+            answered_html += (
+                f'<div style="padding:16px; background:var(--bg); border-radius:8px; margin-bottom:12px; border-left:3px solid #10b981;">'
+                f'  <div style="font-weight:600; margin-bottom:8px;">{question_text}</div>'
+                f'  <div style="font-size:0.9rem; line-height:1.5;">{answer_text}</div>'
+                f'  <div style="font-size:0.8rem; color:var(--dim); margin-top:8px;">Answered: {answered_on} &middot; Confidence: {confidence}</div>'
+                f'</div>'
+            )
+    else:
+        answered_html = '<p style="color:var(--dim);">No answered questions yet.</p>'
+    
+    body_content = (
+        '<div class="container" style="max-width:900px; margin:auto; padding:24px;">'
+        '<h1 style="margin-bottom:8px;">Ask LLM Homelab</h1>'
+        '<p style="color:var(--dim); margin-bottom:24px;">'
+        'Submit questions about local LLM setup — answered with full analytical rigor on the next pipeline run. '
+        'To ask a question, create a GitHub Issue with the label <code>homelab-question</code>.</p>'
+        '<div style="background:var(--bg2); border-radius:12px; padding:20px; margin-bottom:24px;">'
+        '<h3 style="margin-bottom:12px;">Pending Questions (' + str(len(pending)) + ')</h3>'
+        + pending_html +
+        '</div>'
+        '<div style="background:var(--bg2); border-radius:12px; padding:20px;">'
+        '<h3 style="margin-bottom:12px;">Answered (' + str(len(answered)) + ')</h3>'
+        + answered_html +
+        '</div></div>'
+    )
+    
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell("Ask", nav_html, body_content, modal_json)
 
 
 def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
@@ -7460,6 +7597,13 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
 
     weekly_html = _generate_weekly_page(state, checks, enrichment, now)
     (PAGES_DIR / "weekly.html").write_text(weekly_html, encoding="utf-8")
+
+    # New analytical pages (Phase 5)
+    timeline_html = _generate_timeline_page(state, now)
+    (PAGES_DIR / "timeline.html").write_text(timeline_html, encoding="utf-8")
+
+    ask_html = _generate_ask_page(state, now)
+    (PAGES_DIR / "ask.html").write_text(ask_html, encoding="utf-8")
 
     logger.info(f"Dashboard updated: {DASHBOARD_FILE} + {PAGES_DIR}")
 
@@ -7619,7 +7763,7 @@ def main():
             send_toast("✅ Daily Check Complete", f"No changes. Action: {action}. Best: {best}"[:200], "info")
         else:
             logger.info("First run — establishing baseline")
-            send_toast("✅ Monitor Started", "LLM Hardware Monitor is now active!", "info")
+            send_toast("✅ Monitor Started", "LLM Homelab is now active!", "info")
 
     # Check for efficiency breakthroughs using signal classification heuristics
     efficiency_data = new_checks.get("efficiency_research", {})
