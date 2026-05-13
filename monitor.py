@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 """
-LLM Hardware Monitor Daemon
-============================
-Daily monitoring script that uses GitHub Copilot CLI to check:
-- Mac Studio M5 announcements & availability
-- AMD Strix Halo alternatives in India
-- LLM model breakthroughs (MoE, coding models)
-- Deals, pricing changes
-- Latest blogs/news from r/LocalLLaMA, HN, etc.
-- YOLO coding agent framework updates
+LLM Homelab — Local LLM Analytical Portal
+==========================================
+Auto-updating portal that researches, cross-references, and presents
+grounded multi-option analysis about local LLM inference:
+- Hardware (GPUs, CPUs, unified memory machines)
+- Models (coding, reasoning, MoE)
+- Optimization (quantization, engines, configs)
+- Setup guides, knowledge graph, progressive learning
 
-Outputs:
-- Windows toast notification (via BurntToast PowerShell module)
-- HTML dashboard in project folder
-- Log file
+Pipeline: Gather (parallel) → Analyze → Critique → Present
+Output: Static HTML on GitHub Pages (auto-push)
 
 Scheduled via Windows Task Scheduler to run daily at 9 AM.
 """
@@ -30,6 +27,7 @@ import urllib.request
 import urllib.error
 import ssl
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
@@ -61,7 +59,7 @@ _RUN_DATE = datetime.now().strftime('%Y-%m-%d')
 
 def _session_name_for(category: str) -> str:
     """Generate a unique session name for a given prompt category."""
-    return f"llm-monitor-{category}-{_RUN_DATE}-{_RUN_ID}"
+    return f"llm-homelab-{category}-{_RUN_DATE}-{_RUN_ID}"
 
 # Copilot invocation flags — use text mode (more reliable than json for subprocess)
 COPILOT_FLAGS = [
@@ -706,18 +704,295 @@ ENRICHMENT_PROMPTS = {
 # ─── Helper Functions ────────────────────────────────────────────────────────
 
 def load_state() -> dict:
-    """Load previous monitoring state."""
+    """Load previous monitoring state. Auto-migrates to v2 if needed."""
     if STATE_FILE.exists():
         try:
-            return json.loads(STATE_FILE.read_text(encoding="utf-8"))
+            state = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+            # Auto-migrate to v2 analytical pipeline structure
+            state = _migrate_state_v2(state)
+            return state
         except (json.JSONDecodeError, OSError):
             logger.warning("Could not load state file, starting fresh")
-    return {"last_run": None, "checks": {}, "history": []}
+    fresh = {"last_run": None, "checks": {}, "history": []}
+    return _migrate_state_v2(fresh)
 
 
 def save_state(state: dict):
     """Save current monitoring state."""
     STATE_FILE.write_text(json.dumps(state, indent=2, default=str), encoding="utf-8")
+
+
+# ─── State Migration & Pipeline Architecture (v2) ───────────────────────────
+
+def _migrate_state_v2(state: dict) -> dict:
+    """Migrate v1 flat state to v2 analytical structure.
+    
+    V2 adds:
+      - analytical_state: per-domain structured analysis with evidence/confidence
+      - questions: pending/answered async Q&A
+      - changelog: timestamped record of analysis changes
+      - pipeline_meta: last run metadata for the multi-stage pipeline
+    
+    Preserves all existing data — this is additive, not destructive.
+    """
+    if state.get("state_version", 1) >= 2:
+        return state  # already migrated
+
+    logger.info("Migrating state to v2 (analytical pipeline)")
+
+    # Build analytical_state from existing checks + enrichment
+    checks = state.get("checks", {})
+    enrichment = state.get("enrichment", {})
+    recommendation = state.get("recommendation", {})
+
+    analytical_state = {}
+    
+    # Hardware domain
+    hw_evidence = []
+    hw_checks = checks.get("hardware", {})
+    for key, val in hw_checks.items():
+        if isinstance(val, dict) and val.get("info"):
+            hw_evidence.append({
+                "claim": val["info"],
+                "source": "copilot_gather",
+                "source_type": "aggregated",
+                "date": state.get("last_run", "unknown"),
+                "confidence_signal": "single_run",
+            })
+    analytical_state["hardware"] = {
+        "current_analysis": enrichment.get("hardware_deep_dive", ""),
+        "options": [],  # will be populated by researcher
+        "confidence": 0.6,  # baseline — not yet validated by pipeline
+        "evidence": hw_evidence[:20],  # cap at 20 to avoid bloat
+        "conflicts_resolved": [],
+        "last_changed": state.get("last_run", ""),
+        "change_reason": "Initial migration from v1 state",
+    }
+
+    # Models domain
+    models_evidence = []
+    models_checks = checks.get("models_and_agents", {})
+    for key, val in models_checks.items():
+        if isinstance(val, dict) and val.get("info"):
+            models_evidence.append({
+                "claim": val["info"],
+                "source": "copilot_gather",
+                "source_type": "aggregated",
+                "date": state.get("last_run", "unknown"),
+                "confidence_signal": "single_run",
+            })
+    analytical_state["models"] = {
+        "current_analysis": enrichment.get("model_analysis", ""),
+        "options": [],
+        "confidence": 0.6,
+        "evidence": models_evidence[:20],
+        "conflicts_resolved": [],
+        "last_changed": state.get("last_run", ""),
+        "change_reason": "Initial migration from v1 state",
+    }
+
+    # Optimization domain
+    eff_evidence = []
+    eff_checks = checks.get("efficiency_research", {})
+    for key, val in eff_checks.items():
+        if isinstance(val, dict) and val.get("info"):
+            eff_evidence.append({
+                "claim": val["info"],
+                "source": "copilot_gather",
+                "source_type": "aggregated",
+                "date": state.get("last_run", "unknown"),
+                "confidence_signal": "single_run",
+            })
+    analytical_state["optimization"] = {
+        "current_analysis": enrichment.get("efficiency_analysis", ""),
+        "options": [],
+        "confidence": 0.6,
+        "evidence": eff_evidence[:20],
+        "conflicts_resolved": [],
+        "last_changed": state.get("last_run", ""),
+        "change_reason": "Initial migration from v1 state",
+    }
+
+    # Setup domain (new — no prior data)
+    analytical_state["setup"] = {
+        "current_analysis": "",
+        "options": [],
+        "confidence": 0.0,
+        "evidence": [],
+        "conflicts_resolved": [],
+        "last_changed": "",
+        "change_reason": "",
+    }
+
+    # Set new v2 fields
+    state["state_version"] = 2
+    state["analytical_state"] = analytical_state
+    state["questions"] = {"pending": [], "answered": []}
+    state["changelog"] = [{
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "domain": "all",
+        "change": "Migrated to LLM Homelab v2 analytical pipeline",
+        "reason": "Architecture upgrade from monitoring to analysis-first portal",
+        "evidence": [],
+    }]
+    state["pipeline_meta"] = {
+        "last_pipeline_run": None,
+        "last_gather_results": {},
+        "last_critique_status": None,
+        "iteration_count": 0,
+    }
+
+    logger.info("State migration to v2 complete")
+    return state
+
+
+def _run_gather_parallel(state: dict, today: str) -> dict:
+    """Run all gather prompts in parallel using ThreadPoolExecutor.
+    
+    Returns dict of {category: (raw_response, parsed_dict)} for each gather prompt.
+    Learning runs in parallel too since it only depends on previous state.
+    """
+    # Determine which categories are gather prompts (all except learning_feed)
+    gather_categories = [cat for cat in PROMPTS.keys() if cat != "learning_feed"]
+    
+    results = {}
+    
+    def _run_single_gather(category: str) -> tuple:
+        """Execute a single gather prompt. Runs in thread."""
+        prompt_template = PROMPTS[category]
+        
+        # Format prompt
+        if category == "learning_feed":
+            ks = state.get("knowledge_state") or _init_knowledge_state()
+            learning_ctx = _build_learning_prompt_context(ks)
+            prompt = prompt_template.format(date=today, learning_context=learning_ctx)
+        else:
+            prompt = prompt_template.format(date=today)
+        
+        # Inject dynamic context
+        dynamic_context = build_dynamic_prompt_context(state, category=category)
+        if dynamic_context:
+            prompt = prompt + " " + dynamic_context
+        
+        # Inject learner context (cross-pollination)
+        ks = state.get("knowledge_state")
+        if ks and category != "learning_feed":
+            learner_ctx = _generate_learner_context(ks, category)
+            if learner_ctx:
+                prompt = prompt + " LEARNER CONTEXT: " + learner_ctx
+        
+        response, parsed = run_copilot_with_retry(prompt, category=category)
+        return category, response, parsed
+    
+    # Run all gathers + learning in parallel
+    all_categories = gather_categories + ["learning_feed"]
+    
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {
+            executor.submit(_run_single_gather, cat): cat 
+            for cat in all_categories
+        }
+        
+        for future in as_completed(futures, timeout=300):
+            cat = futures[future]
+            try:
+                category, response, parsed = future.result()
+                results[category] = {"response": response, "parsed": parsed}
+                if parsed:
+                    logger.info(f"[PARALLEL] {category}: success")
+                else:
+                    logger.warning(f"[PARALLEL] {category}: parse failed")
+            except Exception as e:
+                logger.error(f"[PARALLEL] {cat}: exception - {e}")
+                results[cat] = {"response": "", "parsed": None}
+    
+    return results
+
+
+def _build_changelog_entry(domain: str, change: str, reason: str, evidence: list = None) -> dict:
+    """Create a structured changelog entry."""
+    return {
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "domain": domain,
+        "change": change,
+        "reason": reason,
+        "evidence": evidence or [],
+    }
+
+
+def run_pipeline(state: dict) -> dict:
+    """Execute the full LLM Homelab analytical pipeline.
+    
+    Pipeline stages:
+      1. GATHER (parallel) — collect raw findings from multiple domains
+      2. ANALYZE (sequential) — cross-reference findings with previous state [FUTURE]
+      3. CRITIQUE (sequential) — validate analysis completeness [FUTURE]
+      4. PRESENT (sequential) — generate dashboard pages
+    
+    Currently implements Stage 1 (parallel gather) + legacy processing.
+    Stages 2-3 (researcher/critic) will be added in Phase 3-4.
+    """
+    today = datetime.now().strftime("%B %d, %Y")
+    old_checks = state.get("checks", {})
+    
+    logger.info("=" * 60)
+    logger.info("LLM Homelab Pipeline - Stage 1: GATHER (parallel)")
+    logger.info("=" * 60)
+    
+    # ── STAGE 1: GATHER (parallel) ──────────────────────────────────────────
+    gather_results = _run_gather_parallel(state, today)
+    
+    # Process gather results into checks (backward compat with existing logic)
+    new_checks = {}
+    run_status = {}
+    
+    for category, result in gather_results.items():
+        parsed = result.get("parsed")
+        response = result.get("response", "")
+        
+        if parsed:
+            new_checks[category] = parsed
+            run_status[category] = "success"
+            
+            # Update knowledge state from learning results
+            if category == "learning_feed":
+                ks = state.get("knowledge_state") or _init_knowledge_state()
+                ks = _update_knowledge_state(ks, parsed)
+                state["knowledge_state"] = ks
+                learner_contexts = parsed.get("learner_contexts", {})
+                if learner_contexts:
+                    state["learner_contexts"] = learner_contexts
+        else:
+            run_status[category] = "error"
+            if response:
+                logger.error(f"{category}: failed to parse JSON after retries")
+                raw_file = MONITOR_DIR / f"raw_{category}_{datetime.now().strftime('%Y%m%d')}.txt"
+                raw_file.write_text(response, encoding="utf-8")
+            # Keep old data
+            if category in old_checks:
+                new_checks[category] = old_checks[category]
+    
+    # Store gather metadata for future pipeline stages
+    state.setdefault("pipeline_meta", {})["last_gather_results"] = {
+        cat: {"status": run_status.get(cat, "unknown")} 
+        for cat in gather_results
+    }
+    state["pipeline_meta"]["last_pipeline_run"] = datetime.now().isoformat()
+    
+    # ── STAGE 2: ANALYZE (placeholder — currently uses legacy enrichment) ──
+    # TODO Phase 3: Replace with researcher agent
+    logger.info("Stage 2: ANALYZE (using legacy enrichment path)")
+    
+    # ── STAGE 3: CRITIQUE (placeholder) ──
+    # TODO Phase 4: Add critic agent with bounded loop
+    logger.info("Stage 3: CRITIQUE (not yet implemented)")
+    
+    # Return processed results for the rest of main() to use
+    return {
+        "new_checks": new_checks,
+        "run_status": run_status,
+        "gather_results": gather_results,
+    }
 
 
 def run_copilot(prompt: str, timeout: int = 180, category: str = "general") -> str:
@@ -726,7 +1001,7 @@ def run_copilot(prompt: str, timeout: int = 180, category: str = "general") -> s
     Calls node directly with the npm-loader.js script, bypassing the .cmd
     wrapper to avoid cmd.exe metacharacter interpretation issues on Windows.
     Creates a named session per category so it can be resumed later via
-    'copilot --resume="llm-monitor-{category}-{date}-{hex}"'.
+    'copilot --resume="llm-homelab-{category}-{date}-{hex}"'.
     """
     session_name = _session_name_for(category)
     cmd = [COPILOT_CMD, COPILOT_SCRIPT, "-p", prompt] + COPILOT_FLAGS
@@ -773,7 +1048,7 @@ def parse_json_response(text: str) -> dict | None:
     """Extract JSON from Copilot response, handling tool progress indicators.
     
     The response text typically looks like:
-    ● Web Search... ● Web Search... {"key": "value", ...}
+    [bullet] Web Search... [bullet] Web Search... {"key": "value", ...}
     
     Strategy: find the last JSON object in the text (the actual response),
     ignoring intermediate JSON fragments from tool outputs.
@@ -6472,7 +6747,7 @@ def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
 
 def main():
     logger.info("=" * 60)
-    logger.info("LLM Hardware Monitor - Starting daily check")
+    logger.info("LLM Homelab - Starting daily pipeline")
     logger.info("=" * 60)
 
     state = load_state()
@@ -6481,65 +6756,12 @@ def main():
         state["knowledge_state"] = _init_knowledge_state()
         logger.info("Initialized fresh knowledge state")
     old_checks = state.get("checks", {})
-    new_checks = {}
-    run_status = {}
     today = datetime.now().strftime("%B %d, %Y")
 
-    # Run each category prompt
-    first_category = True
-    for category, prompt_template in PROMPTS.items():
-        if not first_category:
-            time.sleep(5)  # brief pause between API calls to avoid .cmd race conditions
-        first_category = False
-        logger.info(f"--- Checking: {category} ---")
-        
-        # For learning_feed, inject curriculum context into the prompt template
-        if category == "learning_feed":
-            ks = state.get("knowledge_state") or _init_knowledge_state()
-            learning_ctx = _build_learning_prompt_context(ks)
-            prompt = prompt_template.format(date=today, learning_context=learning_ctx)
-        else:
-            prompt = prompt_template.format(date=today)
-        
-        # Inject dynamic context (known facts, discoveries, model history) per category
-        dynamic_context = build_dynamic_prompt_context(state, category=category)
-        if dynamic_context:
-            prompt = prompt + " " + dynamic_context
-        
-        # Inject learner context from knowledge state (cross-pollination)
-        ks = state.get("knowledge_state")
-        if ks and category != "learning_feed":
-            learner_ctx = _generate_learner_context(ks, category)
-            if learner_ctx:
-                prompt = prompt + " LEARNER CONTEXT: " + learner_ctx
-
-        response, parsed = run_copilot_with_retry(prompt, category=category)
-
-        if parsed:
-            new_checks[category] = parsed
-            run_status[category] = "success"
-            logger.info(f"{category}: parsed successfully ({len(parsed)} items)")
-            # Update knowledge state from learning results
-            if category == "learning_feed" and parsed:
-                ks = state.get("knowledge_state") or _init_knowledge_state()
-                ks = _update_knowledge_state(ks, parsed)
-                state["knowledge_state"] = ks
-                
-                # Extract and store learner contexts for other prompts
-                learner_contexts = parsed.get("learner_contexts", {})
-                if learner_contexts:
-                    state["learner_contexts"] = learner_contexts
-        else:
-            run_status[category] = "error"
-            if response:
-                logger.error(f"{category}: failed to parse JSON after retries")
-                raw_file = MONITOR_DIR / f"raw_{category}_{datetime.now().strftime('%Y%m%d')}.txt"
-                raw_file.write_text(response, encoding="utf-8")
-            else:
-                logger.error(f"Empty response for {category} after retries")
-            # Keep old data for this category
-            if category in old_checks:
-                new_checks[category] = old_checks[category]
+    # ── Run the multi-stage pipeline (parallel gathers) ──
+    pipeline_result = run_pipeline(state)
+    new_checks = pipeline_result["new_checks"]
+    run_status = pipeline_result["run_status"]
 
     # Verify store availability via Playwright (direct scraping across all stores)
     logger.info("--- Store availability checks (Playwright + HTTP fallbacks) ---")
@@ -6757,7 +6979,7 @@ def main():
     state["copilot_sessions"] = {
         "run_id": _RUN_ID,
         "run_date": _RUN_DATE,
-        "pattern": f"llm-monitor-{{category}}-{_RUN_DATE}-{_RUN_ID}",
+        "pattern": f"llm-homelab-{{category}}-{_RUN_DATE}-{_RUN_ID}",
     }
     save_state(state)
 
