@@ -1207,7 +1207,245 @@ def _build_changelog_entry(domain: str, change: str, reason: str, evidence: list
     }
 
 
-def run_pipeline(state: dict) -> dict:
+# ─── Phase 3: Researcher Agent ──────────────────────────────────────────────
+
+def _build_researcher_prompt(raw_findings: dict, analytical_state: dict, 
+                              pending_questions: list) -> str:
+    """Build the researcher prompt with all gathered findings and previous state.
+    
+    The researcher cross-references findings across domains, resolves conflicts,
+    updates the analytical worldview, and answers pending user questions.
+    """
+    # Serialize analytical state (truncate to avoid token explosion)
+    state_summary = {}
+    for domain, dstate in analytical_state.items():
+        state_summary[domain] = {
+            "current_analysis": (dstate.get("current_analysis", "") or "")[:500],
+            "confidence": dstate.get("confidence", 0),
+            "last_changed": dstate.get("last_changed", ""),
+            "num_evidence": len(dstate.get("evidence", [])),
+            "options": dstate.get("options", [])[:3],  # top 3 only
+        }
+    
+    # Serialize findings per domain (keep compact)
+    findings_text = {}
+    for domain, findings in raw_findings.items():
+        if findings:
+            findings_text[domain] = [
+                {"claim": f.get("claim", ""), "source": f.get("source", ""), 
+                 "confidence": f.get("confidence_signal", ""), "date": f.get("date", "")}
+                for f in findings[:15]  # max 15 per domain
+            ]
+    
+    # Questions
+    questions_text = ""
+    if pending_questions:
+        q_list = [f"Q{i+1}: {q.get('q', '')}" for i, q in enumerate(pending_questions[:5])]
+        questions_text = "\n".join(q_list)
+    
+    prompt = (
+        "You are the LLM Homelab Researcher. You maintain a coherent analytical worldview "
+        "about local LLM hardware, models, and optimization for coding agents. "
+        f"Today is {datetime.now().strftime('%B %d, %Y')}. "
+        "\n\nPREVIOUS ANALYTICAL STATE:\n"
+        f"{json.dumps(state_summary, indent=None, default=str)}"
+        "\n\nNEW FINDINGS FROM TODAY'S GATHER:\n"
+        f"{json.dumps(findings_text, indent=None, default=str)}"
+    )
+    
+    if questions_text:
+        prompt += f"\n\nPENDING USER QUESTIONS:\n{questions_text}"
+    
+    prompt += (
+        "\n\nYOUR TASK:"
+        "\n1. Cross-reference new findings across domains (does a hardware finding affect model choices?)"
+        "\n2. Identify conflicts with previous state and RESOLVE them with reasoning"
+        "\n3. Update confidence levels based on evidence count and corroboration"
+        "\n4. Detect cascading implications (e.g., new GPU price affects cost analysis)"
+        "\n5. Answer pending questions using full analytical context"
+        "\n6. Generate updated options with trade-off analysis for each domain"
+        "\n\nGROUNDING RULES:"
+        "\n- Multiple independent benchmarks (3+) = HIGH confidence"
+        "\n- Community corroborated (10+ upvotes) = MEDIUM-HIGH"
+        "\n- Official specs = BASELINE (real-world typically 85-92% of official)"
+        "\n- Single anecdote = LOW (flag as unverified)"
+        "\n- When official != real-world: show both + explain gap"
+        "\n\nReturn ONLY a JSON object with this structure:"
+        '\n{"domain_updates": {'
+        '\n  "hardware": {'
+        '\n    "analysis": "updated 2-3 paragraph analysis incorporating new findings...",'
+        '\n    "options": [{"name": "Option name", "pros": ["..."], "cons": ["..."], '
+        '"cost": "INR X / $Y", "confidence": 0.85, "rank": 1, "verdict": "Best for..."}],'
+        '\n    "confidence": 0.87,'
+        '\n    "new_evidence_incorporated": ["claim 1 from findings", "claim 2"],'
+        '\n    "conflicts_resolved": [{"claim_a": "...", "claim_b": "...", "resolution": "...", "reasoning": "..."}],'
+        '\n    "changed": true,'
+        '\n    "change_reason": "New evidence about X shifts recommendation because..."'
+        '\n  },'
+        '\n  "models": { ...same structure... },'
+        '\n  "optimization": { ...same structure... },'
+        '\n  "setup": { ...same structure... }'
+        '\n},'
+        '\n"cascading_effects": [{"from_domain": "hardware", "to_domain": "models", "implication": "..."}],'
+        '\n"deep_dive_requests": [{"topic": "...", "question": "...", "why_needed": "..."}],'
+        '\n"question_answers": [{"q_id": 1, "answer": "...", "confidence": 0.8, '
+        '"options": [{"choice": "...", "pros": ["..."], "cons": ["..."]}]}],'
+        '\n"overall_recommendation": {"action": "buy|wait|build", "target": "product/config", '
+        '"reasoning": "...", "confidence": 0.75}'
+        '\n}'
+        "\n\nIMPORTANT:"
+        "\n- For EACH domain, provide 2-5 ranked options with trade-offs"
+        "\n- Mark changed=false if no new evidence affects that domain"
+        "\n- Confidence should reflect EVIDENCE quality not just quantity"
+        "\n- Be specific with numbers (prices, tok/s, VRAM)"
+        "\n- Return ONLY the JSON."
+    )
+    
+    return prompt
+
+
+def _apply_researcher_output(state: dict, researcher_response: dict) -> dict:
+    """Apply researcher analysis to update the analytical state.
+    
+    Updates per-domain analysis, options, confidence, evidence.
+    Appends to changelog. Moves answered questions from pending to answered.
+    """
+    analytical_state = state.get("analytical_state", {})
+    changelog = state.get("changelog", [])
+    questions = state.get("questions", {"pending": [], "answered": []})
+    
+    domain_updates = researcher_response.get("domain_updates", {})
+    
+    for domain, update in domain_updates.items():
+        if domain not in analytical_state:
+            analytical_state[domain] = {
+                "current_analysis": "",
+                "options": [],
+                "confidence": 0.0,
+                "evidence": [],
+                "conflicts_resolved": [],
+                "last_changed": "",
+                "change_reason": "",
+            }
+        
+        ds = analytical_state[domain]
+        
+        # Update analysis
+        if update.get("analysis"):
+            ds["current_analysis"] = update["analysis"]
+        
+        # Update options
+        if update.get("options"):
+            ds["options"] = update["options"]
+        
+        # Update confidence
+        if "confidence" in update:
+            ds["confidence"] = update["confidence"]
+        
+        # Append new evidence
+        new_evidence = update.get("new_evidence_incorporated", [])
+        for claim in new_evidence:
+            ds["evidence"].append({
+                "claim": claim,
+                "source": "researcher_analysis",
+                "source_type": "cross_referenced",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "confidence_signal": "multiple_reports",
+            })
+        # Keep evidence capped at 50
+        ds["evidence"] = ds["evidence"][-50:]
+        
+        # Record conflicts resolved
+        conflicts = update.get("conflicts_resolved", [])
+        if conflicts:
+            ds["conflicts_resolved"].extend(conflicts)
+            ds["conflicts_resolved"] = ds["conflicts_resolved"][-10:]  # keep last 10
+        
+        # Track changes
+        if update.get("changed", False):
+            ds["last_changed"] = datetime.now().strftime("%Y-%m-%d")
+            ds["change_reason"] = update.get("change_reason", "Updated by researcher")
+            
+            # Add changelog entry
+            changelog.append(_build_changelog_entry(
+                domain=domain,
+                change=update.get("change_reason", "Analysis updated"),
+                reason=f"New evidence: {', '.join(new_evidence[:3])}",
+                evidence=new_evidence[:5],
+            ))
+    
+    # Apply cascading effects to changelog
+    cascading = researcher_response.get("cascading_effects", [])
+    for effect in cascading:
+        changelog.append(_build_changelog_entry(
+            domain=effect.get("to_domain", "unknown"),
+            change=f"Cascade from {effect.get('from_domain', '?')}: {effect.get('implication', '')}",
+            reason="Cross-domain implication detected by researcher",
+        ))
+    
+    # Handle question answers
+    q_answers = researcher_response.get("question_answers", [])
+    for qa in q_answers:
+        q_id = qa.get("q_id")
+        if q_id is not None and questions["pending"]:
+            # Move from pending to answered (by index, 1-based)
+            idx = q_id - 1
+            if 0 <= idx < len(questions["pending"]):
+                answered_q = questions["pending"].pop(idx)
+                answered_q["answer"] = qa.get("answer", "")
+                answered_q["answer_confidence"] = qa.get("confidence", 0)
+                answered_q["answer_options"] = qa.get("options", [])
+                answered_q["answered_on"] = datetime.now().strftime("%Y-%m-%d")
+                questions["answered"].append(answered_q)
+    
+    # Update overall recommendation if provided
+    overall_rec = researcher_response.get("overall_recommendation")
+    if overall_rec:
+        state["recommendation"] = {
+            "recommendation": overall_rec.get("action", "wait"),
+            "best_option": overall_rec.get("target", ""),
+            "reasoning": overall_rec.get("reasoning", ""),
+            "confidence": overall_rec.get("confidence", 0),
+            "updated_by": "researcher_agent",
+            "updated_on": datetime.now().strftime("%Y-%m-%d"),
+        }
+    
+    # Keep changelog capped at 180 entries
+    changelog = changelog[-180:]
+    
+    state["analytical_state"] = analytical_state
+    state["changelog"] = changelog
+    state["questions"] = questions
+    
+    return state
+
+
+def _run_researcher(state: dict, raw_findings: dict) -> dict | None:
+    """Execute the researcher agent and return parsed response.
+    
+    Returns the researcher's JSON response or None if it fails.
+    """
+    analytical_state = state.get("analytical_state", {})
+    pending_questions = state.get("questions", {}).get("pending", [])
+    
+    prompt = _build_researcher_prompt(raw_findings, analytical_state, pending_questions)
+    
+    logger.info(f"Running researcher agent ({len(prompt)} chars prompt)...")
+    response, parsed = run_copilot_with_retry(prompt, category="researcher", timeout=240)
+    
+    if parsed and "domain_updates" in parsed:
+        logger.info(f"Researcher returned updates for: {list(parsed.get('domain_updates', {}).keys())}")
+        return parsed
+    elif parsed:
+        logger.warning(f"Researcher response missing 'domain_updates' key. Got: {list(parsed.keys())[:5]}")
+        # Try to salvage — if it has any domain names at top level
+        if any(k in parsed for k in ("hardware", "models", "optimization", "setup")):
+            logger.info("Salvaging: wrapping top-level domains as domain_updates")
+            return {"domain_updates": parsed}
+        return None
+    else:
+        logger.error("Researcher agent returned no parseable response")
+        return None
     """Execute the full LLM Homelab analytical pipeline.
     
     Pipeline stages:
@@ -1292,9 +1530,30 @@ def run_pipeline(state: dict) -> dict:
     logger.info(f"Gather complete: {total_findings} findings across {len(raw_findings)} domains, "
                 f"{nothing_new_count} domains unchanged")
     
-    # ── STAGE 2: ANALYZE (placeholder — currently uses legacy enrichment) ──
-    # TODO Phase 3: Replace with researcher agent
-    logger.info("Stage 2: ANALYZE (using legacy enrichment path)")
+    # ── STAGE 2: ANALYZE (researcher agent) ─────────────────────────────────
+    if raw_findings and total_findings > 0:
+        logger.info("=" * 60)
+        logger.info("LLM Homelab Pipeline - Stage 2: ANALYZE (researcher)")
+        logger.info("=" * 60)
+        
+        researcher_output = _run_researcher(state, raw_findings)
+        
+        if researcher_output:
+            state = _apply_researcher_output(state, researcher_output)
+            run_status["researcher"] = "success"
+            
+            # Count what changed
+            changed_domains = [
+                d for d, u in researcher_output.get("domain_updates", {}).items()
+                if u.get("changed", False)
+            ]
+            logger.info(f"Researcher updated {len(changed_domains)} domains: {changed_domains}")
+        else:
+            run_status["researcher"] = "error"
+            logger.warning("Researcher failed — legacy enrichment will handle analysis")
+    else:
+        logger.info("Stage 2: SKIP (no new findings to analyze)")
+        run_status["researcher"] = "skipped"
     
     # ── STAGE 3: CRITIQUE (placeholder) ──
     # TODO Phase 4: Add critic agent with bounded loop
