@@ -8148,23 +8148,21 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
                 f'stroke="{color}" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>\n'
             )
 
-    # Edges: learning topic prereq arrows (within topics)
+    # Edges: learning topic prereq arrows (uniform color)
     for tid, tdata in TOPIC_DAG.items():
         if tid not in topic_positions:
             continue
-        target_status = ks_topics.get(tid, {}).get("status", "unseen")
         tx, ty = topic_positions[tid]
         for prereq in tdata.get("prereqs", []):
             if prereq not in topic_positions:
                 continue
             px, py = topic_positions[prereq]
-            color = STATUS_COLORS.get(target_status, "#666")
-            opacity = "0.5" if target_status == "unseen" else "0.8"
-            stroke_w = "1.2" if target_status == "unseen" else "2"
+            linked_domain = TOPIC_DOMAIN_LINKS.get(tid)
+            edge_color = DOMAIN_COLORS.get(linked_domain, "#6b7b8d") if linked_domain else "#6b7b8d"
             mid_y = (py + node_h/2 + ty - node_h/2) / 2
             arrows_svg += (
                 f'<path d="M{px:.0f},{py + node_h/2:.0f} C{px:.0f},{mid_y:.0f} {tx:.0f},{mid_y:.0f} {tx:.0f},{ty - node_h/2:.0f}" '
-                f'fill="none" stroke="{color}" stroke-width="{stroke_w}" opacity="{opacity}" '
+                f'fill="none" stroke="{edge_color}" stroke-width="1.5" opacity="0.5" '
                 f'marker-end="url(#kg-arrow)"/>\n'
             )
 
@@ -8198,28 +8196,25 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
             f'</g>\n'
         )
 
-    # Draw learning topic nodes
+    # Draw learning topic nodes — all uniform style, colored by linked domain
+    TOPIC_COLOR = "#8b9dc3"  # neutral blue-gray for unlinked topics
     for tid in TOPIC_DAG:
         if tid not in topic_positions:
             continue
         cx, cy = topic_positions[tid]
-        status = ks_topics.get(tid, {}).get("status", "unseen")
-        color = STATUS_COLORS.get(status, "#555")
         label = _esc(SHORT_LABELS.get(tid, tid[:14]))
         rx, ry = cx - node_w / 2, cy - node_h / 2
-        fill_opacity = "0.15" if status == "unseen" else "0.3"
-        stroke_w = "1.5" if status == "unseen" else "2.5"
         font_size = "9.5" if len(label) > 14 else "10.5"
         linked_domain = TOPIC_DOMAIN_LINKS.get(tid)
-        border_color = DOMAIN_COLORS.get(linked_domain, color) if linked_domain else color
+        node_color = DOMAIN_COLORS.get(linked_domain, TOPIC_COLOR) if linked_domain else TOPIC_COLOR
 
         nodes_svg += (
             f'<g class="kg-node" data-type="topic" data-id="{tid}">'
             f'<rect x="{rx:.0f}" y="{ry:.0f}" width="{node_w}" height="{node_h}" '
-            f'rx="8" fill="{color}" fill-opacity="{fill_opacity}" '
-            f'stroke="{border_color}" stroke-width="{stroke_w}"/>'
+            f'rx="8" fill="{node_color}" fill-opacity="0.18" '
+            f'stroke="{node_color}" stroke-width="1.8"/>'
             f'<text x="{cx:.0f}" y="{cy + 4:.0f}" text-anchor="middle" '
-            f'font-size="{font_size}" fill="{"#ccc" if status == "unseen" else color}" font-family="system-ui" '
+            f'font-size="{font_size}" fill="#ddd" font-family="system-ui" '
             f'font-weight="500">{label}</text>'
             f'</g>\n'
         )
@@ -8394,13 +8389,7 @@ document.addEventListener("DOMContentLoaded", function() {{
   }}
 
   function renderTopic(d) {{
-    var statusLabels = {{"unseen":"Ready to Learn","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
-    var statusColors = {{"unseen":"#888","introduced":"#f59e0b","reinforced":"#10b981","applied":"#6366f1"}};
-    var st = d.status || "unseen";
     var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
-    html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.15);color:' + (statusColors[st]||"#888") + ';">' + (statusLabels[st]||st) + '</div>';
-    if (d.confidence) html += '<div class="kg-pane-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">' + Math.round(d.confidence*100) + '% mastery</div>';
-    if (d.lessons_count) html += '<div class="kg-pane-badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">' + d.lessons_count + ' lessons</div>';
     if (d.linked_domain) html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;">Domain: ' + d.linked_domain + '</div>';
     if (d.goal_tags && d.goal_tags.length) {{
       html += '<div style="margin-top:8px;">';
@@ -8411,7 +8400,7 @@ document.addEventListener("DOMContentLoaded", function() {{
       html += '<div class="kg-pane-section"><h4>Overview</h4><div class="kg-pane-analysis">' + esc(d.summary) + '</div></div>';
     }}
     if (d.key_facts && d.key_facts.length) {{
-      html += '<div class="kg-pane-section"><h4>Key Facts Learned</h4><ul class="kg-pane-list">';
+      html += '<div class="kg-pane-section"><h4>Key Facts</h4><ul class="kg-pane-list">';
       d.key_facts.forEach(function(f) {{ html += '<li>' + esc(f) + '</li>'; }});
       html += '</ul></div>';
     }}
