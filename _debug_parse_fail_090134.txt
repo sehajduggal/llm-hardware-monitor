@@ -1,0 +1,36 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "TurboQuant (TQ3_0, TQ4_0) KV cache quantization achieves 3-4x KV cache compression with minimal quality loss; on Apple Silicon M4 Pro, Qwen2.5-32B at 16K context reduced KV memory from 4.2GB to 897MB at 98% FP16 speed",
+      "source": "github.com/ggml-org/llama.cpp/discussions/20969, r/LocalLLaMA",
+      "source_type": "community",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "4.6x KV compression at near-FP16 decode speed on MLX; 4.2GB→897MB for 32B model at 16K context",
+      "related_domains": ["memory_optimization", "apple_silicon"]
+    },
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, broadening multi-token prediction to more model families with 2-2.5x speedup",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2-2.5x speedup, ~80% acceptance rate, no draft model needed",
+      "related_domains": ["speculative_decoding", "models"]
+    },
+    {
+      "claim": "KTransformers v0.6.1 released with DeepSeek-V4-Flash support and expanded model coverage (MiniMax-M2.5, GLM-5, Kimi-K2.5) for CPU-GPU heterogeneous inference",
+      "source": "kvcache-ai.github.io/ktransformers/",
+      "source_type": "official",
+      "date": "May 2, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "N/A - new model support for edge/consumer hardware MoE offloading",
+      "related_domains": ["moe_offloading", "models"]
+    },
+    {
+      "claim": "Ollama v0.19 MLX backend nearly doubles inference speed on Apple Silicon: Qwen3.5-35B-A3B prefill 1,810 vs 1,154 tok/s, decode 112 vs 58 tok/s compared to non-MLX backend",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "offici

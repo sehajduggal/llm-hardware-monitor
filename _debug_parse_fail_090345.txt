@@ -1,0 +1,34 @@
+Now I have enough data. Let me compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Google released MTP (Multi-Token Prediction) drafters for Gemma 4, achieving up to 3x speedup for Dense models (31B: 280-320 tok/s → 820-890 tok/s on H100) and 2.6-2.98x on dual RTX 3090 via ik_llama.cpp fork. MoE variant (26B A4B) gains only +13% at batch=1.",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp, ai.google.dev/gemma/docs/mtp/overview, marktechpost.com",
+      "source_type": "official",
+      "date": "May 6, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "3x throughput for Dense models; pp2048 test: 869→2828 tok/s; MoE only +13%",
+      "related_domains": ["inference", "speculative_decoding", "models"]
+    },
+    {
+      "claim": "llama.cpp restructured KV cache memory management for Gemma 4, reducing VRAM usage by ~40% in large-context scenarios. Gemma 4 26B now fits in 24GB VRAM at 8K context; 31B Q4 uses ~18GB at 8K context.",
+      "source": "explore.n1n.ai/blog/gemma-4-local-inference-llama-cpp-kv-cache-fix-npu-benchmarks-2026-04-05",
+      "source_type": "community",
+      "date": "April-May 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "40% VRAM reduction; 26B Q4 ~14GB at 8K context; 31B fits 24GB cards",
+      "related_domains": ["hardware", "memory_optimization"]
+    },
+    {
+      "claim": "TurboQuant KV cache compression (per-layer, outlier-aware quantization) achieves 3-4x KV cache compression with minimal quality loss. Available in DFlash/Luce-Org forks via --cache-type-k turbo3 --cache-type-v turbo3 flags, being merged upstream.",
+      "source": "github.com/AtomicBot-ai/atomic-llama-cpp-turboquant",
+      "source_type": "github",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "3-4x KV cache size reduction",
+      "related_domains": ["memory_optimization", "quantization"]
+    },
+    {
+      "claim": "Ol

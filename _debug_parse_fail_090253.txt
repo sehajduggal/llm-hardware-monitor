@@ -1,0 +1,34 @@
+Based on all the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Ollama 0.19 MLX backend delivers 93-131% decode speedup on Apple Silicon: prefill jumps from 1,154 to 1,810 tok/s, decode from 58 to 112 tok/s. Int4 models hit 134 tok/s decode on M4 Max.",
+      "source": "dev.to/alanwest/ollama-just-got-93-faster-on-mac-heres-how-to-enable-it + ollama.com/blog/mlx",
+      "source_type": "community",
+      "date": "March-May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "High engagement across dev.to and 9to5Mac coverage",
+      "related_domains": ["optimization", "hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.5-35B-A3B (MoE, 3B active params) released with 262K native context, scores 73.4% on SWE-bench, runs on Mac Studio 32GB. Apache 2.0 license. Prefill ~1850 tok/s, decode ~134 tok/s on M4 Max with NVFP4.",
+      "source": "huggingface.co/Qwen/Qwen3.5-35B-A3B + buildfastwithai.com/blogs/qwen3-6-35b-a3b-review",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "Major model release, extensive community discussion",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Strix Halo Ryzen AI Max+ 395 benchmarks: Qwen3-Coder-30B BF16 decodes at 9.19 tok/s, Llama-3.3-70B Q4_K_XL at 5.05 tok/s, Llama-4-Scout 17B Q4 at 20.2 tok/s. Unified 128GB LPDDR5X at ~212 GB/s bandwidth.",
+      "source": "valerian.dtdg.fr/blog/2025/amd-strix-halo-ai-395-llm-benchmark + strixhalo.wiki/AI/llamacpp-performance",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "Referenced across multiple Strix Halo review sites",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: FE at ₹2.14L (rare), AIB cards ₹4.3L-8.5L. Most custom cards in

@@ -1,0 +1,13 @@
+The analysis JSON has been generated and saved. Here's a summary of the key changes:
+
+**Major Shifts:**
+- **Strix Halo downgraded** — verified benchmarks (70B Q4 at 5 tok/s, 30B dense at 9 tok/s) are far below previous estimates. Only viable for MoE/sub-20B models.
+- **"Wait for M5" added as hardware option** — WWDC June 8 (25 days away), M5 Ultra could bring 256GB unified memory.
+- **Framework Desktop price up** $1,999→$2,459 (DRAM shortage), but Beelink undercuts at $1,985.
+- **RTX 5090 India floor lowered** to ₹3.05L (Flipkart deal), mainstream ₹4L+.
+- **Qwen3-30B-A3B** added as distinct battle-tested option alongside Qwen3.6-35B-A3B.
+- **Ollama 0.19 MLX now default** — zero-config for Apple Silicon.
+
+**Overall Recommendation:** Wait 25 days for WWDC (June 8) to see M5 specs, then decide RTX 5090 (speed) vs M5 Mac Studio (versatility).
+
+The full JSON is at `files/analysis-2026-05-14.json` in the session folder.
