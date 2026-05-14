@@ -433,14 +433,24 @@
   .options-matrix tr:hover td { background: rgba(88,166,255,0.04); }
   .options-matrix .rank-1 td { border-left: 3px solid var(--green); }
   .options-matrix .rank-2 td { border-left: 3px solid var(--accent); }
+  .options-matrix .rank-top td { border-left: 3px solid var(--green); background: rgba(16,185,129,0.04); }
   .options-matrix .pros { color: var(--green); font-size: 0.85em; }
   .options-matrix .cons { color: var(--red); font-size: 0.85em; }
-  .evidence-list { list-style: none; padding: 0; margin-bottom: 24px; }
-  .evidence-list li { padding: 10px 14px; background: var(--card); border-radius: 8px; margin-bottom: 8px; font-size: 0.88em; display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--border); }
-  .evidence-list .ev-icon { font-size: 1.1em; flex-shrink: 0; }
-  .evidence-list .ev-text { flex: 1; line-height: 1.5; }
+  .evidence-list { margin-bottom: 24px; }
+  .evidence-list .ev-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+  .evidence-list .ev-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .evidence-list .ev-icon { font-size: 1.1em; }
+  .evidence-list .ev-source { font-size: 0.78em; color: var(--accent); font-weight: 500; }
+  .evidence-list .ev-date { font-size: 0.72em; color: var(--dim); margin-left: auto; }
+  .evidence-list .ev-claim { font-size: 0.88em; line-height: 1.5; color: var(--fg); }
   .conflicts-list { margin-bottom: 24px; }
-  .conflicts-list .conflict-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
+  .conflicts-list .conflict-item { padding: 14px 16px; background: var(--card); border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--yellow); }
+  .conflicts-list .conflict-sides { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.85em; }
+  .conflicts-list .side-a { background: rgba(239,68,68,0.1); color: #f87171; padding: 2px 8px; border-radius: 4px; }
+  .conflicts-list .side-b { background: rgba(59,130,246,0.1); color: #60a5fa; padding: 2px 8px; border-radius: 4px; }
+  .conflicts-list .vs { font-size: 0.75em; color: var(--dim); font-weight: 700; }
+  .conflicts-list .conflict-resolution { font-weight: 500; font-size: 0.9em; color: var(--green); }
+  .conflicts-list .conflict-reasoning { font-size: 0.82em; color: var(--dim); margin-top: 4px; font-style: italic; }
   .domain-changelog { margin-bottom: 24px; }
   .domain-changelog .entry { padding: 10px 14px; border-left: 2px solid var(--accent2); margin-bottom: 8px; margin-left: 8px; }
   .domain-changelog .entry-date { font-size: 0.78em; color: var(--dim); }
@@ -460,13 +470,13 @@
   /* ── Knowledge Graph (styles defined inline per page) ── */
 </style>
 </head>
-<body data-run-id="c543" data-run-date="2026-05-14">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link active">🗺️ Knowledge</a><a href="ask.html" class="nav-link">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 15:59:24</span></nav>
+<body data-run-id="e850" data-run-date="2026-05-14">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link active">🗺️ Knowledge</a><a href="ask.html" class="nav-link">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:10:41</span></nav>
 
 <div class="header">
   <div class="header-top">
     <h1>🗺️ Knowledge Graph</h1>
-    <div class="meta">Last updated: <b>2026-05-14 15:59:24</b></div>
+    <div class="meta">Last updated: <b>2026-05-14 16:10:41</b></div>
   </div>
 </div>
 <style>

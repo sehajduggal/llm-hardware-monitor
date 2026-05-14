@@ -1967,7 +1967,107 @@ def _apply_researcher_output(state: dict, researcher_response: dict) -> dict:
     return state
 
 
-def _run_researcher(state: dict, raw_findings: dict) -> dict | None:
+def _run_deep_dives(state: dict, requests: list) -> dict:
+    """Execute sub-agent deep dives for topics flagged by the researcher.
+    
+    Each request has: topic, question, why_needed.
+    Spawns 1-2 focused prompts, merges results back into analytical state.
+    """
+    if not requests:
+        return state
+    
+    analytical_state = state.get("analytical_state", {})
+    changelog = state.get("changelog", [])
+    
+    for req in requests[:2]:
+        topic = req.get("topic", "unknown")
+        question = req.get("question", "")
+        why = req.get("why_needed", "")
+        
+        if not question:
+            continue
+        
+        # Determine which domain this relates to
+        related_domain = None
+        for domain, ds in analytical_state.items():
+            if topic.lower() in ds.get("current_analysis", "").lower():
+                related_domain = domain
+                break
+        
+        # Build focused deep-dive prompt
+        context_summary = ""
+        if related_domain:
+            ds = analytical_state[related_domain]
+            context_summary = f"Current {related_domain} analysis: {ds.get('current_analysis', '')[:500]}"
+        
+        deep_dive_prompt = (
+            f"You are a focused research sub-agent for LLM Homelab.\n\n"
+            f"TOPIC: {topic}\n"
+            f"QUESTION: {question}\n"
+            f"WHY NEEDED: {why}\n\n"
+            f"CONTEXT:\n{context_summary}\n\n"
+            f"Search for specific, verifiable information about this topic.\n"
+            f"Return JSON:\n"
+            f'{{\n'
+            f'  "topic": "{topic}",\n'
+            f'  "findings": [\n'
+            f'    {{"claim": "...", "source": "...", "confidence": "high/medium/low"}}\n'
+            f'  ],\n'
+            f'  "summary": "2-3 sentence summary of what you found",\n'
+            f'  "implications": ["how this affects the overall analysis"]\n'
+            f'}}\n'
+        )
+        
+        session_name = f"llm-homelab-deepdive-{topic.replace(' ', '-')[:20]}-{datetime.now().strftime('%Y%m%d')}"
+        logger.info(f"Running deep dive: {topic} ({question[:60]}...)")
+        
+        response = run_copilot_with_retry(deep_dive_prompt, session_name=session_name, retries=2)
+        
+        if response:
+            parsed = _try_parse_json(response)
+            if parsed:
+                # Inject findings as evidence into the related domain
+                findings = parsed.get("findings", [])
+                summary = parsed.get("summary", "")
+                implications = parsed.get("implications", [])
+                
+                if related_domain and findings:
+                    ds = analytical_state[related_domain]
+                    for f in findings[:5]:
+                        ds["evidence"].append({
+                            "claim": f.get("claim", ""),
+                            "source": "deep_dive_sub_agent",
+                            "source_type": "ai_analysis",
+                            "date": datetime.now().strftime("%Y-%m-%d"),
+                            "confidence_signal": "multiple_reports" if f.get("confidence") == "high" else "single_anecdote",
+                        })
+                    ds["evidence"] = ds["evidence"][-50:]
+                    
+                    # If we got a meaningful summary, append to analysis
+                    if summary:
+                        ds["current_analysis"] += f"\n\n[Deep Dive — {topic}]: {summary}"
+                
+                # Log implications to changelog
+                for imp in implications[:2]:
+                    changelog.append(_build_changelog_entry(
+                        domain=related_domain or "general",
+                        change=f"Deep dive ({topic}): {imp}",
+                        reason=f"Sub-agent investigation: {question[:80]}",
+                        evidence=[f.get("claim", "") for f in findings[:3]],
+                    ))
+                
+                logger.info(f"Deep dive '{topic}' returned {len(findings)} findings")
+            else:
+                logger.warning(f"Deep dive '{topic}' response not parseable as JSON")
+        else:
+            logger.warning(f"Deep dive '{topic}' failed to get response")
+    
+    state["analytical_state"] = analytical_state
+    state["changelog"] = changelog[-180:]
+    return state
+
+
+
     """Execute the researcher agent and return parsed response.
     
     Returns the researcher's JSON response or None if it fails.
@@ -2234,6 +2334,13 @@ def run_pipeline(state: dict) -> dict:
                 if u.get("changed", False)
             ]
             logger.info(f"Researcher updated {len(changed_domains)} domains: {changed_domains}")
+            
+            # ── STAGE 2.5: DEEP DIVES (sub-agents, max 2) ──
+            deep_dive_requests = researcher_output.get("deep_dive_requests", [])
+            if deep_dive_requests:
+                logger.info(f"Deep dives requested: {len(deep_dive_requests)} topics")
+                state = _run_deep_dives(state, deep_dive_requests[:2])
+                run_status["deep_dives"] = "success"
         else:
             run_status["researcher"] = "error"
             logger.warning("Researcher failed — legacy enrichment will handle analysis")
@@ -5586,14 +5693,24 @@ _DASHBOARD_CSS = """
   .options-matrix tr:hover td { background: rgba(88,166,255,0.04); }
   .options-matrix .rank-1 td { border-left: 3px solid var(--green); }
   .options-matrix .rank-2 td { border-left: 3px solid var(--accent); }
+  .options-matrix .rank-top td { border-left: 3px solid var(--green); background: rgba(16,185,129,0.04); }
   .options-matrix .pros { color: var(--green); font-size: 0.85em; }
   .options-matrix .cons { color: var(--red); font-size: 0.85em; }
-  .evidence-list { list-style: none; padding: 0; margin-bottom: 24px; }
-  .evidence-list li { padding: 10px 14px; background: var(--card); border-radius: 8px; margin-bottom: 8px; font-size: 0.88em; display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--border); }
-  .evidence-list .ev-icon { font-size: 1.1em; flex-shrink: 0; }
-  .evidence-list .ev-text { flex: 1; line-height: 1.5; }
+  .evidence-list { margin-bottom: 24px; }
+  .evidence-list .ev-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+  .evidence-list .ev-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .evidence-list .ev-icon { font-size: 1.1em; }
+  .evidence-list .ev-source { font-size: 0.78em; color: var(--accent); font-weight: 500; }
+  .evidence-list .ev-date { font-size: 0.72em; color: var(--dim); margin-left: auto; }
+  .evidence-list .ev-claim { font-size: 0.88em; line-height: 1.5; color: var(--fg); }
   .conflicts-list { margin-bottom: 24px; }
-  .conflicts-list .conflict-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
+  .conflicts-list .conflict-item { padding: 14px 16px; background: var(--card); border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--yellow); }
+  .conflicts-list .conflict-sides { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.85em; }
+  .conflicts-list .side-a { background: rgba(239,68,68,0.1); color: #f87171; padding: 2px 8px; border-radius: 4px; }
+  .conflicts-list .side-b { background: rgba(59,130,246,0.1); color: #60a5fa; padding: 2px 8px; border-radius: 4px; }
+  .conflicts-list .vs { font-size: 0.75em; color: var(--dim); font-weight: 700; }
+  .conflicts-list .conflict-resolution { font-weight: 500; font-size: 0.9em; color: var(--green); }
+  .conflicts-list .conflict-reasoning { font-size: 0.82em; color: var(--dim); margin-top: 4px; font-style: italic; }
   .domain-changelog { margin-bottom: 24px; }
   .domain-changelog .entry { padding: 10px 14px; border-left: 2px solid var(--accent2); margin-bottom: 8px; margin-left: 8px; }
   .domain-changelog .entry-date { font-size: 0.78em; color: var(--dim); }
@@ -8146,7 +8263,48 @@ def _generate_situation_room(state: dict, now: str) -> str:
     domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
     domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
 
-    # 1. Current Analysis Summary (the main content — what we know NOW)
+    # 1. What Changed Today — proper diff section
+    today = now[:10]  # just date part YYYY-MM-DD
+    today_entries = [e for e in changelog if str(e.get("date", ""))[:10] >= today]
+    
+    # Count changes by type
+    domains_changed = set(e.get("domain", "") for e in today_entries)
+    new_findings = sum(1 for e in today_entries if "finding" in str(e.get("change", "")).lower() or "new" in str(e.get("change", "")).lower())
+    conflicts_resolved = sum(1 for e in today_entries if "conflict" in str(e.get("change", "")).lower() or "resolve" in str(e.get("change", "")).lower())
+    
+    # Build change-diff HTML
+    if today_entries:
+        diff_summary = (
+            f'<div class="sr-changes">'
+            f'<h3 style="margin-bottom:12px;">📋 What Changed Today</h3>'
+            f'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">'
+            f'<span class="diff-badge" style="background:rgba(59,130,246,0.1);color:#60a5fa;padding:4px 12px;border-radius:6px;font-size:0.85em;font-weight:600;">{len(today_entries)} changes</span>'
+            f'<span class="diff-badge" style="background:rgba(16,185,129,0.1);color:#34d399;padding:4px 12px;border-radius:6px;font-size:0.85em;">{len(domains_changed)} domains updated</span>'
+        )
+        if new_findings:
+            diff_summary += f'<span class="diff-badge" style="background:rgba(139,92,246,0.1);color:#a78bfa;padding:4px 12px;border-radius:6px;font-size:0.85em;">{new_findings} new findings</span>'
+        if conflicts_resolved:
+            diff_summary += f'<span class="diff-badge" style="background:rgba(245,158,11,0.1);color:#fbbf24;padding:4px 12px;border-radius:6px;font-size:0.85em;">{conflicts_resolved} conflicts resolved</span>'
+        diff_summary += '</div><div class="diff-entries">'
+        
+        for entry in today_entries[:8]:
+            domain_e = entry.get("domain", "general")
+            color_e = domain_colors.get(domain_e, "#6b7280")
+            change = _esc(entry.get("change", "")[:150])
+            diff_summary += (
+                f'<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:0.85em;">'
+                f'<span style="color:{color_e};font-weight:600;">{domain_icons.get(domain_e, "📊")} {domain_e.title()}</span>: {change}</div>'
+            )
+        diff_summary += '</div></div>'
+    else:
+        diff_summary = (
+            '<div class="sr-changes">'
+            '<h3 style="margin-bottom:8px;">📋 What Changed Today</h3>'
+            '<p style="color:var(--dim);font-size:0.88em;">No changes yet today. Run the pipeline to gather new intelligence.</p>'
+            '</div>'
+        )
+
+    # Latest Analysis Summary (compact — full analysis is on domain pages)
     analysis_summary_html = '<div style="margin-bottom:32px;">'
     analysis_summary_html += '<h3 style="margin-bottom:16px;font-size:1.1em;">📊 Latest Analysis</h3>'
     for domain in ("hardware", "models", "optimization", "setup"):
@@ -8268,6 +8426,7 @@ def _generate_situation_room(state: dict, now: str) -> str:
         '\n  </div>'
         '\n</div>'
         '\n<div class="content">'
+        f'\n  {diff_summary}'
         f'\n  {rec_html}'
         f'\n  {analysis_summary_html}'
         f'\n  {cards_html}'
@@ -8338,22 +8497,24 @@ def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
     matrix_html = ""
     if options:
         matrix_html = (
-            '<h3 style="margin-bottom:12px;color:var(--accent);">Options Matrix</h3>'
+            '<h3 style="margin-bottom:12px;color:var(--accent);">🏆 Options Matrix</h3>'
             '<div style="overflow-x:auto;margin-bottom:24px;">'
             '<table class="options-matrix">'
-            '<thead><tr><th>Rank</th><th>Name</th><th>Pros</th><th>Cons</th><th>Cost</th><th>Performance</th></tr></thead>'
+            '<thead><tr><th>Rank</th><th>Option</th><th>Pros</th><th>Cons</th><th>Cost</th><th>Confidence</th><th>Verdict</th></tr></thead>'
             '<tbody>'
         )
-        for opt in sorted(options, key=lambda x: x.get("recommendation_rank", 99)):
-            rank = opt.get("recommendation_rank", "—")
+        for opt in sorted(options, key=lambda x: x.get("rank", x.get("recommendation_rank", 99))):
+            rank = opt.get("rank", opt.get("recommendation_rank", "—"))
             name = _esc(opt.get("name", ""))
             pros = opt.get("pros", [])
             cons = opt.get("cons", [])
             cost = _esc(opt.get("cost", "—"))
-            perf = _esc(opt.get("performance", "—"))
+            conf_opt = opt.get("confidence", 0)
+            conf_str = f"{int(conf_opt*100)}%" if isinstance(conf_opt, (int, float)) and conf_opt <= 1 else _esc(str(conf_opt))
+            verdict = _esc(opt.get("verdict", ""))
             pros_html = "<br>".join(f"✅ {_esc(p)}" for p in (pros if isinstance(pros, list) else []))
             cons_html = "<br>".join(f"❌ {_esc(c)}" for c in (cons if isinstance(cons, list) else []))
-            rank_cls = f"rank-{rank}" if isinstance(rank, int) and rank <= 2 else ""
+            rank_cls = "rank-top" if isinstance(rank, int) and rank == 1 else ""
             matrix_html += (
                 f'<tr class="{rank_cls}">'
                 f'<td><b>#{rank}</b></td>'
@@ -8361,7 +8522,8 @@ def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
                 f'<td class="pros">{pros_html}</td>'
                 f'<td class="cons">{cons_html}</td>'
                 f'<td>{cost}</td>'
-                f'<td>{perf}</td>'
+                f'<td>{conf_str}</td>'
+                f'<td><em>{verdict}</em></td>'
                 f'</tr>'
             )
         matrix_html += '</tbody></table></div>'
@@ -8369,31 +8531,63 @@ def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
     # 4. Evidence Trail
     ev_html = ""
     if evidence:
-        ev_html = '<h3 style="margin-bottom:12px;color:var(--accent);">Evidence Trail</h3><ul class="evidence-list">'
-        source_icons = {"benchmark": "🔬", "community": "👥", "official": "📋", "research": "📖", "price": "💰"}
-        for ev in evidence:
+        ev_html = '<h3 style="margin-bottom:12px;color:var(--accent);">Evidence Trail</h3><div class="evidence-list">'
+        source_icons = {"benchmark": "🔬", "community": "👥", "official": "📋", "retailer": "🛒", 
+                        "blog": "📖", "review": "📝", "paper": "📄", "cross_referenced": "🔗",
+                        "aggregated": "📊", "ai_analysis": "🤖"}
+        confidence_badges = {
+            "direct_observation": ("Direct", "#10b981"),
+            "multiple_reports": ("Corroborated", "#3b82f6"),
+            "official_announcement": ("Official", "#8b5cf6"),
+            "single_anecdote": ("Single source", "#f59e0b"),
+            "raw_data": ("Raw", "#6b7280"),
+        }
+        for ev in evidence[-15:]:  # show latest 15
             if isinstance(ev, dict):
-                source = ev.get("source", "other")
-                text = _esc(ev.get("text", str(ev)))
-                ev_icon = source_icons.get(source, "📌")
+                claim = _esc(ev.get("claim", str(ev)))[:200]
+                source_type = ev.get("source_type", "other")
+                source = _esc(ev.get("source", ""))
+                date = _esc(ev.get("date", "")[:10])
+                conf_sig = ev.get("confidence_signal", "")
+                ev_icon = source_icons.get(source_type, "📌")
+                badge_text, badge_color = confidence_badges.get(conf_sig, ("", "#6b7280"))
+                badge_html = f'<span style="background:{badge_color}22;color:{badge_color};padding:1px 6px;border-radius:3px;font-size:0.7rem;margin-left:6px;">{badge_text}</span>' if badge_text else ""
+                ev_html += (
+                    f'<div class="ev-item">'
+                    f'<div class="ev-header"><span class="ev-icon">{ev_icon}</span>'
+                    f'<span class="ev-source">{source}</span>{badge_html}'
+                    f'<span class="ev-date">{date}</span></div>'
+                    f'<div class="ev-claim">{claim}</div></div>'
+                )
             else:
-                text = _esc(str(ev))
-                ev_icon = "📌"
-            ev_html += f'<li><span class="ev-icon">{ev_icon}</span><span class="ev-text">{text}</span></li>'
-        ev_html += '</ul>'
+                ev_html += f'<div class="ev-item"><div class="ev-claim">{_esc(str(ev)[:200])}</div></div>'
+        ev_html += '</div>'
 
     # 5. Conflicts Resolved
     conflicts = ds.get("conflicts_resolved", [])
     conflicts_html = ""
     if conflicts:
-        conflicts_html = '<h3 style="margin-bottom:12px;color:var(--accent);">Conflicts Resolved</h3><div class="conflicts-list">'
+        conflicts_html = '<h3 style="margin-bottom:12px;color:var(--accent);">⚔️ Conflicts Resolved</h3><div class="conflicts-list">'
         for c in conflicts:
             if isinstance(c, dict):
-                text = _esc(c.get("conflict", str(c)))
-                resolution = _esc(c.get("resolution", ""))
-                conflicts_html += f'<div class="conflict-item"><div style="font-weight:500;">{text}</div><div style="font-size:0.85em;color:var(--dim);margin-top:4px;">Resolution: {resolution}</div></div>'
+                claim_a = _esc(c.get("claim_a", ""))
+                claim_b = _esc(c.get("claim_b", ""))
+                resolution = _esc(c.get("resolution", c.get("conflict", str(c))))
+                reasoning = _esc(c.get("reasoning", ""))
+                conflicts_html += (
+                    f'<div class="conflict-item">'
+                    f'<div class="conflict-sides">'
+                    f'<span class="side-a">A: {claim_a}</span>'
+                    f'<span class="vs">vs</span>'
+                    f'<span class="side-b">B: {claim_b}</span>'
+                    f'</div>'
+                    f'<div class="conflict-resolution">→ {resolution}</div>'
+                )
+                if reasoning:
+                    conflicts_html += f'<div class="conflict-reasoning">{reasoning}</div>'
+                conflicts_html += '</div>'
             else:
-                conflicts_html += f'<div class="conflict-item">{_esc(str(c))}</div>'
+                conflicts_html += f'<div class="conflict-item"><div class="conflict-resolution">{_esc(str(c))}</div></div>'
         conflicts_html += '</div>'
 
     # 6. What Changed (domain-specific changelog)
