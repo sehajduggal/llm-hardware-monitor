@@ -8277,7 +8277,7 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
     # ── Assemble full SVG ──
     svg_html = f'''<div class="kg-container">
 <svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
-     class="kg-svg" preserveAspectRatio="xMidYMin meet">
+     class="kg-svg" preserveAspectRatio="xMidYMid meet">
   <defs>
     <marker id="kg-arrow" viewBox="0 0 10 10" refX="9" refY="5"
       markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -8304,10 +8304,10 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 
     # ── CSS for knowledge graph ──
     kg_css = '''<style>
-.kg-container { overflow-x: auto; border-radius: 12px; background: rgba(15,15,25,0.6);
+.kg-container { overflow: auto; border-radius: 12px; background: rgba(15,15,25,0.6);
   border: 1px solid rgba(255,255,255,0.06); padding: 12px; position: relative;
-  width: 100%; max-width: 100vw; min-height: 70vh; }
-.kg-svg { width: 100%; min-width: 900px; height: auto; min-height: 60vh; display: block; }
+  width: 100%; height: calc(100vh - 140px); }
+.kg-svg { width: 100%; height: 100%; display: block; }
 .kg-node { cursor: pointer; pointer-events: bounding-box; }
 .kg-node rect, .kg-node circle { cursor: pointer; pointer-events: all; transition: fill-opacity 0.2s, stroke-width 0.2s; }
 .kg-node:hover rect { fill-opacity: 0.5 !important; stroke-width: 3 !important; }
