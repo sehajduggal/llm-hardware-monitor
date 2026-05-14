@@ -7995,88 +7995,113 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         "lora_qlora_basics": "LoRA/QLoRA", "when_to_finetune": "When to Fine-tune",
     }
 
-    # ── Layout: Domain hubs at top, learning topics below, findings as satellites ──
-    svg_width = 1400
-    domain_y = 80
-    learning_start_y = 260
-    findings_y = 160  # between domains and learning
+    # ── Layout: Clustered by domain (4 columns), domain hub at top of each column ──
+    # Each column contains: Domain Hub → Finding pills → Related learning topics
+    # Unlinked topics go in a center "General" cluster below
 
-    # Position domain hub nodes (large circles across top)
-    domain_positions = {}
+    STATUS_COLORS = {"unseen": "#555", "introduced": "#f59e0b", "reinforced": "#10b981", "applied": "#6366f1"}
+
+    # Column layout
     domains = list(DOMAIN_COLORS.keys())
-    domain_spacing = svg_width / (len(domains) + 1)
-    for i, d in enumerate(domains):
-        domain_positions[d] = ((i + 1) * domain_spacing, domain_y)
+    col_width = 320
+    svg_width = col_width * 4 + 80  # 4 columns + margins
+    col_margin = 40
+    domain_y = 70
+    findings_start_y = 150
+    topics_start_y = 250
+    node_w, node_h = 120, 38
+    v_gap_topic = 52
 
-    # Position research finding nodes (smaller, clustered under their domain)
-    finding_nodes = []  # (id, label, domain, x, y, data)
+    # Position domain hub nodes (centered in each column)
+    domain_positions = {}
+    for i, d in enumerate(domains):
+        cx = col_margin + i * col_width + col_width / 2
+        domain_positions[d] = (cx, domain_y)
+
+    # Position findings under each domain hub
+    finding_nodes = []
     for domain in domains:
         ds = analytical_state.get(domain, {})
-        options = ds.get("options", [])[:3]  # top 3 options per domain
+        options = ds.get("options", [])[:3]
         dx, _ = domain_positions[domain]
         n = len(options)
-        spread = min(180, n * 70)
         for j, opt in enumerate(options):
-            fx = dx - spread/2 + (j * spread / max(1, n-1)) if n > 1 else dx
-            fy = findings_y
+            fx = dx + (j - (n-1)/2) * 110  # spread evenly
+            fy = findings_start_y
             fid = f"finding_{domain}_{j}"
-            finding_nodes.append((fid, opt.get("name", f"Option {j+1}")[:20], domain, fx, fy, opt))
+            finding_nodes.append((fid, opt.get("name", f"Option {j+1}")[:18], domain, fx, fy, opt))
 
-    # Position learning topics (reuse layer-based layout but shifted down)
-    layer_names = {
-        0: "Foundations", 1: "Core Inference", 2: "Optimization",
-        3: "Engines", 4: "Models", 5: "Agents", 6: "Hardware", 7: "Fine-tune"
-    }
-    node_w, node_h = 110, 36
-    h_gap, v_gap = 24, 80
-    left_margin = 90
+    # Group learning topics by linked domain; unlinked go to "general"
+    domain_topics = {d: [] for d in domains}
+    general_topics = []
+    for tid in TOPIC_DAG:
+        linked = TOPIC_DOMAIN_LINKS.get(tid)
+        if linked and linked in domain_topics:
+            domain_topics[linked].append(tid)
+        else:
+            general_topics.append(tid)
 
-    layers = {i: [] for i in range(8)}
-    for tid, tdata in TOPIC_DAG.items():
-        layers[tdata["layer"]].append(tid)
-
+    # Position linked topics in their domain column (vertically stacked)
     topic_positions = {}
-    for layer_num in range(8):
-        tids = layers[layer_num]
-        n = len(tids)
-        if n == 0:
-            continue
-        total_width = n * node_w + (n - 1) * h_gap
-        start_x = (svg_width - left_margin) / 2 - total_width / 2 + left_margin
-        y = learning_start_y + layer_num * (node_h + v_gap)
-        for i, tid in enumerate(tids):
-            cx = start_x + i * (node_w + h_gap) + node_w / 2
-            cy = y + node_h / 2
+    for domain in domains:
+        dx, _ = domain_positions[domain]
+        tids = domain_topics[domain]
+        for j, tid in enumerate(tids):
+            cx = dx
+            cy = topics_start_y + j * v_gap_topic
             topic_positions[tid] = (cx, cy)
 
-    svg_height = learning_start_y + 8 * (node_h + v_gap) + 60
+    # Position general topics in rows below all columns
+    max_linked_count = max(len(v) for v in domain_topics.values()) if domain_topics else 0
+    general_start_y = topics_start_y + max_linked_count * v_gap_topic + 60
+    cols_for_general = 5
+    for j, tid in enumerate(general_topics):
+        row = j // cols_for_general
+        col = j % cols_for_general
+        cx = col_margin + 100 + col * (node_w + 30)
+        cy = general_start_y + row * v_gap_topic
+        topic_positions[tid] = (cx, cy)
+
+    general_rows = (len(general_topics) + cols_for_general - 1) // cols_for_general
+    svg_height = general_start_y + general_rows * v_gap_topic + 60
 
     # ── Build SVG ──
     arrows_svg = ""
     nodes_svg = ""
 
-    # Edges: domain → finding nodes
+    # Column background shading for visual grouping
+    for i, domain in enumerate(domains):
+        x = col_margin + i * col_width
+        color = DOMAIN_COLORS[domain]
+        nodes_svg += (
+            f'<rect x="{x}" y="30" width="{col_width - 10}" height="{general_start_y - 50}" '
+            f'rx="16" fill="{color}" fill-opacity="0.03" stroke="{color}" stroke-width="0.5" stroke-opacity="0.15"/>\n'
+        )
+
+    # Edges: domain → findings (solid, bright)
     for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
         dx, dy = domain_positions[fdomain]
         color = DOMAIN_COLORS[fdomain]
         arrows_svg += (
-            f'<line x1="{dx:.0f}" y1="{dy+25:.0f}" x2="{fx:.0f}" y2="{fy-14:.0f}" '
-            f'stroke="{color}" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 2"/>\n'
+            f'<line x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{fx:.0f}" y2="{fy-16:.0f}" '
+            f'stroke="{color}" stroke-width="2" opacity="0.7"/>\n'
         )
 
-    # Edges: learning topic → domain (cross-connections)
-    for tid, domain in TOPIC_DOMAIN_LINKS.items():
-        if tid in topic_positions and domain in domain_positions:
+    # Edges: domain → linked topics (clear colored lines)
+    for domain in domains:
+        dx, dy = domain_positions[domain]
+        color = DOMAIN_COLORS[domain]
+        tids = domain_topics[domain]
+        for tid in tids:
+            if tid not in topic_positions:
+                continue
             tx, ty = topic_positions[tid]
-            dx, dy = domain_positions[domain]
-            color = DOMAIN_COLORS[domain]
             arrows_svg += (
-                f'<line x1="{tx:.0f}" y1="{ty - node_h/2:.0f}" x2="{dx:.0f}" y2="{dy+25:.0f}" '
-                f'stroke="{color}" stroke-width="0.8" opacity="0.2" stroke-dasharray="2 3"/>\n'
+                f'<line x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{tx:.0f}" y2="{ty - node_h/2:.0f}" '
+                f'stroke="{color}" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>\n'
             )
 
-    # Edges: learning topic prereq arrows
-    STATUS_COLORS = {"unseen": "#555", "introduced": "#f59e0b", "reinforced": "#10b981", "applied": "#6366f1"}
+    # Edges: learning topic prereq arrows (within topics)
     for tid, tdata in TOPIC_DAG.items():
         if tid not in topic_positions:
             continue
@@ -8086,16 +8111,17 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
             if prereq not in topic_positions:
                 continue
             px, py = topic_positions[prereq]
-            color = STATUS_COLORS.get(target_status, "#444")
-            dash = 'stroke-dasharray="3 2"' if target_status == "unseen" else ""
-            opacity = "0.3" if target_status == "unseen" else "0.6"
+            color = STATUS_COLORS.get(target_status, "#666")
+            opacity = "0.5" if target_status == "unseen" else "0.8"
+            stroke_w = "1.2" if target_status == "unseen" else "2"
             mid_y = (py + node_h/2 + ty - node_h/2) / 2
             arrows_svg += (
                 f'<path d="M{px:.0f},{py + node_h/2:.0f} C{px:.0f},{mid_y:.0f} {tx:.0f},{mid_y:.0f} {tx:.0f},{ty - node_h/2:.0f}" '
-                f'fill="none" stroke="{color}" stroke-width="1" {dash} opacity="{opacity}"/>\n'
+                f'fill="none" stroke="{color}" stroke-width="{stroke_w}" opacity="{opacity}" '
+                f'marker-end="url(#kg-arrow)"/>\n'
             )
 
-    # Draw domain hub nodes (large rounded rects)
+    # Draw domain hub nodes (large, prominent)
     for domain, (dx, dy) in domain_positions.items():
         color = DOMAIN_COLORS[domain]
         icon = DOMAIN_ICONS[domain]
@@ -8103,24 +8129,25 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         conf = int(ds.get("confidence", 0) * 100)
         nodes_svg += (
             f'<g class="kg-node" data-type="domain" data-id="{domain}">'
-            f'<rect x="{dx-60}" y="{dy-25}" width="120" height="50" rx="12" '
-            f'fill="{color}" fill-opacity="0.2" stroke="{color}" stroke-width="2.5"/>'
-            f'<text x="{dx}" y="{dy-2}" text-anchor="middle" font-size="13" fill="{color}" '
+            f'<rect x="{dx-70}" y="{dy-28}" width="140" height="56" rx="14" '
+            f'fill="{color}" fill-opacity="0.25" stroke="{color}" stroke-width="3"/>'
+            f'<text x="{dx}" y="{dy-4}" text-anchor="middle" font-size="14" fill="{color}" '
             f'font-weight="700" font-family="system-ui">{icon} {domain.title()}</text>'
-            f'<text x="{dx}" y="{dy+16}" text-anchor="middle" font-size="10" fill="{color}" '
-            f'opacity="0.8" font-family="system-ui">{conf}% confidence</text>'
+            f'<text x="{dx}" y="{dy+18}" text-anchor="middle" font-size="11" fill="{color}" '
+            f'opacity="0.9" font-family="system-ui">{conf}%</text>'
             f'</g>\n'
         )
 
-    # Draw finding nodes (small pills)
+    # Draw finding nodes (pills under domain)
     for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
         color = FINDING_COLOR
+        pill_w = max(90, len(flabel) * 7 + 16)
         nodes_svg += (
             f'<g class="kg-node" data-type="finding" data-id="{fid}" data-domain="{fdomain}">'
-            f'<rect x="{fx-50}" y="{fy-14}" width="100" height="28" rx="14" '
-            f'fill="{color}" fill-opacity="0.15" stroke="{color}" stroke-width="1.5"/>'
-            f'<text x="{fx}" y="{fy+4}" text-anchor="middle" font-size="9" fill="{color}" '
-            f'font-family="system-ui" font-weight="500">{_esc(flabel)}</text>'
+            f'<rect x="{fx - pill_w/2:.0f}" y="{fy-14}" width="{pill_w}" height="28" rx="14" '
+            f'fill="{color}" fill-opacity="0.2" stroke="{color}" stroke-width="1.8"/>'
+            f'<text x="{fx}" y="{fy+4}" text-anchor="middle" font-size="9.5" fill="{color}" '
+            f'font-family="system-ui" font-weight="600">{_esc(flabel)}</text>'
             f'</g>\n'
         )
 
@@ -8133,10 +8160,9 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         color = STATUS_COLORS.get(status, "#555")
         label = _esc(SHORT_LABELS.get(tid, tid[:14]))
         rx, ry = cx - node_w / 2, cy - node_h / 2
-        fill_opacity = "0.12" if status == "unseen" else "0.25"
-        stroke_w = "1" if status == "unseen" else "2"
-        font_size = "9.5" if len(label) > 14 else "10"
-        # Highlight topics linked to domains
+        fill_opacity = "0.15" if status == "unseen" else "0.3"
+        stroke_w = "1.5" if status == "unseen" else "2.5"
+        font_size = "9.5" if len(label) > 14 else "10.5"
         linked_domain = TOPIC_DOMAIN_LINKS.get(tid)
         border_color = DOMAIN_COLORS.get(linked_domain, color) if linked_domain else color
 
@@ -8145,22 +8171,20 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
             f'<rect x="{rx:.0f}" y="{ry:.0f}" width="{node_w}" height="{node_h}" '
             f'rx="8" fill="{color}" fill-opacity="{fill_opacity}" '
             f'stroke="{border_color}" stroke-width="{stroke_w}"/>'
-            f'<text x="{cx:.0f}" y="{cy + 3:.0f}" text-anchor="middle" '
-            f'font-size="{font_size}" fill="{color}" font-family="system-ui" '
+            f'<text x="{cx:.0f}" y="{cy + 4:.0f}" text-anchor="middle" '
+            f'font-size="{font_size}" fill="{"#ccc" if status == "unseen" else color}" font-family="system-ui" '
             f'font-weight="500">{label}</text>'
             f'</g>\n'
         )
 
-    # Layer labels on left side
+    # "General" section label
     layer_labels_svg = ""
-    for layer_num in range(8):
-        if not layers[layer_num]:
-            continue
-        y = learning_start_y + layer_num * (node_h + v_gap) + node_h / 2
-        name = layer_names.get(layer_num, f"L{layer_num}")
+    if general_topics:
         layer_labels_svg += (
-            f'<text x="10" y="{y:.0f}" font-size="9" fill="#666" '
-            f'font-family="system-ui" font-weight="600">{_esc(name)}</text>\n'
+            f'<text x="{col_margin}" y="{general_start_y - 30}" font-size="12" fill="#888" '
+            f'font-family="system-ui" font-weight="600">General Topics (cross-domain)</text>\n'
+            f'<line x1="{col_margin}" y1="{general_start_y - 20}" x2="{svg_width - col_margin}" y2="{general_start_y - 20}" '
+            f'stroke="#444" stroke-width="0.5" stroke-dasharray="4 4"/>\n'
         )
 
     # ── Build node data JSON for side pane interactivity ──
@@ -8205,6 +8229,10 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 <svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
      class="kg-svg" preserveAspectRatio="xMidYMin meet">
   <defs>
+    <marker id="kg-arrow" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#888"/>
+    </marker>
     <filter id="kg-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
       <feFlood flood-color="#6366f1" flood-opacity="0.3"/>
       <feComposite in2="blur" operator="in"/>
