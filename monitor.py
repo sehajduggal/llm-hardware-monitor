@@ -5079,6 +5079,54 @@ _DASHBOARD_CSS = """
     .ticker-item { flex-wrap: wrap; justify-content: center; }
     .decision-banner { text-align: center; }
   }
+
+  /* ── Analysis Pages ── */
+  .analysis-position { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .analysis-position p { font-size: 1.05em; line-height: 1.8; color: var(--text); }
+  .confidence-bar-wrap { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 16px; background: var(--card); border-radius: var(--radius); }
+  .confidence-ring { width: 64px; height: 64px; flex-shrink: 0; }
+  .confidence-info { flex: 1; }
+  .confidence-info .label { font-size: 0.85em; color: var(--dim); }
+  .confidence-info .value { font-size: 1.4em; font-weight: 700; }
+  .confidence-info .meta { font-size: 0.8em; color: var(--dim); margin-top: 4px; }
+  .discuss-cli-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; background: rgba(88,166,255,0.12); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); cursor: pointer; font-size: 0.85em; font-weight: 500; transition: all 0.2s; }
+  .discuss-cli-btn:hover { background: rgba(88,166,255,0.2); border-color: var(--accent); }
+  .options-matrix { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.88em; }
+  .options-matrix th { text-align: left; padding: 10px 14px; background: var(--card); border-bottom: 1px solid var(--border); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); font-weight: 600; }
+  .options-matrix td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .options-matrix tr:hover td { background: rgba(88,166,255,0.04); }
+  .options-matrix .rank-1 td { border-left: 3px solid var(--green); }
+  .options-matrix .rank-2 td { border-left: 3px solid var(--accent); }
+  .options-matrix .pros { color: var(--green); font-size: 0.85em; }
+  .options-matrix .cons { color: var(--red); font-size: 0.85em; }
+  .evidence-list { list-style: none; padding: 0; margin-bottom: 24px; }
+  .evidence-list li { padding: 10px 14px; background: var(--card); border-radius: 8px; margin-bottom: 8px; font-size: 0.88em; display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--border); }
+  .evidence-list .ev-icon { font-size: 1.1em; flex-shrink: 0; }
+  .evidence-list .ev-text { flex: 1; line-height: 1.5; }
+  .conflicts-list { margin-bottom: 24px; }
+  .conflicts-list .conflict-item { padding: 12px 16px; background: var(--card); border-radius: 8px; margin-bottom: 8px; border-left: 3px solid var(--yellow); }
+  .domain-changelog { margin-bottom: 24px; }
+  .domain-changelog .entry { padding: 10px 14px; border-left: 2px solid var(--accent2); margin-bottom: 8px; margin-left: 8px; }
+  .domain-changelog .entry-date { font-size: 0.78em; color: var(--dim); }
+  .domain-changelog .entry-text { font-size: 0.9em; margin-top: 4px; }
+
+  /* ── Situation Room ── */
+  .sr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .sr-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; transition: all 0.2s; }
+  .sr-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .sr-card .domain-label { font-size: 0.82em; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .sr-card .top-option { font-size: 1em; font-weight: 600; margin-top: 8px; }
+  .sr-card .ev-count { font-size: 0.78em; color: var(--dim); margin-top: 4px; }
+  .sr-card .last-updated { font-size: 0.72em; color: var(--dim); margin-top: 4px; }
+  .sr-changes { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .sr-pipeline { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.88em; }
+
+  /* ── Knowledge Graph Enhanced ── */
+  .kg-container { display: grid; grid-template-columns: 1fr; gap: 0; position: relative; }
+  .kg-container.pane-open { grid-template-columns: 1fr 400px; }
+  .kg-side-pane { background: var(--pane-bg); border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; height: 80vh; position: sticky; top: 80px; display: none; }
+  .kg-container.pane-open .kg-side-pane { display: block; }
+  @media (max-width: 900px) { .kg-container.pane-open { grid-template-columns: 1fr; } .kg-side-pane { position: fixed; top: 0; right: 0; width: 90vw; height: 100vh; z-index: 1000; } }
 """
 
 _MODAL_OVERLAY_HTML = """
@@ -5404,13 +5452,14 @@ def _esc(val):
 def _generate_nav_html(active_page: str, now: str) -> str:
     """Generate navigation bar HTML. active_page determines link targets and highlighting."""
     pages = [
-        ("summary", "\U0001F3E0 Situation Room", "index.html"),
-        ("hardware", "\U0001F5A5\uFE0F Hardware", "hardware.html"),
-        ("models", "\U0001F9E0 Models", "models.html"),
-        ("efficiency", "\U0001F52C Optimization", "efficiency.html"),
-        ("timeline", "\U0001F4C8 Timeline", "timeline.html"),
-        ("learning", "\U0001F4DA Learning", "learning.html"),
-        ("ask", "\u2753 Ask", "ask.html"),
+        ("summary", "🏠 Situation Room", "index.html"),
+        ("hardware", "🖥️ Hardware", "hardware.html"),
+        ("models", "🧠 Models", "models.html"),
+        ("optimization", "🔬 Optimization", "optimization.html"),
+        ("setup", "⚙️ Setup", "setup.html"),
+        ("knowledge", "🗺️ Knowledge", "knowledge.html"),
+        ("ask", "❓ Ask", "ask.html"),
+        ("timeline", "📈 Timeline", "timeline.html"),
     ]
     links = []
     for key, label, filename in pages:
@@ -5541,7 +5590,7 @@ def _generate_page_shell(title, nav_html, body_content, modal_json):
     )
 
 
-def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline):
+def _legacy_generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline):
     """Generate the main summary page content."""
     nav_html = _generate_nav_html("summary", now)
 
@@ -5865,7 +5914,7 @@ def _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_m
     return _generate_page_shell("LLM Homelab", nav_html, body_content, modal_json)
 
 
-def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
+def _legacy_generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
     """Generate the hardware detail page."""
     nav_html = _generate_nav_html("hardware", now)
     hw_items = checks.get("hardware", {})
@@ -5898,7 +5947,7 @@ def _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_dat
     return _generate_page_shell("Hardware - LLM Homelab", nav_html, body_content, modal_json)
 
 
-def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
+def _legacy_generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now):
     """Generate the models & agents detail page."""
     nav_html = _generate_nav_html("models", now)
     model_items = checks.get("models_and_agents", {})
@@ -5931,7 +5980,7 @@ def _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data,
     return _generate_page_shell("Models & Agents - LLM Homelab", nav_html, body_content, modal_json)
 
 
-def _generate_efficiency_page(checks, enrichment, modal_data, now):
+def _legacy_generate_efficiency_page(checks, enrichment, modal_data, now):
     """Generate the efficiency research detail page with signal filtering."""
     nav_html = _generate_nav_html("efficiency", now)
     eff_items = checks.get("efficiency_research", {})
@@ -7601,125 +7650,386 @@ def _generate_ask_page(state: dict, now: str) -> str:
     return _generate_page_shell("Ask", nav_html, body_content, modal_json)
 
 
-def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
-    """Generate multi-page HTML dashboard with search, cards, and detail side-pane modal."""
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    timeline = state.get("timeline", [])
-    checks = state.get("checks", {})
-    enrichment = state.get("enrichment", {})
-
-    cat_icons = {
-        "hardware": "\U0001F5A5\uFE0F",
-        "models_and_agents": "\U0001F9E0",
-        "efficiency_research": "\U0001F52C",
-        "deals_and_blogs": "\U0001F4B0",
-    }
-    cat_labels = {
-        "hardware": "Hardware",
-        "models_and_agents": "Models & Agents",
-        "efficiency_research": "Efficiency Research",
-        "deals_and_blogs": "Deals & News",
-    }
-    link_map = {
-        "mac_studio_m5": "https://www.macrumors.com/roundup/mac-studio/",
-        "mac_studio_128gb_india": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "mac_studio_128gb_us": "https://www.apple.com/shop/buy-mac/mac-studio",
-        "apple_refurbished": "https://www.apple.com/in/shop/refurbished/mac/mac-studio",
-        "wwdc_apple_event": "https://developer.apple.com/wwdc26/",
-        "corsair_ws300_india": "https://www.amazon.in/s?k=Corsair+AI+Workstation",
-        "amd_strix_halo_128gb_india": "https://www.amazon.in/s?k=AMD+Strix+Halo+128GB",
-        "new_moe_models": "https://huggingface.co/models?sort=trending",
-        "new_coding_models": "https://huggingface.co/models?sort=trending&search=code",
-        "mlx_llama_cpp": "https://github.com/ml-explore/mlx",
-        "coding_agents": "https://github.com/topics/coding-agent",
-        "apple_india_deals": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "mac_studio_marketplace": "https://www.amazon.in/s?k=Mac+Studio",
-        "latest_local_llm_news": "https://www.reddit.com/r/LocalLLaMA/top/?t=week",
-        "trending_models": "https://huggingface.co/models?sort=trending",
-    }
-
-    # Build modal data for all items
-    modal_data = _build_modal_data(checks, enrichment, cat_icons, cat_labels, link_map)
-
-    # Add recommendation to modal data
+def _generate_situation_room(state: dict, now: str) -> str:
+    """Generate the Situation Room landing page (index.html)."""
+    nav_html = _generate_nav_html("summary", now)
+    analytical_state = state.get("analytical_state", {})
+    changelog = state.get("changelog", [])
+    questions = state.get("questions", {"pending": [], "answered": []})
     rec = state.get("recommendation", {})
-    if rec:
-        modal_data["__recommendation__"] = {
-            "label": rec.get("best_option", "Daily Recommendation"),
-            "category": "recommendation",
-            "categoryLabel": "Daily Recommendation",
-            "icon": "\U0001F3AF",
-            "info": rec.get("summary", ""),
-            "flags": {
-                "recommendation": rec.get("recommendation", ""),
-                "confidence": rec.get("confidence", ""),
-            },
-            "analysis": rec.get("reasoning", ""),
-            "links": rec.get("buy_links", []),
-            "best_model": rec.get("best_model", ""),
-            "model_config": rec.get("model_config", ""),
-            "fine_tuning": rec.get("fine_tuning", ""),
-            "wait_for": rec.get("wait_for", ""),
-            "changed_since_last": rec.get("changed_since_last", ""),
-            "cost_estimate_inr": rec.get("cost_estimate_inr", ""),
-            "next_milestone": rec.get("next_milestone", ""),
-            "fallback_now": rec.get("fallback_now", ""),
-            "sessionName": _session_name_for("recommendation"),
-        }
+    pipeline_meta = state.get("pipeline_meta", {})
 
-    # Enrich modal data with price history (try both key and key_usd/key_inr variants)
-    for product_key in state.get("price_history", {}):
-        # Match price_history keys to modal_data keys (strip _usd/_inr suffix)
-        modal_key = product_key
-        if product_key not in modal_data:
-            if product_key.endswith("_usd"):
-                modal_key = product_key[:-4]
-            elif product_key.endswith("_inr"):
-                modal_key = product_key[:-4]
-        if modal_key in modal_data:
-            trend = get_price_trend(state, product_key)
-            if trend["current"] is not None:
-                modal_data[modal_key]["priceHistory"] = {
-                    "current": f"{trend['currency']} {trend['current']:,.0f}",
-                    "min": f"{trend['min_30d']:,.0f}" if trend['min_30d'] else "—",
-                    "max": f"{trend['max_30d']:,.0f}" if trend['max_30d'] else "—",
-                    "trend": {"up": "↑ Rising", "down": "↓ Falling", "stable": "→ Stable", "new": "🆕 New"}[trend["trend"]],
-                    "sparklineSvg": generate_sparkline_svg(trend["history"], width=200, height=40),
-                }
+    # 1. What Changed Today
+    from datetime import date as _date_cls
+    today_str = _date_cls.today().isoformat()
+    today_changes = [e for e in changelog if e.get("date", "").startswith(today_str)]
+    changes_count = len(today_changes)
+    changes_html = (
+        f'<div class="sr-changes">'
+        f'<h3>📋 What Changed Today</h3>'
+        f'<p style="font-size:1.8em;font-weight:700;color:var(--accent);margin:8px 0">{changes_count}</p>'
+        f'<p style="color:var(--dim);font-size:0.85em;">change{"s" if changes_count != 1 else ""} recorded today</p>'
+    )
+    for entry in today_changes[:5]:
+        domain = _esc(entry.get("domain", ""))
+        change = _esc(entry.get("change", ""))
+        changes_html += f'<div style="margin-top:8px;font-size:0.85em;padding:6px 10px;background:var(--card);border-radius:6px;border-left:3px solid var(--accent2)"><b>{domain}:</b> {change}</div>'
+    changes_html += '</div>'
+
+    # 2. Current Recommendation
+    rec_action = rec.get("recommendation", "wait")
+    rec_best = _esc(rec.get("best_option", "No recommendation yet"))
+    rec_reasoning = _esc(str(rec.get("reasoning", ""))[:300])
+    rec_confidence = rec.get("confidence", "medium")
+    rec_links = rec.get("buy_links", [])
+
+    action_colors = {"buy_now": "var(--green)", "wait": "var(--yellow)", "consider_alternative": "var(--accent)"}
+    action_labels = {"buy_now": "✅ BUY NOW", "wait": "⏳ WAIT", "consider_alternative": "🔄 CONSIDER ALT"}
+    rec_color = action_colors.get(rec_action, "var(--dim)")
+    rec_label = action_labels.get(rec_action, "⏳ WAIT")
+
+    buy_links_html = ""
+    if rec_links and isinstance(rec_links, list):
+        for lnk in rec_links[:3]:
+            if isinstance(lnk, dict):
+                url = _esc(lnk.get("url", "#"))
+                title = _esc(lnk.get("title", "Buy"))
+                buy_links_html += f' <a href="{url}" target="_blank" style="color:var(--accent);font-size:0.82em;margin-left:8px;">🛒 {title}</a>'
+
+    rec_html = (
+        f'<div class="rec-card" style="cursor:default;">'
+        f'<div class="rec-top"><span class="rec-badge {_esc(rec_action)}">{rec_label}</span>'
+        f'<span style="font-size:0.82em;color:var(--dim)">Confidence: {_esc(str(rec_confidence))}</span></div>'
+        f'<div class="rec-title">{rec_best}</div>'
+        f'<div class="rec-summary">{rec_reasoning}</div>'
+        f'{buy_links_html}'
+        f'</div>'
+    )
+
+    # 3. Domain Confidence Cards
+    domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
+    domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
+    cards_html = '<div class="sr-grid">'
+    for domain in ("hardware", "models", "optimization", "setup"):
+        ds = analytical_state.get(domain, {})
+        conf = ds.get("confidence", 0)
+        options = ds.get("options", [])
+        evidence = ds.get("evidence", [])
+        last_changed = ds.get("last_changed", "—")
+        top_opt = options[0].get("name", "—") if options else "—"
+        icon = domain_icons.get(domain, "📊")
+        color = domain_colors.get(domain, "#6b7280")
+        conf_pct = int(conf * 100)
+
+        # SVG confidence ring
+        circumference = 2 * 3.14159 * 24
+        dash = conf * circumference
+        gap = circumference - dash
+        ring_svg = (
+            f'<svg class="confidence-ring" viewBox="0 0 64 64">'
+            f'<circle cx="32" cy="32" r="24" fill="none" stroke="var(--border)" stroke-width="5"/>'
+            f'<circle cx="32" cy="32" r="24" fill="none" stroke="{color}" stroke-width="5" '
+            f'stroke-dasharray="{dash:.1f} {gap:.1f}" stroke-linecap="round" '
+            f'transform="rotate(-90 32 32)"/>'
+            f'<text x="32" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="{color}">{conf_pct}</text>'
+            f'</svg>'
+        )
+
+        cards_html += (
+            f'<a href="pages/{domain}.html" class="sr-card" style="text-decoration:none;color:inherit;">'
+            f'<div class="domain-label">{icon} {_esc(domain.title())}</div>'
+            f'{ring_svg}'
+            f'<div class="top-option">{_esc(top_opt)}</div>'
+            f'<div class="ev-count">{len(evidence)} evidence items</div>'
+            f'<div class="last-updated">Changed: {_esc(str(last_changed)[:10])}</div>'
+            f'</a>'
+        )
+    cards_html += '</div>'
+
+    # 4. Pending Questions
+    pending = questions.get("pending", [])
+    pending_html = ""
+    if pending:
+        pending_html = '<div style="margin-bottom:24px;"><h3 style="margin-bottom:12px;">❓ Pending Questions</h3>'
+        for q in pending[:5]:
+            qt = _esc(q.get("q", q) if isinstance(q, dict) else str(q))
+            pending_html += f'<div style="padding:8px 12px;background:var(--card);border-radius:8px;margin-bottom:6px;font-size:0.9em;border-left:3px solid var(--yellow)">{qt}</div>'
+        pending_html += '</div>'
+
+    # 5. Pipeline Status
+    last_run = state.get("last_run", "Never")
+    critique = pipeline_meta.get("last_critique", {})
+    quality_score = critique.get("quality_score", "—")
+    pipeline_html = (
+        f'<div class="sr-pipeline">'
+        f'<h3 style="margin-bottom:8px;">🔧 Pipeline Status</h3>'
+        f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
+        f'<div><span style="color:var(--dim);">Last run:</span> <b>{_esc(str(last_run)[:19])}</b></div>'
+        f'<div><span style="color:var(--dim);">Quality score:</span> <b style="color:var(--accent);">{_esc(str(quality_score))}</b></div>'
+        f'</div></div>'
+    )
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>🏠 Situation Room</h1>'
+        f'\n    <div class="meta">Last check: <b>{_esc(now)}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n<div class="content">'
+        f'\n  {changes_html}'
+        f'\n  {rec_html}'
+        f'\n  {cards_html}'
+        f'\n  {pending_html}'
+        f'\n  {pipeline_html}'
+        '\n</div>'
+    )
+
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell("Situation Room", nav_html, body_content, modal_json)
+
+
+def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
+    """Generate an analysis page for a given domain (hardware/models/optimization/setup)."""
+    nav_html = _generate_nav_html(domain, now)
+    analytical_state = state.get("analytical_state", {})
+    ds = analytical_state.get(domain, {})
+    changelog = state.get("changelog", [])
+
+    domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
+    domain_titles = {"hardware": "Hardware Analysis", "models": "Models Analysis", "optimization": "Optimization Analysis", "setup": "Setup Analysis"}
+    icon = domain_icons.get(domain, "📊")
+    title = domain_titles.get(domain, f"{domain.title()} Analysis")
+
+    # 1. Current Position
+    current_analysis = _esc(ds.get("current_analysis", "No analysis available yet. Run the pipeline to generate."))
+    position_html = (
+        f'<div class="analysis-position">'
+        f'<h3 style="margin-bottom:12px;color:var(--accent);">Current Position</h3>'
+        f'<p>{current_analysis}</p>'
+        f'</div>'
+    )
+
+    # 2. Confidence & Evidence
+    conf = ds.get("confidence", 0)
+    evidence = ds.get("evidence", [])
+    conf_pct = int(conf * 100)
+    domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
+    color = domain_colors.get(domain, "#6b7280")
+    circumference = 2 * 3.14159 * 24
+    dash = conf * circumference
+    gap = circumference - dash
+    ring_svg = (
+        f'<svg class="confidence-ring" viewBox="0 0 64 64">'
+        f'<circle cx="32" cy="32" r="24" fill="none" stroke="var(--border)" stroke-width="5"/>'
+        f'<circle cx="32" cy="32" r="24" fill="none" stroke="{color}" stroke-width="5" '
+        f'stroke-dasharray="{dash:.1f} {gap:.1f}" stroke-linecap="round" '
+        f'transform="rotate(-90 32 32)"/>'
+        f'<text x="32" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="{color}">{conf_pct}</text>'
+        f'</svg>'
+    )
+
+    session_name = _session_name_for(domain)
+    conf_html = (
+        f'<div class="confidence-bar-wrap">'
+        f'{ring_svg}'
+        f'<div class="confidence-info">'
+        f'<div class="label">Confidence Level</div>'
+        f'<div class="value" style="color:{color}">{conf_pct}%</div>'
+        f'<div class="meta">{len(evidence)} evidence items collected</div>'
+        f'</div>'
+        f'<button class="discuss-cli-btn" onclick="navigator.clipboard.writeText(\'copilot --resume=\\\"{_esc(session_name)}\\\"\').then(()=>alert(\'Copied!\'))">💬 Discuss in CLI</button>'
+        f'</div>'
+    )
+
+    # 3. Options Matrix
+    options = ds.get("options", [])
+    matrix_html = ""
+    if options:
+        matrix_html = (
+            '<h3 style="margin-bottom:12px;color:var(--accent);">Options Matrix</h3>'
+            '<div style="overflow-x:auto;margin-bottom:24px;">'
+            '<table class="options-matrix">'
+            '<thead><tr><th>Rank</th><th>Name</th><th>Pros</th><th>Cons</th><th>Cost</th><th>Performance</th></tr></thead>'
+            '<tbody>'
+        )
+        for opt in sorted(options, key=lambda x: x.get("recommendation_rank", 99)):
+            rank = opt.get("recommendation_rank", "—")
+            name = _esc(opt.get("name", ""))
+            pros = opt.get("pros", [])
+            cons = opt.get("cons", [])
+            cost = _esc(opt.get("cost", "—"))
+            perf = _esc(opt.get("performance", "—"))
+            pros_html = "<br>".join(f"✅ {_esc(p)}" for p in (pros if isinstance(pros, list) else []))
+            cons_html = "<br>".join(f"❌ {_esc(c)}" for c in (cons if isinstance(cons, list) else []))
+            rank_cls = f"rank-{rank}" if isinstance(rank, int) and rank <= 2 else ""
+            matrix_html += (
+                f'<tr class="{rank_cls}">'
+                f'<td><b>#{rank}</b></td>'
+                f'<td><b>{name}</b></td>'
+                f'<td class="pros">{pros_html}</td>'
+                f'<td class="cons">{cons_html}</td>'
+                f'<td>{cost}</td>'
+                f'<td>{perf}</td>'
+                f'</tr>'
+            )
+        matrix_html += '</tbody></table></div>'
+
+    # 4. Evidence Trail
+    ev_html = ""
+    if evidence:
+        ev_html = '<h3 style="margin-bottom:12px;color:var(--accent);">Evidence Trail</h3><ul class="evidence-list">'
+        source_icons = {"benchmark": "🔬", "community": "👥", "official": "📋", "research": "📖", "price": "💰"}
+        for ev in evidence:
+            if isinstance(ev, dict):
+                source = ev.get("source", "other")
+                text = _esc(ev.get("text", str(ev)))
+                ev_icon = source_icons.get(source, "📌")
+            else:
+                text = _esc(str(ev))
+                ev_icon = "📌"
+            ev_html += f'<li><span class="ev-icon">{ev_icon}</span><span class="ev-text">{text}</span></li>'
+        ev_html += '</ul>'
+
+    # 5. Conflicts Resolved
+    conflicts = ds.get("conflicts_resolved", [])
+    conflicts_html = ""
+    if conflicts:
+        conflicts_html = '<h3 style="margin-bottom:12px;color:var(--accent);">Conflicts Resolved</h3><div class="conflicts-list">'
+        for c in conflicts:
+            if isinstance(c, dict):
+                text = _esc(c.get("conflict", str(c)))
+                resolution = _esc(c.get("resolution", ""))
+                conflicts_html += f'<div class="conflict-item"><div style="font-weight:500;">{text}</div><div style="font-size:0.85em;color:var(--dim);margin-top:4px;">Resolution: {resolution}</div></div>'
+            else:
+                conflicts_html += f'<div class="conflict-item">{_esc(str(c))}</div>'
+        conflicts_html += '</div>'
+
+    # 6. What Changed (domain-specific changelog)
+    domain_log = [e for e in changelog if e.get("domain") == domain]
+    domain_log_html = ""
+    if domain_log:
+        domain_log_html = '<h3 style="margin-bottom:12px;color:var(--accent);">What Changed</h3><div class="domain-changelog">'
+        for entry in sorted(domain_log, key=lambda x: x.get("date", ""), reverse=True)[:10]:
+            date = _esc(entry.get("date", ""))
+            change = _esc(entry.get("change", ""))
+            reason = _esc(entry.get("reason", ""))
+            domain_log_html += (
+                f'<div class="entry">'
+                f'<div class="entry-date">{date}</div>'
+                f'<div class="entry-text"><b>{change}</b></div>'
+                f'<div style="font-size:0.82em;color:var(--dim);margin-top:2px;">{reason}</div>'
+                f'</div>'
+            )
+        domain_log_html += '</div>'
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        f'\n    <h1>{icon} {_esc(title)}</h1>'
+        f'\n    <div class="meta">Last check: <b>{_esc(now)}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n<div class="content">'
+        f'\n  {position_html}'
+        f'\n  {conf_html}'
+        f'\n  {matrix_html}'
+        f'\n  {ev_html}'
+        f'\n  {conflicts_html}'
+        f'\n  {domain_log_html}'
+        '\n</div>'
+    )
+
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell(f"{title} - LLM Homelab", nav_html, body_content, modal_json)
+
+
+def _generate_knowledge_graph_page(state: dict, now: str) -> str:
+    """Generate the Knowledge Graph page with interactive SVG DAG."""
+    nav_html = _generate_nav_html("knowledge", now)
+    ks = state.get("knowledge_state", {})
+    ks_topics = ks.get("topics", {})
+    analytical_state = state.get("analytical_state", {})
+
+    # Use existing DAG visualization expanded with research/domain nodes
+    dag_viz_html = _generate_dag_visualization(ks_topics)
+
+    # Add domain analysis nodes as extra section
+    domain_nodes_html = '<div style="margin-top:24px;"><h3 style="margin-bottom:12px;color:var(--accent);">Domain Analysis Nodes</h3><div class="sr-grid">'
+    domain_colors_map = {"hardware": ("#3b82f6", "🖥️"), "models": ("#8b5cf6", "🧠"), "optimization": ("#10b981", "🔬"), "setup": ("#f59e0b", "⚙️")}
+    for domain, (color, icon) in domain_colors_map.items():
+        ds = analytical_state.get(domain, {})
+        conf = int(ds.get("confidence", 0) * 100)
+        top_opt = ""
+        options = ds.get("options", [])
+        if options:
+            top_opt = options[0].get("name", "")
+        domain_nodes_html += (
+            f'<a href="{domain}.html" class="sr-card" style="text-decoration:none;color:inherit;border-top:3px solid {color};">'
+            f'<div class="domain-label">{icon} {_esc(domain.title())}</div>'
+            f'<div style="font-size:1.2em;font-weight:700;color:{color};margin:8px 0">{conf}%</div>'
+            f'<div class="top-option">{_esc(top_opt)}</div>'
+            f'</a>'
+        )
+    domain_nodes_html += '</div></div>'
+
+    # Node type legend
+    legend_html = (
+        '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:0.82em;">'
+        '<span style="color:#3b82f6;">● Learning Topics (blue)</span>'
+        '<span style="color:#8b5cf6;">● Research (purple)</span>'
+        '<span style="color:#10b981;">● Hardware (green)</span>'
+        '<span style="color:#f59e0b;">● Models (orange)</span>'
+        '</div>'
+    )
+
+    body_content = (
+        '\n<div class="header">'
+        '\n  <div class="header-top">'
+        '\n    <h1>🗺️ Knowledge Graph</h1>'
+        f'\n    <div class="meta">Last check: <b>{_esc(now)}</b></div>'
+        '\n  </div>'
+        '\n</div>'
+        '\n<div class="content">'
+        f'\n  <div class="page-desc">Interactive knowledge map showing learning topics, research nodes, and domain analysis connections. Click any node for details.</div>'
+        f'\n  {legend_html}'
+        f'\n  {dag_viz_html}'
+        f'\n  {domain_nodes_html}'
+        '\n</div>'
+    )
+
+    modal_json = json.dumps({}, ensure_ascii=False, default=str)
+    return _generate_page_shell("Knowledge Graph - LLM Homelab", nav_html, body_content, modal_json)
+
+
+def generate_dashboard(state: dict, changes: list[dict], run_status: dict):
+    """Generate multi-page HTML dashboard with analysis-first design."""
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Create pages directory
     os.makedirs(PAGES_DIR, exist_ok=True)
 
-    # Generate and write main page
-    main_html = _generate_main_page(state, checks, enrichment, cat_icons, cat_labels, link_map, modal_data, now, run_status, timeline)
+    # Generate Situation Room (index)
+    main_html = _generate_situation_room(state, now)
     DASHBOARD_FILE.write_text(main_html, encoding="utf-8")
     INDEX_FILE.write_text(main_html, encoding="utf-8")
 
-    # Generate and write detail pages
-    hw_html = _generate_hardware_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
-    (PAGES_DIR / "hardware.html").write_text(hw_html, encoding="utf-8")
+    # Generate Analysis Pages
+    for domain in ("hardware", "models", "optimization", "setup"):
+        page_html = _generate_analysis_page(state, domain, now)
+        (PAGES_DIR / f"{domain}.html").write_text(page_html, encoding="utf-8")
 
-    models_html = _generate_models_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
-    (PAGES_DIR / "models.html").write_text(models_html, encoding="utf-8")
+    # Generate Knowledge Graph page
+    kg_html = _generate_knowledge_graph_page(state, now)
+    (PAGES_DIR / "knowledge.html").write_text(kg_html, encoding="utf-8")
 
-    eff_html = _generate_efficiency_page(checks, enrichment, modal_data, now)
-    (PAGES_DIR / "efficiency.html").write_text(eff_html, encoding="utf-8")
-
-    deals_html = _generate_deals_page(checks, enrichment, cat_icons, cat_labels, modal_data, now)
-    (PAGES_DIR / "deals.html").write_text(deals_html, encoding="utf-8")
-
-    learning_html = _generate_learning_page(checks, enrichment, now, state)
-    (PAGES_DIR / "learning.html").write_text(learning_html, encoding="utf-8")
-
-    weekly_html = _generate_weekly_page(state, checks, enrichment, now)
-    (PAGES_DIR / "weekly.html").write_text(weekly_html, encoding="utf-8")
-
-    # New analytical pages (Phase 5)
-    timeline_html = _generate_timeline_page(state, now)
-    (PAGES_DIR / "timeline.html").write_text(timeline_html, encoding="utf-8")
-
+    # Generate Ask page (enhanced existing)
     ask_html = _generate_ask_page(state, now)
     (PAGES_DIR / "ask.html").write_text(ask_html, encoding="utf-8")
+
+    # Generate Timeline page (enhanced existing)
+    timeline_html = _generate_timeline_page(state, now)
+    (PAGES_DIR / "timeline.html").write_text(timeline_html, encoding="utf-8")
 
     logger.info(f"Dashboard updated: {DASHBOARD_FILE} + {PAGES_DIR}")
 
