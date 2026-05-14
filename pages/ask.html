@@ -478,14 +478,22 @@
 
   /* ── Hero Action Card ── */
   .hero-action { border: 2px solid; border-radius: 12px; padding: 24px; margin-bottom: 28px; background: var(--card); }
-  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; margin-bottom: 12px; }
-  .hero-target { font-size: 1.4em; font-weight: 700; margin-bottom: 8px; }
-  .hero-reasoning { font-size: 0.9em; color: var(--fg); line-height: 1.6; margin-bottom: 8px; }
-  .hero-guidance { font-size: 0.82em; color: var(--dim); font-style: italic; margin-bottom: 16px; }
-  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; }
+  .hero-target { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; }
+  .hero-reasoning { font-size: 0.88em; color: var(--fg); line-height: 1.6; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
   .hero-actions .buy-btn { display: inline-block; padding: 8px 16px; background: var(--green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85em; }
   .hero-actions .explore-btn { display: inline-block; padding: 8px 16px; background: var(--surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; font-size: 0.85em; }
   .hero-actions .explore-btn:hover { background: var(--card); border-color: var(--accent); }
+
+  /* ── E2E Workflow Steps ── */
+  .workflow-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+  .workflow-step { display: block; padding: 14px; background: var(--surface); border-radius: 8px; border-top: 3px solid;
+    text-decoration: none; color: inherit; transition: all 0.2s; }
+  .workflow-step:hover { transform: translateY(-2px); background: rgba(99,102,241,0.05); }
+  .workflow-step .ws-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .workflow-step .ws-name { font-size: 0.9em; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .workflow-step .ws-desc { font-size: 0.76em; color: var(--dim); line-height: 1.4; }
 
   /* ── Portal Map ── */
   .portal-map { margin-bottom: 28px; }
@@ -502,8 +510,8 @@
   /* ── Knowledge Graph (styles defined inline per page) ── */
 </style>
 </head>
-<body data-run-id="2a91" data-run-date="2026-05-14">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link">🗺️ Knowledge</a><a href="ask.html" class="nav-link active">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:22:47</span></nav>
+<body data-run-id="5909" data-run-date="2026-05-14">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link">🗺️ Knowledge</a><a href="ask.html" class="nav-link active">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 17:05:14</span></nav>
 <div class="container" style="max-width:900px; margin:auto; padding:24px;"><h1 style="margin-bottom:8px;">Ask LLM Homelab</h1><p style="color:var(--dim); margin-bottom:24px;">Submit questions about local LLM setup — answered with full analytical rigor on the next pipeline run. To ask a question, create a GitHub Issue with the label <code>homelab-question</code>.</p><div style="background:var(--bg2); border-radius:12px; padding:20px; margin-bottom:24px;"><h3 style="margin-bottom:12px;">Pending Questions (0)</h3><p style="color:var(--dim);">No pending questions.</p></div><div style="background:var(--bg2); border-radius:12px; padding:20px;"><h3 style="margin-bottom:12px;">Answered (0)</h3><p style="color:var(--dim);">No answered questions yet.</p></div></div>
 
 <!-- Side Pane Modal -->

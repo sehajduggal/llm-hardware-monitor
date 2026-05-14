@@ -5738,14 +5738,22 @@ _DASHBOARD_CSS = """
 
   /* ── Hero Action Card ── */
   .hero-action { border: 2px solid; border-radius: 12px; padding: 24px; margin-bottom: 28px; background: var(--card); }
-  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; margin-bottom: 12px; }
-  .hero-target { font-size: 1.4em; font-weight: 700; margin-bottom: 8px; }
-  .hero-reasoning { font-size: 0.9em; color: var(--fg); line-height: 1.6; margin-bottom: 8px; }
-  .hero-guidance { font-size: 0.82em; color: var(--dim); font-style: italic; margin-bottom: 16px; }
-  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; }
+  .hero-target { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; }
+  .hero-reasoning { font-size: 0.88em; color: var(--fg); line-height: 1.6; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
   .hero-actions .buy-btn { display: inline-block; padding: 8px 16px; background: var(--green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85em; }
   .hero-actions .explore-btn { display: inline-block; padding: 8px 16px; background: var(--surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; font-size: 0.85em; }
   .hero-actions .explore-btn:hover { background: var(--card); border-color: var(--accent); }
+
+  /* ── E2E Workflow Steps ── */
+  .workflow-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; }
+  .workflow-step { display: block; padding: 14px; background: var(--surface); border-radius: 8px; border-top: 3px solid;
+    text-decoration: none; color: inherit; transition: all 0.2s; }
+  .workflow-step:hover { transform: translateY(-2px); background: rgba(99,102,241,0.05); }
+  .workflow-step .ws-label { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .workflow-step .ws-name { font-size: 0.9em; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .workflow-step .ws-desc { font-size: 0.76em; color: var(--dim); line-height: 1.4; }
 
   /* ── Portal Map ── */
   .portal-map { margin-bottom: 28px; }
@@ -8295,23 +8303,17 @@ def _generate_situation_room(state: dict, now: str) -> str:
     domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
     domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
 
-    # ── Section 0: Hero — What should I do? (action-first) ──
+    # ── Section 0: E2E Workflow Card — the full setup pipeline ──
     rec_action = rec.get("recommendation", "wait")
     rec_best = _esc(rec.get("best_option", "No recommendation yet"))
-    rec_reasoning = _esc(str(rec.get("reasoning", ""))[:250])
+    rec_reasoning = _esc(str(rec.get("reasoning", ""))[:300])
     rec_confidence = rec.get("confidence", "medium")
     rec_links = rec.get("buy_links", [])
 
     action_colors = {"buy_now": "#10b981", "wait": "#f59e0b", "consider_alternative": "#3b82f6"}
-    action_labels = {"buy_now": "✅ Ready to Buy", "wait": "⏳ Wait — Better Options Coming", "consider_alternative": "🔄 Consider Alternatives"}
-    action_guidance = {
-        "buy_now": "Our analysis shows high confidence in a specific option. Review the details below and purchase when ready.",
-        "wait": "Current evidence suggests waiting will yield better value. We're monitoring for changes.",
-        "consider_alternative": "Multiple viable paths exist. Explore the options matrix to find your best fit.",
-    }
+    action_labels = {"buy_now": "✅ Ready to Buy", "wait": "⏳ Wait", "consider_alternative": "🔄 Consider Alternatives"}
     rec_color = action_colors.get(rec_action, "#6b7280")
     rec_label = action_labels.get(rec_action, "⏳ Monitoring...")
-    rec_guide = action_guidance.get(rec_action, "")
 
     buy_links_html = ""
     if rec_links and isinstance(rec_links, list):
@@ -8321,15 +8323,45 @@ def _generate_situation_room(state: dict, now: str) -> str:
                 title = _esc(lnk.get("title", "Buy"))
                 buy_links_html += f'<a href="{url}" target="_blank" class="buy-btn">🛒 {title}</a>'
 
+    # Build E2E workflow steps from top options per domain
+    workflow_steps = []
+    step_meta = [
+        ("hardware", "1. Hardware", "What to buy", "#3b82f6"),
+        ("models", "2. Model", "What to run", "#8b5cf6"),
+        ("optimization", "3. Engine", "How to run it fast", "#10b981"),
+        ("setup", "4. Setup", "Complete command", "#f59e0b"),
+    ]
+    for domain, step_label, step_desc, color in step_meta:
+        ds = analytical_state.get(domain, {})
+        opts = ds.get("options", [])
+        top = opts[0] if opts else {}
+        name = _esc(top.get("name", "Pending analysis..."))
+        verdict = _esc(top.get("verdict", "")[:120])
+        workflow_steps.append((step_label, step_desc, name, verdict, color, domain))
+
+    workflow_html = '<div class="workflow-steps">'
+    for step_label, step_desc, name, verdict, color, domain in workflow_steps:
+        workflow_html += (
+            f'<a href="pages/{domain}.html" class="workflow-step" style="border-top-color:{color};">'
+            f'<div class="ws-label" style="color:{color};">{step_label}</div>'
+            f'<div class="ws-name">{name}</div>'
+            f'<div class="ws-desc">{verdict if verdict else step_desc}</div>'
+            f'</a>'
+        )
+    workflow_html += '</div>'
+
     hero_html = (
         f'<div class="hero-action" style="border-color:{rec_color};">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
         f'<div class="hero-badge" style="background:{rec_color}22;color:{rec_color};">{rec_label}</div>'
+        f'<span style="font-size:0.78em;color:var(--dim);">Confidence: {_esc(str(rec_confidence))}</span>'
+        f'</div>'
         f'<div class="hero-target">{rec_best}</div>'
         f'<div class="hero-reasoning">{rec_reasoning}</div>'
-        f'<div class="hero-guidance">{_esc(rec_guide)}</div>'
+        f'{workflow_html}'
         f'<div class="hero-actions">{buy_links_html}'
-        f'<a href="pages/hardware.html" class="explore-btn">📊 See full analysis</a>'
-        f'<a href="pages/knowledge.html" class="explore-btn">🗺️ Explore knowledge map</a>'
+        f'<a href="pages/hardware.html" class="explore-btn">📊 Full analysis</a>'
+        f'<a href="pages/knowledge.html" class="explore-btn">🗺️ Knowledge map</a>'
         f'</div></div>'
     )
 
