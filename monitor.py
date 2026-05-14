@@ -1931,8 +1931,8 @@ def _apply_researcher_output(state: dict, researcher_response: dict) -> dict:
     # Keep changelog capped at 180 entries
     changelog = changelog[-180:]
     
-    # Applied mastery tracking: if researcher references topics from knowledge_state,
-    # mark them as "applied" (bidirectional learning-research integration)
+    # Update knowledge graph topic facts when new evidence is relevant
+    # This makes the graph "alive" — pipeline findings flow into topic content
     knowledge_state = state.get("knowledge_state", {})
     ks_topics = knowledge_state.get("topics", {})
     if ks_topics and domain_updates:
@@ -1944,6 +1944,21 @@ def _apply_researcher_output(state: dict, researcher_response: dict) -> dict:
             if topic_info.get("status") in ("introduced", "reinforced") and topic_id in all_analysis_text:
                 topic_info["status"] = "applied"
                 topic_info["applied_on"] = datetime.now().strftime("%Y-%m-%d")
+        
+        # Inject pipeline-derived facts into topic key_facts
+        # When researcher outputs new evidence for a domain, add relevant facts to linked topics
+        for domain, update in domain_updates.items():
+            new_evidence = update.get("new_evidence_incorporated", [])
+            if new_evidence:
+                for topic_id in TOPIC_DAG:
+                    if TOPIC_DOMAIN_LINKS.get(topic_id) == domain:
+                        ts = ks_topics.get(topic_id, {})
+                        existing = set(ts.get("key_facts", []))
+                        for fact in new_evidence[:2]:
+                            if fact and fact not in existing:
+                                ts.setdefault("key_facts", []).append(f"[Pipeline] {fact}")
+                        # Cap at 8 facts
+                        ts["key_facts"] = ts.get("key_facts", [])[-8:]
     
     state["analytical_state"] = analytical_state
     state["changelog"] = changelog
@@ -8680,18 +8695,38 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         }
     # Finding nodes
     for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
+        # Find related topics for this finding
+        related_topics = []
+        for tid, tinfo in TOPIC_DAG.items():
+            if TOPIC_DOMAIN_LINKS.get(tid) == fdomain:
+                related_topics.append(tinfo["title"])
+        # Get evidence from analytical state
+        ds = analytical_state.get(fdomain, {})
+        domain_evidence = ds.get("evidence", [])[:5]
+        buy_links = fdata.get("buy_links", [])
         node_data[fid] = {
             "type": "finding", "title": flabel, "domain": fdomain,
-            "pros": fdata.get("pros", [])[:3],
-            "cons": fdata.get("cons", [])[:3],
+            "summary": fdata.get("summary", fdata.get("description", "")),
+            "pros": fdata.get("pros", [])[:4],
+            "cons": fdata.get("cons", [])[:4],
             "cost": fdata.get("cost", ""),
             "performance": fdata.get("performance", ""),
             "rank": fdata.get("recommendation_rank", 0),
+            "buy_links": [{"label": bl.get("label", bl.get("store", "")), "url": bl.get("url", "")} for bl in buy_links[:3]] if isinstance(buy_links, list) else [],
+            "related_topics": related_topics[:5],
+            "evidence": [e if isinstance(e, str) else e.get("claim", str(e)) for e in domain_evidence[:4]],
         }
     # Topic nodes
     for tid, tinfo in TOPIC_DAG.items():
         ts = ks_topics.get(tid, {})
         topic_links = TOPIC_LINKS.get(tid, [])
+        linked_domain = TOPIC_DOMAIN_LINKS.get(tid, "")
+        # Cross-domain evidence: pull related findings from analytical state
+        related_findings = []
+        if linked_domain:
+            ds = analytical_state.get(linked_domain, {})
+            for opt in ds.get("options", [])[:3]:
+                related_findings.append(opt.get("name", ""))
         node_data[tid] = {
             "type": "topic", "title": tinfo["title"],
             "summary": TOPIC_SUMMARIES.get(tid, ""),
@@ -8699,7 +8734,8 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
             "confidence": ts.get("confidence", 0),
             "key_facts": TOPIC_KEY_FACTS.get(tid, ts.get("key_facts", []))[:6],
             "links": [{"label": lbl, "url": url} for lbl, url in topic_links],
-            "linked_domain": TOPIC_DOMAIN_LINKS.get(tid, ""),
+            "linked_domain": linked_domain,
+            "related_findings": related_findings,
             "lessons_count": len(ts.get("lessons", [])),
             "goal_tags": tinfo.get("goal_tags", []),
             "prereqs": [TOPIC_DAG[p]["title"] for p in tinfo.get("prereqs", []) if p in TOPIC_DAG],
@@ -8811,16 +8847,33 @@ document.addEventListener("DOMContentLoaded", function() {{
     var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
     html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.2);color:#f472b6;">Research Finding</div>';
     if (d.rank) html += '<div class="kg-pane-badge" style="background:rgba(251,191,36,0.15);color:#fbbf24;">Rank #' + d.rank + '</div>';
-    if (d.cost) html += '<div class="kg-pane-section"><h4>Cost</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.cost) + '</p></div>';
-    if (d.performance) html += '<div class="kg-pane-section"><h4>Performance</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.performance) + '</p></div>';
+    if (d.domain) html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.1);color:#a78bfa;">' + d.domain + '</div>';
+    if (d.summary) html += '<div class="kg-pane-section"><h4>Overview</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.summary) + '</p></div>';
+    if (d.cost) html += '<div class="kg-pane-section"><h4>💰 Cost</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.cost) + '</p></div>';
+    if (d.performance) html += '<div class="kg-pane-section"><h4>⚡ Performance</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.performance) + '</p></div>';
     if (d.pros && d.pros.length) {{
-      html += '<div class="kg-pane-section"><h4>Pros</h4><ul class="kg-pane-list">';
+      html += '<div class="kg-pane-section"><h4>✅ Pros</h4><ul class="kg-pane-list">';
       d.pros.forEach(function(p) {{ html += '<li style="color:#34d399;">' + esc(p) + '</li>'; }});
       html += '</ul></div>';
     }}
     if (d.cons && d.cons.length) {{
-      html += '<div class="kg-pane-section"><h4>Cons</h4><ul class="kg-pane-list">';
+      html += '<div class="kg-pane-section"><h4>❌ Cons</h4><ul class="kg-pane-list">';
       d.cons.forEach(function(c) {{ html += '<li style="color:#f87171;">' + esc(c) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.evidence && d.evidence.length) {{
+      html += '<div class="kg-pane-section"><h4>📋 Evidence</h4><ul class="kg-pane-list">';
+      d.evidence.forEach(function(e) {{ html += '<li style="font-size:0.8rem;color:var(--dim);">' + esc(e) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.related_topics && d.related_topics.length) {{
+      html += '<div class="kg-pane-section"><h4>🔗 Related Concepts</h4><ul class="kg-pane-list" style="list-style:none;padding-left:0;">';
+      d.related_topics.forEach(function(t) {{ html += '<li style="font-size:0.8rem;color:#60a5fa;margin-bottom:4px;">→ ' + esc(t) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.buy_links && d.buy_links.length) {{
+      html += '<div class="kg-pane-section"><h4>🛒 Where to Buy</h4><ul class="kg-pane-list" style="list-style:none;padding-left:0;">';
+      d.buy_links.forEach(function(lk) {{ html += '<li style="margin-bottom:6px;"><a href="' + esc(lk.url) + '" target="_blank" rel="noopener" style="color:#fbbf24;text-decoration:none;font-size:0.82rem;">↗ ' + esc(lk.label) + '</a></li>'; }});
       html += '</ul></div>';
     }}
     return html;
@@ -8845,6 +8898,11 @@ document.addEventListener("DOMContentLoaded", function() {{
     if (d.links && d.links.length) {{
       html += '<div class="kg-pane-section"><h4>📚 Read More</h4><ul class="kg-pane-list" style="list-style:none;padding-left:0;">';
       d.links.forEach(function(lk) {{ html += '<li style="margin-bottom:6px;"><a href="' + esc(lk.url) + '" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:none;font-size:0.82rem;">↗ ' + esc(lk.label) + '</a></li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.related_findings && d.related_findings.length) {{
+      html += '<div class="kg-pane-section"><h4>🔗 Related Research Options</h4><ul class="kg-pane-list" style="list-style:none;padding-left:0;">';
+      d.related_findings.forEach(function(f) {{ html += '<li style="font-size:0.8rem;color:#f472b6;margin-bottom:4px;">◆ ' + esc(f) + '</li>'; }});
       html += '</ul></div>';
     }}
     if (d.prereqs && d.prereqs.length) {{
