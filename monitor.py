@@ -7945,41 +7945,420 @@ def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
 
 
 def _generate_knowledge_graph_page(state: dict, now: str) -> str:
-    """Generate the Knowledge Graph page with interactive SVG DAG."""
+    """Generate unified Knowledge Graph: learning topics + research + hardware as interconnected nodes."""
     nav_html = _generate_nav_html("knowledge", now)
     ks = state.get("knowledge_state", {})
     ks_topics = ks.get("topics", {})
     analytical_state = state.get("analytical_state", {})
 
-    # Use existing DAG visualization expanded with research/domain nodes
-    dag_viz_html = _generate_dag_visualization(ks_topics)
+    # ── Build unified node set ──
+    # Type 1: Learning topics (from TOPIC_DAG)
+    # Type 2: Domain analysis nodes (hardware, models, optimization, setup)
+    # Type 3: Research findings (top options from each domain)
 
-    # Add domain analysis nodes as extra section
-    domain_nodes_html = '<div style="margin-top:24px;"><h3 style="margin-bottom:12px;color:var(--accent);">Domain Analysis Nodes</h3><div class="sr-grid">'
-    domain_colors_map = {"hardware": ("#3b82f6", "🖥️"), "models": ("#8b5cf6", "🧠"), "optimization": ("#10b981", "🔬"), "setup": ("#f59e0b", "⚙️")}
-    for domain, (color, icon) in domain_colors_map.items():
+    DOMAIN_COLORS = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
+    DOMAIN_ICONS = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
+    LEARNING_COLOR = "#6366f1"
+    FINDING_COLOR = "#f472b6"
+
+    # Map learning topics to related domains
+    TOPIC_DOMAIN_LINKS = {
+        "vram_calculation": "hardware", "vram_tiers_and_gpus": "hardware",
+        "pcie_lanes_multi_gpu": "hardware", "ram_bandwidth_for_offload": "hardware",
+        "ssd_weight_loading": "hardware", "power_thermals_noise": "hardware",
+        "tokens_and_parameters": "models", "dense_vs_moe": "models",
+        "coding_model_traits": "models", "model_selection_for_agents": "models",
+        "quantization_basics": "optimization", "gguf_formats": "optimization",
+        "exl2_awq_gptq": "optimization", "offloading_gpu_cpu_disk": "optimization",
+        "speculative_decoding": "optimization", "moe_expert_routing": "optimization",
+        "llama_cpp": "setup", "ktransformers": "setup", "vllm_tensorrt": "setup",
+        "mlx_apple_silicon": "setup", "runtime_compat": "setup", "os_runtime_friction": "setup",
+    }
+
+    SHORT_LABELS = {
+        "tokens_and_parameters": "Tokens & Params", "vram_calculation": "VRAM Calc",
+        "context_window_math": "Context Windows", "prefill_vs_decode": "Prefill/Decode",
+        "kv_cache_growth": "KV Cache", "memory_bandwidth_vs_compute": "Mem Bandwidth",
+        "latency_vs_throughput": "Latency/Throughput", "quantization_basics": "Quantization",
+        "gguf_formats": "GGUF Formats", "exl2_awq_gptq": "EXL2/AWQ/GPTQ",
+        "offloading_gpu_cpu_disk": "Offloading", "moe_expert_routing": "MoE Routing",
+        "speculative_decoding": "Spec Decoding", "llama_cpp": "llama.cpp",
+        "ktransformers": "KTransformers", "vllm_tensorrt": "vLLM/TensorRT",
+        "mlx_apple_silicon": "MLX (Apple)", "runtime_compat": "Runtime Compat",
+        "dense_vs_moe": "Dense vs MoE", "coding_model_traits": "Coding Models",
+        "reasoning_chains": "Reasoning", "model_selection_for_agents": "Model Selection",
+        "agent_context_management": "Agent Context", "yolo_coding_mode": "YOLO Mode",
+        "batch_concurrency": "Batch/Concurrency", "tool_use_function_calling": "Tool Use",
+        "vram_tiers_and_gpus": "GPU VRAM Tiers", "ram_bandwidth_for_offload": "RAM Bandwidth",
+        "pcie_lanes_multi_gpu": "PCIe/Multi-GPU", "ssd_weight_loading": "SSD Loading",
+        "power_thermals_noise": "Power/Thermals", "os_runtime_friction": "OS/Runtime",
+        "lora_qlora_basics": "LoRA/QLoRA", "when_to_finetune": "When to Fine-tune",
+    }
+
+    # ── Layout: Domain hubs at top, learning topics below, findings as satellites ──
+    svg_width = 1400
+    domain_y = 80
+    learning_start_y = 260
+    findings_y = 160  # between domains and learning
+
+    # Position domain hub nodes (large circles across top)
+    domain_positions = {}
+    domains = list(DOMAIN_COLORS.keys())
+    domain_spacing = svg_width / (len(domains) + 1)
+    for i, d in enumerate(domains):
+        domain_positions[d] = ((i + 1) * domain_spacing, domain_y)
+
+    # Position research finding nodes (smaller, clustered under their domain)
+    finding_nodes = []  # (id, label, domain, x, y, data)
+    for domain in domains:
+        ds = analytical_state.get(domain, {})
+        options = ds.get("options", [])[:3]  # top 3 options per domain
+        dx, _ = domain_positions[domain]
+        n = len(options)
+        spread = min(180, n * 70)
+        for j, opt in enumerate(options):
+            fx = dx - spread/2 + (j * spread / max(1, n-1)) if n > 1 else dx
+            fy = findings_y
+            fid = f"finding_{domain}_{j}"
+            finding_nodes.append((fid, opt.get("name", f"Option {j+1}")[:20], domain, fx, fy, opt))
+
+    # Position learning topics (reuse layer-based layout but shifted down)
+    layer_names = {
+        0: "Foundations", 1: "Core Inference", 2: "Optimization",
+        3: "Engines", 4: "Models", 5: "Agents", 6: "Hardware", 7: "Fine-tune"
+    }
+    node_w, node_h = 110, 36
+    h_gap, v_gap = 24, 80
+    left_margin = 90
+
+    layers = {i: [] for i in range(8)}
+    for tid, tdata in TOPIC_DAG.items():
+        layers[tdata["layer"]].append(tid)
+
+    topic_positions = {}
+    for layer_num in range(8):
+        tids = layers[layer_num]
+        n = len(tids)
+        if n == 0:
+            continue
+        total_width = n * node_w + (n - 1) * h_gap
+        start_x = (svg_width - left_margin) / 2 - total_width / 2 + left_margin
+        y = learning_start_y + layer_num * (node_h + v_gap)
+        for i, tid in enumerate(tids):
+            cx = start_x + i * (node_w + h_gap) + node_w / 2
+            cy = y + node_h / 2
+            topic_positions[tid] = (cx, cy)
+
+    svg_height = learning_start_y + 8 * (node_h + v_gap) + 60
+
+    # ── Build SVG ──
+    arrows_svg = ""
+    nodes_svg = ""
+
+    # Edges: domain → finding nodes
+    for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
+        dx, dy = domain_positions[fdomain]
+        color = DOMAIN_COLORS[fdomain]
+        arrows_svg += (
+            f'<line x1="{dx:.0f}" y1="{dy+25:.0f}" x2="{fx:.0f}" y2="{fy-14:.0f}" '
+            f'stroke="{color}" stroke-width="1.5" opacity="0.5" stroke-dasharray="4 2"/>\n'
+        )
+
+    # Edges: learning topic → domain (cross-connections)
+    for tid, domain in TOPIC_DOMAIN_LINKS.items():
+        if tid in topic_positions and domain in domain_positions:
+            tx, ty = topic_positions[tid]
+            dx, dy = domain_positions[domain]
+            color = DOMAIN_COLORS[domain]
+            arrows_svg += (
+                f'<line x1="{tx:.0f}" y1="{ty - node_h/2:.0f}" x2="{dx:.0f}" y2="{dy+25:.0f}" '
+                f'stroke="{color}" stroke-width="0.8" opacity="0.2" stroke-dasharray="2 3"/>\n'
+            )
+
+    # Edges: learning topic prereq arrows
+    STATUS_COLORS = {"unseen": "#555", "introduced": "#f59e0b", "reinforced": "#10b981", "applied": "#6366f1"}
+    for tid, tdata in TOPIC_DAG.items():
+        if tid not in topic_positions:
+            continue
+        target_status = ks_topics.get(tid, {}).get("status", "unseen")
+        tx, ty = topic_positions[tid]
+        for prereq in tdata.get("prereqs", []):
+            if prereq not in topic_positions:
+                continue
+            px, py = topic_positions[prereq]
+            color = STATUS_COLORS.get(target_status, "#444")
+            dash = 'stroke-dasharray="3 2"' if target_status == "unseen" else ""
+            opacity = "0.3" if target_status == "unseen" else "0.6"
+            mid_y = (py + node_h/2 + ty - node_h/2) / 2
+            arrows_svg += (
+                f'<path d="M{px:.0f},{py + node_h/2:.0f} C{px:.0f},{mid_y:.0f} {tx:.0f},{mid_y:.0f} {tx:.0f},{ty - node_h/2:.0f}" '
+                f'fill="none" stroke="{color}" stroke-width="1" {dash} opacity="{opacity}"/>\n'
+            )
+
+    # Draw domain hub nodes (large rounded rects)
+    for domain, (dx, dy) in domain_positions.items():
+        color = DOMAIN_COLORS[domain]
+        icon = DOMAIN_ICONS[domain]
         ds = analytical_state.get(domain, {})
         conf = int(ds.get("confidence", 0) * 100)
-        top_opt = ""
-        options = ds.get("options", [])
-        if options:
-            top_opt = options[0].get("name", "")
-        domain_nodes_html += (
-            f'<a href="{domain}.html" class="sr-card" style="text-decoration:none;color:inherit;border-top:3px solid {color};">'
-            f'<div class="domain-label">{icon} {_esc(domain.title())}</div>'
-            f'<div style="font-size:1.2em;font-weight:700;color:{color};margin:8px 0">{conf}%</div>'
-            f'<div class="top-option">{_esc(top_opt)}</div>'
-            f'</a>'
+        nodes_svg += (
+            f'<g class="kg-node" data-type="domain" data-id="{domain}">'
+            f'<rect x="{dx-60}" y="{dy-25}" width="120" height="50" rx="12" '
+            f'fill="{color}" fill-opacity="0.2" stroke="{color}" stroke-width="2.5"/>'
+            f'<text x="{dx}" y="{dy-2}" text-anchor="middle" font-size="13" fill="{color}" '
+            f'font-weight="700" font-family="system-ui">{icon} {domain.title()}</text>'
+            f'<text x="{dx}" y="{dy+16}" text-anchor="middle" font-size="10" fill="{color}" '
+            f'opacity="0.8" font-family="system-ui">{conf}% confidence</text>'
+            f'</g>\n'
         )
-    domain_nodes_html += '</div></div>'
 
-    # Node type legend
+    # Draw finding nodes (small pills)
+    for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
+        color = FINDING_COLOR
+        nodes_svg += (
+            f'<g class="kg-node" data-type="finding" data-id="{fid}" data-domain="{fdomain}">'
+            f'<rect x="{fx-50}" y="{fy-14}" width="100" height="28" rx="14" '
+            f'fill="{color}" fill-opacity="0.15" stroke="{color}" stroke-width="1.5"/>'
+            f'<text x="{fx}" y="{fy+4}" text-anchor="middle" font-size="9" fill="{color}" '
+            f'font-family="system-ui" font-weight="500">{_esc(flabel)}</text>'
+            f'</g>\n'
+        )
+
+    # Draw learning topic nodes
+    for tid in TOPIC_DAG:
+        if tid not in topic_positions:
+            continue
+        cx, cy = topic_positions[tid]
+        status = ks_topics.get(tid, {}).get("status", "unseen")
+        color = STATUS_COLORS.get(status, "#555")
+        label = _esc(SHORT_LABELS.get(tid, tid[:14]))
+        rx, ry = cx - node_w / 2, cy - node_h / 2
+        fill_opacity = "0.12" if status == "unseen" else "0.25"
+        stroke_w = "1" if status == "unseen" else "2"
+        font_size = "9.5" if len(label) > 14 else "10"
+        # Highlight topics linked to domains
+        linked_domain = TOPIC_DOMAIN_LINKS.get(tid)
+        border_color = DOMAIN_COLORS.get(linked_domain, color) if linked_domain else color
+
+        nodes_svg += (
+            f'<g class="kg-node" data-type="topic" data-id="{tid}">'
+            f'<rect x="{rx:.0f}" y="{ry:.0f}" width="{node_w}" height="{node_h}" '
+            f'rx="8" fill="{color}" fill-opacity="{fill_opacity}" '
+            f'stroke="{border_color}" stroke-width="{stroke_w}"/>'
+            f'<text x="{cx:.0f}" y="{cy + 3:.0f}" text-anchor="middle" '
+            f'font-size="{font_size}" fill="{color}" font-family="system-ui" '
+            f'font-weight="500">{label}</text>'
+            f'</g>\n'
+        )
+
+    # Layer labels on left side
+    layer_labels_svg = ""
+    for layer_num in range(8):
+        if not layers[layer_num]:
+            continue
+        y = learning_start_y + layer_num * (node_h + v_gap) + node_h / 2
+        name = layer_names.get(layer_num, f"L{layer_num}")
+        layer_labels_svg += (
+            f'<text x="10" y="{y:.0f}" font-size="9" fill="#666" '
+            f'font-family="system-ui" font-weight="600">{_esc(name)}</text>\n'
+        )
+
+    # ── Build node data JSON for side pane interactivity ──
+    node_data = {}
+    # Domain nodes
+    for domain in domains:
+        ds = analytical_state.get(domain, {})
+        node_data[domain] = {
+            "type": "domain", "title": f"{DOMAIN_ICONS[domain]} {domain.title()} Analysis",
+            "analysis": ds.get("current_analysis", "No analysis yet.")[:800],
+            "confidence": ds.get("confidence", 0),
+            "options": [o.get("name", "") for o in ds.get("options", [])[:5]],
+            "evidence_count": len(ds.get("evidence", [])),
+            "link": f"pages/{domain}.html",
+        }
+    # Finding nodes
+    for fid, flabel, fdomain, fx, fy, fdata in finding_nodes:
+        node_data[fid] = {
+            "type": "finding", "title": flabel, "domain": fdomain,
+            "pros": fdata.get("pros", [])[:3],
+            "cons": fdata.get("cons", [])[:3],
+            "cost": fdata.get("cost", ""),
+            "performance": fdata.get("performance", ""),
+            "rank": fdata.get("recommendation_rank", 0),
+        }
+    # Topic nodes
+    for tid, tinfo in TOPIC_DAG.items():
+        ts = ks_topics.get(tid, {})
+        node_data[tid] = {
+            "type": "topic", "title": tinfo["title"],
+            "status": ts.get("status", "unseen"),
+            "confidence": ts.get("confidence", 0),
+            "key_facts": ts.get("key_facts", [])[:4],
+            "linked_domain": TOPIC_DOMAIN_LINKS.get(tid, ""),
+            "lessons_count": len(ts.get("lessons", [])),
+        }
+
+    node_data_json = json.dumps(node_data, ensure_ascii=False, default=str)
+
+    # ── Assemble full SVG ──
+    svg_html = f'''<div class="kg-container">
+<svg viewBox="0 0 {svg_width} {svg_height}" xmlns="http://www.w3.org/2000/svg"
+     class="kg-svg" preserveAspectRatio="xMidYMin meet">
+  <defs>
+    <filter id="kg-glow"><feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#6366f1" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  {layer_labels_svg}
+  {arrows_svg}
+  {nodes_svg}
+</svg>
+</div>
+<!-- Side pane for node details -->
+<div id="kg-side-pane" class="kg-side-pane">
+  <button class="kg-pane-close" onclick="closeKgPane()">&times;</button>
+  <div id="kg-pane-content"></div>
+</div>
+<div id="kg-overlay" class="kg-overlay" onclick="closeKgPane()"></div>
+'''
+
+    # ── CSS for knowledge graph ──
+    kg_css = '''<style>
+.kg-container { overflow-x: auto; border-radius: 12px; background: rgba(15,15,25,0.6);
+  border: 1px solid rgba(255,255,255,0.06); padding: 12px; position: relative; }
+.kg-svg { width: 100%; min-width: 900px; height: auto; display: block; }
+.kg-node rect, .kg-node circle { cursor: pointer; transition: fill-opacity 0.2s, stroke-width 0.2s, transform 0.15s; }
+.kg-node:hover rect { fill-opacity: 0.4 !important; stroke-width: 2.5 !important; }
+.kg-node:hover text { font-weight: 700 !important; }
+.kg-side-pane { position: fixed; top: 0; right: -440px; width: 420px; height: 100vh;
+  background: rgba(13,17,23,0.98); border-left: 2px solid var(--accent2);
+  padding: 24px; overflow-y: auto; z-index: 1000; transition: right 0.3s ease;
+  box-shadow: -6px 0 30px rgba(0,0,0,0.5); }
+.kg-side-pane.open { right: 0; }
+.kg-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.4); z-index: 999; }
+.kg-overlay.open { display: block; }
+.kg-pane-close { position: absolute; top: 12px; right: 16px; font-size: 1.6rem; color: var(--dim);
+  background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.kg-pane-close:hover { color: var(--text); background: rgba(99,102,241,0.2); }
+.kg-pane-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.kg-pane-badge { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 10px;
+  margin-right: 6px; margin-bottom: 8px; }
+.kg-pane-section { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.kg-pane-section h4 { font-size: 0.82rem; color: var(--dim); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.kg-pane-list { list-style: none; padding: 0; }
+.kg-pane-list li { font-size: 0.85rem; padding: 4px 0; color: var(--text); line-height: 1.5; }
+.kg-pane-list li::before { content: "→ "; color: var(--accent); }
+.kg-pane-analysis { font-size: 0.85rem; line-height: 1.7; color: var(--text); white-space: pre-wrap;
+  max-height: 300px; overflow-y: auto; padding: 12px; background: rgba(255,255,255,0.02);
+  border-radius: 8px; border: 1px solid var(--border); }
+.kg-pane-link { display: inline-block; margin-top: 12px; padding: 8px 16px; border-radius: 8px;
+  background: var(--accent); color: #000; text-decoration: none; font-size: 0.82rem; font-weight: 600; }
+.kg-pane-link:hover { opacity: 0.85; }
+.kg-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.8rem; align-items: center; }
+.kg-legend-item { display: flex; align-items: center; gap: 6px; }
+.kg-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+@media (max-width: 700px) { .kg-side-pane { width: 100vw; right: -100vw; } .kg-side-pane.open { right: 0; } }
+</style>'''
+
+    # ── JS for interactivity ──
+    kg_js = f'''<script>
+(function() {{
+  var nodeData = {node_data_json};
+  var pane = document.getElementById("kg-side-pane");
+  var overlay = document.getElementById("kg-overlay");
+  var content = document.getElementById("kg-pane-content");
+
+  function esc(s) {{ var d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }}
+
+  window.closeKgPane = function() {{
+    pane.classList.remove("open");
+    overlay.classList.remove("open");
+  }};
+
+  function renderDomain(d) {{
+    var conf = Math.round((d.confidence||0)*100);
+    var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.2);color:#a78bfa;">Domain Analysis</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;">' + conf + '% confidence</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">' + (d.evidence_count||0) + ' evidence items</div>';
+    html += '<div class="kg-pane-section"><h4>Current Analysis</h4><div class="kg-pane-analysis">' + esc(d.analysis) + '</div></div>';
+    if (d.options && d.options.length) {{
+      html += '<div class="kg-pane-section"><h4>Top Options</h4><ul class="kg-pane-list">';
+      d.options.forEach(function(o) {{ html += '<li>' + esc(o) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.link) html += '<a class="kg-pane-link" href="' + d.link + '">View Full Analysis →</a>';
+    return html;
+  }}
+
+  function renderFinding(d) {{
+    var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.2);color:#f472b6;">Research Finding</div>';
+    if (d.rank) html += '<div class="kg-pane-badge" style="background:rgba(251,191,36,0.15);color:#fbbf24;">Rank #' + d.rank + '</div>';
+    if (d.cost) html += '<div class="kg-pane-section"><h4>Cost</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.cost) + '</p></div>';
+    if (d.performance) html += '<div class="kg-pane-section"><h4>Performance</h4><p style="font-size:0.85rem;color:var(--text);">' + esc(d.performance) + '</p></div>';
+    if (d.pros && d.pros.length) {{
+      html += '<div class="kg-pane-section"><h4>Pros</h4><ul class="kg-pane-list">';
+      d.pros.forEach(function(p) {{ html += '<li style="color:#34d399;">' + esc(p) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.cons && d.cons.length) {{
+      html += '<div class="kg-pane-section"><h4>Cons</h4><ul class="kg-pane-list">';
+      d.cons.forEach(function(c) {{ html += '<li style="color:#f87171;">' + esc(c) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    return html;
+  }}
+
+  function renderTopic(d) {{
+    var statusLabels = {{"unseen":"Not Covered","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
+    var statusColors = {{"unseen":"#666","introduced":"#f59e0b","reinforced":"#10b981","applied":"#6366f1"}};
+    var st = d.status || "unseen";
+    var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.15);color:' + (statusColors[st]||"#666") + ';">' + (statusLabels[st]||st) + '</div>';
+    if (d.confidence) html += '<div class="kg-pane-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">' + Math.round(d.confidence*100) + '% mastery</div>';
+    if (d.lessons_count) html += '<div class="kg-pane-badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">' + d.lessons_count + ' lessons</div>';
+    if (d.linked_domain) html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;">Links to: ' + d.linked_domain + '</div>';
+    if (d.key_facts && d.key_facts.length) {{
+      html += '<div class="kg-pane-section"><h4>Key Facts</h4><ul class="kg-pane-list">';
+      d.key_facts.forEach(function(f) {{ html += '<li>' + esc(f) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    html += '<div class="kg-pane-section"><h4>Discuss in CLI</h4>';
+    html += '<code style="display:block;font-size:0.78rem;padding:8px 12px;background:rgba(0,0,0,0.3);border-radius:6px;color:var(--accent);word-break:break-all;">copilot --resume=\\"llm-monitor-learning\\" -p \\"Discuss: ' + esc(d.title) + '\\"</code></div>';
+    return html;
+  }}
+
+  document.querySelectorAll(".kg-node").forEach(function(el) {{
+    el.addEventListener("click", function() {{
+      var id = el.getAttribute("data-id");
+      var type = el.getAttribute("data-type");
+      var d = nodeData[id];
+      if (!d) return;
+      var html = "";
+      if (type === "domain") html = renderDomain(d);
+      else if (type === "finding") html = renderFinding(d);
+      else html = renderTopic(d);
+      content.innerHTML = html;
+      pane.classList.add("open");
+      overlay.classList.add("open");
+    }});
+  }});
+}})();
+</script>'''
+
+    # ── Legend ──
     legend_html = (
-        '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:0.82em;">'
-        '<span style="color:#3b82f6;">● Learning Topics (blue)</span>'
-        '<span style="color:#8b5cf6;">● Research (purple)</span>'
-        '<span style="color:#10b981;">● Hardware (green)</span>'
-        '<span style="color:#f59e0b;">● Models (orange)</span>'
+        '<div class="kg-legend">'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#3b82f6;"></div>Hardware</div>'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#8b5cf6;"></div>Models</div>'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#10b981;"></div>Optimization</div>'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#f59e0b;"></div>Setup</div>'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#f472b6;"></div>Research Findings</div>'
+        '<div class="kg-legend-item"><div class="kg-legend-dot" style="background:#6366f1;"></div>Learning Topics</div>'
         '</div>'
     )
 
@@ -7987,15 +8366,16 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         '\n<div class="header">'
         '\n  <div class="header-top">'
         '\n    <h1>🗺️ Knowledge Graph</h1>'
-        f'\n    <div class="meta">Last check: <b>{_esc(now)}</b></div>'
+        f'\n    <div class="meta">Last updated: <b>{_esc(now)}</b></div>'
         '\n  </div>'
         '\n</div>'
+        f'\n{kg_css}'
         '\n<div class="content">'
-        f'\n  <div class="page-desc">Interactive knowledge map showing learning topics, research nodes, and domain analysis connections. Click any node for details.</div>'
+        '\n  <p style="color:var(--dim);margin-bottom:16px;font-size:0.88rem;">Unified map of research domains, findings, and learning topics. Click any node to explore details in the side pane.</p>'
         f'\n  {legend_html}'
-        f'\n  {dag_viz_html}'
-        f'\n  {domain_nodes_html}'
+        f'\n  {svg_html}'
         '\n</div>'
+        f'\n{kg_js}'
     )
 
     modal_json = json.dumps({}, ensure_ascii=False, default=str)
