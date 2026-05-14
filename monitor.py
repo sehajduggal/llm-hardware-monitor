@@ -461,6 +461,165 @@ TOPIC_KEY_FACTS = {
     ],
 }
 
+# External reference links for each topic — "Read More" in side panel
+TOPIC_LINKS = {
+    "tokens_and_parameters": [
+        ("What are tokens? (OpenAI)", "https://platform.openai.com/tokenizer"),
+        ("Transformer math 101", "https://blog.eleuther.ai/transformer-math/"),
+    ],
+    "vram_calculation": [
+        ("LLM VRAM Calculator", "https://huggingface.co/spaces/NyxKrage/LLM-Model-VRAM-Calculator"),
+        ("Can I run this model?", "https://huggingface.co/spaces/Vokturz/can-it-run-llm"),
+    ],
+    "context_window_math": [
+        ("KV Cache explained", "https://magazine.sebastianraschka.com/p/understanding-large-language-models"),
+        ("GQA paper (Ainslie et al.)", "https://arxiv.org/abs/2305.13245"),
+    ],
+    "prefill_vs_decode": [
+        ("LLM inference explained", "https://www.databricks.com/blog/llm-inference-performance-engineering-best-practices"),
+        ("Prefill vs Decode deep-dive", "https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/"),
+    ],
+    "kv_cache_growth": [
+        ("Efficient KV cache management", "https://arxiv.org/abs/2309.06180"),
+        ("PagedAttention paper (vLLM)", "https://arxiv.org/abs/2309.06180"),
+    ],
+    "memory_bandwidth_vs_compute": [
+        ("Roofline model for LLMs", "https://arxiv.org/abs/2402.14848"),
+        ("GPU bandwidth benchmarks", "https://www.techpowerup.com/gpu-specs/"),
+    ],
+    "latency_vs_throughput": [
+        ("LLM serving tradeoffs", "https://www.anyscale.com/blog/continuous-batching-llm-inference"),
+        ("Batch inference guide", "https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html"),
+    ],
+    "quantization_basics": [
+        ("Quantization overview (HuggingFace)", "https://huggingface.co/docs/optimum/concept_guides/quantization"),
+        ("GGML quant comparison", "https://github.com/ggerganov/llama.cpp/discussions/2094"),
+    ],
+    "gguf_formats": [
+        ("GGUF format spec", "https://github.com/ggerganov/ggml/blob/master/docs/gguf.md"),
+        ("Quant quality comparison", "https://github.com/ggerganov/llama.cpp/pull/1684"),
+        ("TheBloke's quant guide", "https://huggingface.co/TheBloke"),
+    ],
+    "exl2_awq_gptq": [
+        ("ExLlamaV2 repo", "https://github.com/turboderp/exllamav2"),
+        ("AWQ paper", "https://arxiv.org/abs/2306.00978"),
+        ("GPTQ paper", "https://arxiv.org/abs/2210.17323"),
+    ],
+    "offloading_gpu_cpu_disk": [
+        ("llama.cpp GPU offloading", "https://github.com/ggerganov/llama.cpp#using-gpu"),
+        ("Offloading performance guide", "https://github.com/ggerganov/llama.cpp/discussions/4167"),
+    ],
+    "moe_expert_routing": [
+        ("Mixtral paper", "https://arxiv.org/abs/2401.04088"),
+        ("DeepSeek MoE paper", "https://arxiv.org/abs/2401.06066"),
+        ("MoE explained (HuggingFace)", "https://huggingface.co/blog/moe"),
+    ],
+    "speculative_decoding": [
+        ("Speculative sampling paper", "https://arxiv.org/abs/2302.01318"),
+        ("Medusa: multi-head decoding", "https://arxiv.org/abs/2401.10774"),
+        ("EAGLE speculative decoding", "https://arxiv.org/abs/2401.15077"),
+    ],
+    "llama_cpp": [
+        ("llama.cpp GitHub", "https://github.com/ggerganov/llama.cpp"),
+        ("llama.cpp server docs", "https://github.com/ggerganov/llama.cpp/blob/master/examples/server/README.md"),
+        ("Ollama (llama.cpp wrapper)", "https://ollama.com/"),
+    ],
+    "ktransformers": [
+        ("KTransformers GitHub", "https://github.com/kvcache-ai/ktransformers"),
+        ("KTransformers tutorial", "https://kvcache-ai.github.io/ktransformers/"),
+    ],
+    "vllm_tensorrt": [
+        ("vLLM docs", "https://docs.vllm.ai/"),
+        ("vLLM GitHub", "https://github.com/vllm-project/vllm"),
+        ("TensorRT-LLM GitHub", "https://github.com/NVIDIA/TensorRT-LLM"),
+    ],
+    "mlx_apple_silicon": [
+        ("MLX GitHub", "https://github.com/ml-explore/mlx"),
+        ("mlx-lm models", "https://github.com/ml-explore/mlx-examples/tree/main/llms"),
+        ("MLX community models", "https://huggingface.co/mlx-community"),
+    ],
+    "runtime_compat": [
+        ("CUDA toolkit", "https://developer.nvidia.com/cuda-toolkit"),
+        ("ROCm compatibility", "https://rocm.docs.amd.com/"),
+        ("llama.cpp backend guide", "https://github.com/ggerganov/llama.cpp#build"),
+    ],
+    "dense_vs_moe": [
+        ("DeepSeek-V3 paper", "https://arxiv.org/abs/2412.19437"),
+        ("Switch Transformer (MoE intro)", "https://arxiv.org/abs/2101.03961"),
+    ],
+    "coding_model_traits": [
+        ("SWE-bench leaderboard", "https://www.swebench.com/"),
+        ("LiveCodeBench", "https://livecodebench.github.io/"),
+        ("Aider LLM leaderboards", "https://aider.chat/docs/leaderboards/"),
+    ],
+    "reasoning_chains": [
+        ("DeepSeek-R1 paper", "https://arxiv.org/abs/2501.12948"),
+        ("QwQ-32B model card", "https://huggingface.co/Qwen/QwQ-32B"),
+        ("Chain-of-thought prompting", "https://arxiv.org/abs/2201.11903"),
+    ],
+    "model_selection_for_agents": [
+        ("Aider model recommendations", "https://aider.chat/docs/llms.html"),
+        ("Open LLM Leaderboard", "https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard"),
+        ("LocalLLaMA subreddit", "https://www.reddit.com/r/LocalLLaMA/"),
+    ],
+    "agent_context_management": [
+        ("Aider repo-map strategy", "https://aider.chat/docs/repomap.html"),
+        ("RAG for code (Cursor)", "https://cursor.sh/blog"),
+        ("Embedding-based retrieval", "https://docs.llamaindex.ai/"),
+    ],
+    "yolo_coding_mode": [
+        ("Claude Code docs", "https://docs.anthropic.com/en/docs/claude-code"),
+        ("Aider auto-commits", "https://aider.chat/docs/git.html"),
+        ("SWE-agent", "https://github.com/princeton-nlp/SWE-agent"),
+    ],
+    "batch_concurrency": [
+        ("vLLM continuous batching", "https://docs.vllm.ai/en/latest/serving/openai_compatible_server.html"),
+        ("Multi-agent orchestration", "https://github.com/langchain-ai/langgraph"),
+    ],
+    "tool_use_function_calling": [
+        ("Function calling guide (OpenAI)", "https://platform.openai.com/docs/guides/function-calling"),
+        ("Qwen tool calling", "https://qwen.readthedocs.io/en/latest/framework/function_call.html"),
+        ("ToolBench dataset", "https://github.com/OpenBMB/ToolBench"),
+    ],
+    "vram_tiers_and_gpus": [
+        ("GPU specs database", "https://www.techpowerup.com/gpu-specs/"),
+        ("RTX 4090 vs A6000 for LLMs", "https://www.reddit.com/r/LocalLLaMA/"),
+        ("India GPU prices (MDComputers)", "https://mdcomputers.in/graphics-card"),
+    ],
+    "ram_bandwidth_for_offload": [
+        ("DDR5 bandwidth explained", "https://www.crucial.com/articles/about-memory/difference-between-ddr4-and-ddr5-ram"),
+        ("Memory benchmark tool", "https://www.aida64.com/"),
+    ],
+    "pcie_lanes_multi_gpu": [
+        ("PCIe bandwidth explained", "https://www.trentonsystems.com/en-us/resource-hub/blog/pcie-gen4-vs-gen5"),
+        ("Multi-GPU LLM setup guide", "https://www.reddit.com/r/LocalLLaMA/wiki/"),
+    ],
+    "ssd_weight_loading": [
+        ("NVMe Gen4 vs Gen5 benchmarks", "https://www.tomshardware.com/reviews/best-ssds,3891.html"),
+        ("GPUDirect Storage", "https://developer.nvidia.com/gpudirect-storage"),
+    ],
+    "power_thermals_noise": [
+        ("GPU undervolting guide", "https://www.techpowerup.com/review/nvidia-geforce-rtx-4090-undervolt/"),
+        ("Noctua deshroud mod", "https://www.reddit.com/r/sffpc/comments/deshroud/"),
+        ("India electricity tariffs", "https://www.bijlibachao.com/"),
+    ],
+    "os_runtime_friction": [
+        ("NVIDIA container toolkit", "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/"),
+        ("WSL2 GPU setup", "https://learn.microsoft.com/en-us/windows/ai/directml/gpu-cuda-in-wsl"),
+        ("Docker GPU passthrough", "https://docs.docker.com/config/containers/resource_constraints/#gpu"),
+    ],
+    "lora_qlora_basics": [
+        ("QLoRA paper", "https://arxiv.org/abs/2305.14314"),
+        ("Unsloth (fast fine-tuning)", "https://github.com/unslothai/unsloth"),
+        ("Axolotl training tool", "https://github.com/OpenAccess-AI-Collective/axolotl"),
+    ],
+    "when_to_finetune": [
+        ("Fine-tuning vs RAG decision", "https://www.anyscale.com/blog/fine-tuning-is-for-form-not-facts"),
+        ("RAG vs fine-tuning guide", "https://docs.llamaindex.ai/en/stable/"),
+        ("PEFT library (HuggingFace)", "https://huggingface.co/docs/peft/"),
+    ],
+}
+
 
 def _init_knowledge_state() -> dict:
     """Initialize a fresh knowledge state with all topics unseen."""
@@ -8532,12 +8691,14 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
     # Topic nodes
     for tid, tinfo in TOPIC_DAG.items():
         ts = ks_topics.get(tid, {})
+        topic_links = TOPIC_LINKS.get(tid, [])
         node_data[tid] = {
             "type": "topic", "title": tinfo["title"],
             "summary": TOPIC_SUMMARIES.get(tid, ""),
             "status": ts.get("status", "unseen"),
             "confidence": ts.get("confidence", 0),
             "key_facts": TOPIC_KEY_FACTS.get(tid, ts.get("key_facts", []))[:6],
+            "links": [{"label": lbl, "url": url} for lbl, url in topic_links],
             "linked_domain": TOPIC_DOMAIN_LINKS.get(tid, ""),
             "lessons_count": len(ts.get("lessons", [])),
             "goal_tags": tinfo.get("goal_tags", []),
@@ -8679,6 +8840,11 @@ document.addEventListener("DOMContentLoaded", function() {{
     if (d.key_facts && d.key_facts.length) {{
       html += '<div class="kg-pane-section"><h4>Key Facts</h4><ul class="kg-pane-list">';
       d.key_facts.forEach(function(f) {{ html += '<li>' + esc(f) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.links && d.links.length) {{
+      html += '<div class="kg-pane-section"><h4>📚 Read More</h4><ul class="kg-pane-list" style="list-style:none;padding-left:0;">';
+      d.links.forEach(function(lk) {{ html += '<li style="margin-bottom:6px;"><a href="' + esc(lk.url) + '" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:none;font-size:0.82rem;">↗ ' + esc(lk.label) + '</a></li>'; }});
       html += '</ul></div>';
     }}
     if (d.prereqs && d.prereqs.length) {{
