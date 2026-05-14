@@ -5121,12 +5121,7 @@ _DASHBOARD_CSS = """
   .sr-changes { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
   .sr-pipeline { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.88em; }
 
-  /* ── Knowledge Graph Enhanced ── */
-  .kg-container { display: grid; grid-template-columns: 1fr; gap: 0; position: relative; }
-  .kg-container.pane-open { grid-template-columns: 1fr 400px; }
-  .kg-side-pane { background: var(--pane-bg); border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; height: 80vh; position: sticky; top: 80px; display: none; }
-  .kg-container.pane-open .kg-side-pane { display: block; }
-  @media (max-width: 900px) { .kg-container.pane-open { grid-template-columns: 1fr; } .kg-side-pane { position: fixed; top: 0; right: 0; width: 90vw; height: 100vh; z-index: 1000; } }
+  /* ── Knowledge Graph (styles defined inline per page) ── */
 """
 
 _MODAL_OVERLAY_HTML = """
@@ -8003,21 +7998,21 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
     }
 
     # ── Layout: Clustered by domain (4 columns), domain hub at top of each column ──
-    # Each column contains: Domain Hub → Finding pills → Related learning topics
+    # Each column contains: Domain Hub → Finding pills (stacked) → Related learning topics
     # Unlinked topics go in a center "General" cluster below
 
     STATUS_COLORS = {"unseen": "#555", "introduced": "#f59e0b", "reinforced": "#10b981", "applied": "#6366f1"}
 
-    # Column layout
+    # Column layout — wider columns, findings stacked vertically
     domains = list(DOMAIN_COLORS.keys())
-    col_width = 320
-    svg_width = col_width * 4 + 80  # 4 columns + margins
-    col_margin = 40
+    col_width = 360
+    svg_width = col_width * 4 + 100  # 4 columns + margins
+    col_margin = 50
     domain_y = 70
-    findings_start_y = 150
-    topics_start_y = 250
-    node_w, node_h = 120, 38
-    v_gap_topic = 52
+    findings_start_y = 145
+    finding_v_gap = 36  # vertical gap between findings
+    node_w, node_h = 130, 38
+    v_gap_topic = 54
 
     # Position domain hub nodes (centered in each column)
     domain_positions = {}
@@ -8025,18 +8020,23 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         cx = col_margin + i * col_width + col_width / 2
         domain_positions[d] = (cx, domain_y)
 
-    # Position findings under each domain hub
+    # Position findings stacked vertically under each domain hub
     finding_nodes = []
+    max_findings = 0
     for domain in domains:
         ds = analytical_state.get(domain, {})
         options = ds.get("options", [])[:3]
         dx, _ = domain_positions[domain]
         n = len(options)
+        max_findings = max(max_findings, n)
         for j, opt in enumerate(options):
-            fx = dx + (j - (n-1)/2) * 110  # spread evenly
-            fy = findings_start_y
+            fx = dx  # centered in column
+            fy = findings_start_y + j * finding_v_gap
             fid = f"finding_{domain}_{j}"
-            finding_nodes.append((fid, opt.get("name", f"Option {j+1}")[:18], domain, fx, fy, opt))
+            finding_nodes.append((fid, opt.get("name", f"Option {j+1}")[:20], domain, fx, fy, opt))
+
+    # Topics start below all findings
+    topics_start_y = findings_start_y + max_findings * finding_v_gap + 40
 
     # Group learning topics by linked domain; unlinked go to "general"
     domain_topics = {d: [] for d in domains}
@@ -8060,28 +8060,30 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 
     # Position general topics in rows below all columns
     max_linked_count = max(len(v) for v in domain_topics.values()) if domain_topics else 0
-    general_start_y = topics_start_y + max_linked_count * v_gap_topic + 60
-    cols_for_general = 5
+    general_start_y = topics_start_y + max_linked_count * v_gap_topic + 80
+    cols_for_general = 4  # fewer columns = more space
+    general_h_gap = (svg_width - 2 * col_margin) / cols_for_general
     for j, tid in enumerate(general_topics):
         row = j // cols_for_general
         col = j % cols_for_general
-        cx = col_margin + 100 + col * (node_w + 30)
+        cx = col_margin + general_h_gap / 2 + col * general_h_gap
         cy = general_start_y + row * v_gap_topic
         topic_positions[tid] = (cx, cy)
 
     general_rows = (len(general_topics) + cols_for_general - 1) // cols_for_general
-    svg_height = general_start_y + general_rows * v_gap_topic + 60
+    svg_height = general_start_y + general_rows * v_gap_topic + 80
 
     # ── Build SVG ──
     arrows_svg = ""
     nodes_svg = ""
 
     # Column background shading for visual grouping
+    col_bg_height = topics_start_y + max_linked_count * v_gap_topic + 20
     for i, domain in enumerate(domains):
         x = col_margin + i * col_width
         color = DOMAIN_COLORS[domain]
         nodes_svg += (
-            f'<rect x="{x}" y="30" width="{col_width - 10}" height="{general_start_y - 50}" '
+            f'<rect x="{x}" y="30" width="{col_width - 10}" height="{col_bg_height}" '
             f'rx="16" fill="{color}" fill-opacity="0.03" stroke="{color}" stroke-width="0.5" stroke-opacity="0.15"/>\n'
         )
 
