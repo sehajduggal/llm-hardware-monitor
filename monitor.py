@@ -7659,22 +7659,31 @@ def _generate_situation_room(state: dict, now: str) -> str:
     rec = state.get("recommendation", {})
     pipeline_meta = state.get("pipeline_meta", {})
 
-    # 1. What Changed Today
-    from datetime import date as _date_cls
-    today_str = _date_cls.today().isoformat()
-    today_changes = [e for e in changelog if e.get("date", "").startswith(today_str)]
-    changes_count = len(today_changes)
-    changes_html = (
-        f'<div class="sr-changes">'
-        f'<h3>📋 What Changed Today</h3>'
-        f'<p style="font-size:1.8em;font-weight:700;color:var(--accent);margin:8px 0">{changes_count}</p>'
-        f'<p style="color:var(--dim);font-size:0.85em;">change{"s" if changes_count != 1 else ""} recorded today</p>'
-    )
-    for entry in today_changes[:5]:
-        domain = _esc(entry.get("domain", ""))
-        change = _esc(entry.get("change", ""))
-        changes_html += f'<div style="margin-top:8px;font-size:0.85em;padding:6px 10px;background:var(--card);border-radius:6px;border-left:3px solid var(--accent2)"><b>{domain}:</b> {change}</div>'
-    changes_html += '</div>'
+    domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
+    domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
+
+    # 1. Current Analysis Summary (the main content — what we know NOW)
+    analysis_summary_html = '<div style="margin-bottom:32px;">'
+    analysis_summary_html += '<h3 style="margin-bottom:16px;font-size:1.1em;">📊 Latest Analysis</h3>'
+    for domain in ("hardware", "models", "optimization", "setup"):
+        ds = analytical_state.get(domain, {})
+        analysis_text = ds.get("current_analysis", "Awaiting first pipeline run.")
+        conf = int(ds.get("confidence", 0) * 100)
+        icon = domain_icons.get(domain, "📊")
+        color = domain_colors.get(domain, "#6b7280")
+        # Truncate to first 400 chars for summary
+        summary = _esc(analysis_text[:400]) + ("..." if len(analysis_text) > 400 else "")
+        analysis_summary_html += (
+            f'<div style="margin-bottom:16px;padding:16px;background:var(--card);border-radius:10px;border-left:4px solid {color};">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+            f'<span style="font-weight:700;color:{color};">{icon} {domain.title()}</span>'
+            f'<span style="font-size:0.8em;color:{color};background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:10px;">{conf}% confidence</span>'
+            f'</div>'
+            f'<p style="font-size:0.88em;line-height:1.7;color:var(--text);margin:0;">{summary}</p>'
+            f'<a href="pages/{domain}.html" style="display:inline-block;margin-top:8px;font-size:0.8em;color:var(--accent);text-decoration:none;">View full analysis →</a>'
+            f'</div>'
+        )
+    analysis_summary_html += '</div>'
 
     # 2. Current Recommendation
     rec_action = rec.get("recommendation", "wait")
@@ -7707,8 +7716,6 @@ def _generate_situation_room(state: dict, now: str) -> str:
     )
 
     # 3. Domain Confidence Cards
-    domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
-    domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
     cards_html = '<div class="sr-grid">'
     for domain in ("hardware", "models", "optimization", "setup"):
         ds = analytical_state.get(domain, {})
@@ -7773,12 +7780,12 @@ def _generate_situation_room(state: dict, now: str) -> str:
         '\n<div class="header">'
         '\n  <div class="header-top">'
         '\n    <h1>🏠 Situation Room</h1>'
-        f'\n    <div class="meta">Last check: <b>{_esc(now)}</b></div>'
+        f'\n    <div class="meta">Last updated: <b>{_esc(now)}</b></div>'
         '\n  </div>'
         '\n</div>'
         '\n<div class="content">'
-        f'\n  {changes_html}'
         f'\n  {rec_html}'
+        f'\n  {analysis_summary_html}'
         f'\n  {cards_html}'
         f'\n  {pending_html}'
         f'\n  {pipeline_html}'
@@ -8257,9 +8264,10 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 .kg-container { overflow-x: auto; border-radius: 12px; background: rgba(15,15,25,0.6);
   border: 1px solid rgba(255,255,255,0.06); padding: 12px; position: relative; }
 .kg-svg { width: 100%; min-width: 900px; height: auto; display: block; }
-.kg-node rect, .kg-node circle { cursor: pointer; transition: fill-opacity 0.2s, stroke-width 0.2s, transform 0.15s; }
-.kg-node:hover rect { fill-opacity: 0.4 !important; stroke-width: 2.5 !important; }
-.kg-node:hover text { font-weight: 700 !important; }
+.kg-node { cursor: pointer; pointer-events: bounding-box; }
+.kg-node rect, .kg-node circle { cursor: pointer; pointer-events: all; transition: fill-opacity 0.2s, stroke-width 0.2s; }
+.kg-node:hover rect { fill-opacity: 0.5 !important; stroke-width: 3 !important; }
+.kg-node:hover text { font-weight: 700 !important; fill: #fff !important; }
 .kg-side-pane { position: fixed; top: 0; right: -440px; width: 420px; height: 100vh;
   background: rgba(13,17,23,0.98); border-left: 2px solid var(--accent2);
   padding: 24px; overflow-y: auto; z-index: 1000; transition: right 0.3s ease;
@@ -8293,7 +8301,7 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 
     # ── JS for interactivity ──
     kg_js = f'''<script>
-(function() {{
+document.addEventListener("DOMContentLoaded", function() {{
   var nodeData = {node_data_json};
   var pane = document.getElementById("kg-side-pane");
   var overlay = document.getElementById("kg-overlay");
@@ -8375,7 +8383,7 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
       overlay.classList.add("open");
     }});
   }});
-}})();
+}});
 </script>'''
 
     # ── Legend ──
