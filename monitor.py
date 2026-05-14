@@ -146,6 +146,44 @@ USER_GOALS = [
     {"id": "budget-optimized", "label": "Best performance per rupee (₹1.5-3.5L)"},
 ]
 
+# Static summaries for knowledge graph — always shown regardless of learning status
+TOPIC_SUMMARIES = {
+    "tokens_and_parameters": "Models are measured in parameters (7B, 13B, 70B). Each parameter uses 2 bytes at FP16. A 70B model = 140GB raw. Tokens are ~4 chars; context window = how many tokens can be processed at once.",
+    "vram_calculation": "VRAM needed ≈ parameters × bytes_per_param + KV cache. A 70B Q4 model needs ~40GB VRAM. Overhead for KV cache adds 2-8GB depending on context length.",
+    "context_window_math": "Context windows range from 4K to 128K+ tokens. Longer context = more VRAM for KV cache. 128K context on a 70B model can need 16+ GB extra VRAM.",
+    "prefill_vs_decode": "Prefill: processes all input tokens in parallel (compute-bound). Decode: generates one token at a time (memory-bandwidth-bound). Most local inference time is spent in decode.",
+    "kv_cache_growth": "KV cache stores attention state for all previous tokens. Grows linearly with context length. For 70B model at 32K context: ~8GB. At 128K: ~32GB. This is the hidden cost of long conversations.",
+    "memory_bandwidth_vs_compute": "Token generation speed is limited by memory bandwidth, not compute. RTX 4090: 1TB/s bandwidth → ~80 tok/s for 7B. Apple M4 Max: 546GB/s unified → good for large models with offloading.",
+    "latency_vs_throughput": "Latency = time to first token. Throughput = tokens/second. For coding agents, both matter: fast prefill for large prompts, sustained decode for long outputs. Batch size increases throughput but adds latency.",
+    "quantization_basics": "Reduces precision from FP16 (2 bytes) to INT4 (0.5 bytes), cutting VRAM by 4×. Quality loss: Q4_K_M retains ~98% of FP16 quality. Essential for running 70B models on consumer hardware.",
+    "gguf_formats": "GGUF is llama.cpp's format. Q4_K_M: best balance (4.8 bpw). Q5_K_M: higher quality (+2% vs Q4). Q8_0: near-lossless but 2× size. IQ4_XS: experimental, slightly better than Q4 at same size.",
+    "exl2_awq_gptq": "GPU-optimized quant formats. EXL2: variable bits-per-weight, best for ExLlamaV2. AWQ: activation-aware, fast on GPUs. GPTQ: older but widely supported. All need full VRAM (no CPU offload).",
+    "offloading_gpu_cpu_disk": "Split model layers between GPU and CPU RAM. GPU layers run fast, CPU layers at RAM bandwidth speed. 50% offload → ~50% speed. Useful for 70B models on 24GB GPUs with 128GB RAM.",
+    "moe_expert_routing": "MoE models (Mixtral, DeepSeek) have 8-64 experts but only activate 2-4 per token. Effective compute = small model, but need full VRAM for all experts. Great for offloading: inactive experts can stay in RAM.",
+    "speculative_decoding": "Use a small 'draft' model to predict next N tokens, then verify with the big model in one batch. Can give 2-3× speedup when draft model is accurate. Works best with similar model families.",
+    "llama_cpp": "C++ inference engine. Supports GGUF, CPU+GPU offloading, all quantizations. Best for: single-user local inference, CPU offloading, wide hardware support. Server mode for API access.",
+    "ktransformers": "Optimized for MoE offloading. Keeps expert layers in CPU RAM, routes to GPU on demand. Claims 3-28× speedup over llama.cpp for DeepSeek models on single GPU + lots of RAM.",
+    "vllm_tensorrt": "High-throughput serving engines. vLLM: PagedAttention, continuous batching, best for multi-user. TensorRT-LLM: NVIDIA-optimized, fastest on NVIDIA GPUs. Both need full VRAM.",
+    "mlx_apple_silicon": "Apple's framework for M-series chips. Leverages unified memory (no CPU↔GPU copy). M4 Max 128GB can run 70B models entirely in unified memory at 546GB/s bandwidth.",
+    "runtime_compat": "CUDA: NVIDIA only, best ecosystem. ROCm: AMD GPUs, improving but gaps remain. Metal: Apple only. Vulkan: cross-platform but limited LLM support. CUDA has most model/tool support.",
+    "dense_vs_moe": "Dense (Llama, Qwen): all parameters active every token. Predictable VRAM/speed. MoE (Mixtral, DeepSeek): more total params but fewer active. Better quality/compute ratio but complex memory patterns.",
+    "coding_model_traits": "Good coding models need: strong instruction following, long context, tool use ability, low hallucination on code. Top: DeepSeek-Coder-V2, Qwen2.5-Coder, CodeLlama. Benchmarks: HumanEval, SWE-bench.",
+    "reasoning_chains": "Models like DeepSeek-R1 and QwQ use chain-of-thought internally. Better at complex multi-step code tasks but slower (more tokens generated). Critical for autonomous coding agents.",
+    "model_selection_for_agents": "For 24/7 coding agents: need good reasoning + long context + fast decode. Sweet spots: 32B-72B models at Q4-Q5. DeepSeek-R1-Distill-Qwen-32B or Qwen2.5-72B-Instruct recommended.",
+    "agent_context_management": "Agents need 32K-128K context for large codebases. Strategies: sliding window, summarization, RAG for retrieval. KV cache quantization (FP8) can halve memory cost.",
+    "yolo_coding_mode": "Autonomous agents that write, execute, and iterate on code without human approval. Need: reliable model, sandbox execution, good error recovery. Risk: runaway costs/actions without guardrails.",
+    "batch_concurrency": "Running multiple agents simultaneously. Each needs separate KV cache. 3 agents × 32K context on 70B = massive VRAM. Solutions: smaller models, shared prefixes, or sequential execution.",
+    "tool_use_function_calling": "Agents call tools (file read/write, terminal, web search) via structured JSON outputs. Models need fine-tuning for tool use. Qwen2.5 and DeepSeek excel at function calling.",
+    "vram_tiers_and_gpus": "8GB: 7B models only. 12GB: 13B Q4. 16GB: 13B Q5-Q8. 24GB (RTX 4090): 30B Q4 or 70B with heavy offload. 48GB (RTX 6000/dual): 70B Q4 comfortably. 128GB unified (Mac): 70B Q5-Q8.",
+    "ram_bandwidth_for_offload": "CPU offloading speed = RAM bandwidth ÷ model_size_in_RAM. DDR5-6400: 102GB/s → ~15 tok/s for offloaded 70B layers. DDR5-4800: 77GB/s → ~11 tok/s. Fast RAM matters for offloading.",
+    "pcie_lanes_multi_gpu": "Multi-GPU needs PCIe bandwidth for tensor parallel. PCIe 4.0 x16: 32GB/s each direction. NVLink: 900GB/s (datacenter only). For 2× RTX 4090: PCIe 5.0 preferred, 4.0 workable.",
+    "ssd_weight_loading": "Model loading from disk: NVMe Gen4 (7GB/s) loads 70B GGUF in ~6s. Gen3 (3.5GB/s): ~12s. Matters for model switching. Disk offloading for inference is too slow for practical use.",
+    "power_thermals_noise": "RTX 4090: 450W TDP, needs serious cooling. Dual GPU: 900W+. 24/7 operation: consider undervolting (-15% power, -5% performance). Mac Studio: 75W max, silent. Noise matters for home office.",
+    "os_runtime_friction": "Linux: best CUDA/ROCm support, less overhead. Windows: WSL2 works but adds latency, driver issues. macOS: Metal only, MLX native. Docker recommended for reproducible environments.",
+    "lora_qlora_basics": "LoRA: train small adapter layers (1-5% of params) instead of full model. QLoRA: combine with 4-bit quantization to fine-tune 70B on 24GB VRAM. Training time: hours to days depending on dataset.",
+    "when_to_finetune": "Fine-tune when: model consistently fails at specific tasks, you have domain data, need specific output format. Don't fine-tune when: prompt engineering works, data is small (<100 examples), model already handles task well. RAG for knowledge injection.",
+}
+
 
 def _init_knowledge_state() -> dict:
     """Initialize a fresh knowledge state with all topics unseen."""
@@ -8224,11 +8262,14 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         ts = ks_topics.get(tid, {})
         node_data[tid] = {
             "type": "topic", "title": tinfo["title"],
+            "summary": TOPIC_SUMMARIES.get(tid, ""),
             "status": ts.get("status", "unseen"),
             "confidence": ts.get("confidence", 0),
             "key_facts": ts.get("key_facts", [])[:4],
             "linked_domain": TOPIC_DOMAIN_LINKS.get(tid, ""),
             "lessons_count": len(ts.get("lessons", [])),
+            "goal_tags": tinfo.get("goal_tags", []),
+            "prereqs": [TOPIC_DAG[p]["title"] for p in tinfo.get("prereqs", []) if p in TOPIC_DAG],
         }
 
     node_data_json = json.dumps(node_data, ensure_ascii=False, default=str)
@@ -8264,8 +8305,9 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
     # ── CSS for knowledge graph ──
     kg_css = '''<style>
 .kg-container { overflow-x: auto; border-radius: 12px; background: rgba(15,15,25,0.6);
-  border: 1px solid rgba(255,255,255,0.06); padding: 12px; position: relative; }
-.kg-svg { width: 100%; min-width: 900px; height: auto; display: block; }
+  border: 1px solid rgba(255,255,255,0.06); padding: 12px; position: relative;
+  width: 100%; max-width: 100vw; min-height: 70vh; }
+.kg-svg { width: 100%; min-width: 900px; height: auto; min-height: 60vh; display: block; }
 .kg-node { cursor: pointer; pointer-events: bounding-box; }
 .kg-node rect, .kg-node circle { cursor: pointer; pointer-events: all; transition: fill-opacity 0.2s, stroke-width 0.2s; }
 .kg-node:hover rect { fill-opacity: 0.5 !important; stroke-width: 3 !important; }
@@ -8352,17 +8394,30 @@ document.addEventListener("DOMContentLoaded", function() {{
   }}
 
   function renderTopic(d) {{
-    var statusLabels = {{"unseen":"Not Covered","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
-    var statusColors = {{"unseen":"#666","introduced":"#f59e0b","reinforced":"#10b981","applied":"#6366f1"}};
+    var statusLabels = {{"unseen":"Ready to Learn","introduced":"Introduced","reinforced":"Reinforced","applied":"Mastered"}};
+    var statusColors = {{"unseen":"#888","introduced":"#f59e0b","reinforced":"#10b981","applied":"#6366f1"}};
     var st = d.status || "unseen";
     var html = '<div class="kg-pane-title">' + esc(d.title) + '</div>';
-    html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.15);color:' + (statusColors[st]||"#666") + ';">' + (statusLabels[st]||st) + '</div>';
+    html += '<div class="kg-pane-badge" style="background:rgba(99,102,241,0.15);color:' + (statusColors[st]||"#888") + ';">' + (statusLabels[st]||st) + '</div>';
     if (d.confidence) html += '<div class="kg-pane-badge" style="background:rgba(16,185,129,0.15);color:#34d399;">' + Math.round(d.confidence*100) + '% mastery</div>';
     if (d.lessons_count) html += '<div class="kg-pane-badge" style="background:rgba(251,191,36,0.1);color:#fbbf24;">' + d.lessons_count + ' lessons</div>';
-    if (d.linked_domain) html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;">Links to: ' + d.linked_domain + '</div>';
+    if (d.linked_domain) html += '<div class="kg-pane-badge" style="background:rgba(244,114,182,0.1);color:#f472b6;">Domain: ' + d.linked_domain + '</div>';
+    if (d.goal_tags && d.goal_tags.length) {{
+      html += '<div style="margin-top:8px;">';
+      d.goal_tags.forEach(function(g) {{ html += '<span class="kg-pane-badge" style="background:rgba(99,102,241,0.08);color:#a78bfa;font-size:0.68rem;">🎯 ' + esc(g.replace(/-/g," ")) + '</span>'; }});
+      html += '</div>';
+    }}
+    if (d.summary) {{
+      html += '<div class="kg-pane-section"><h4>Overview</h4><div class="kg-pane-analysis">' + esc(d.summary) + '</div></div>';
+    }}
     if (d.key_facts && d.key_facts.length) {{
-      html += '<div class="kg-pane-section"><h4>Key Facts</h4><ul class="kg-pane-list">';
+      html += '<div class="kg-pane-section"><h4>Key Facts Learned</h4><ul class="kg-pane-list">';
       d.key_facts.forEach(function(f) {{ html += '<li>' + esc(f) + '</li>'; }});
+      html += '</ul></div>';
+    }}
+    if (d.prereqs && d.prereqs.length) {{
+      html += '<div class="kg-pane-section"><h4>Prerequisites</h4><ul class="kg-pane-list">';
+      d.prereqs.forEach(function(p) {{ html += '<li style="color:var(--dim);">' + esc(p) + '</li>'; }});
       html += '</ul></div>';
     }}
     html += '<div class="kg-pane-section"><h4>Discuss in CLI</h4>';
