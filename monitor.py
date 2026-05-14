@@ -5725,7 +5725,39 @@ _DASHBOARD_CSS = """
   .sr-card .ev-count { font-size: 0.78em; color: var(--dim); margin-top: 4px; }
   .sr-card .last-updated { font-size: 0.72em; color: var(--dim); margin-top: 4px; }
   .sr-changes { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .sr-changes h3 { margin-bottom: 12px; }
+  .sr-changes .diff-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sr-changes .diff-badge { padding: 4px 12px; border-radius: 6px; font-size: 0.82em; font-weight: 600; }
+  .sr-changes .diff-badge.blue { background: rgba(59,130,246,0.1); color: #60a5fa; }
+  .sr-changes .diff-badge.green { background: rgba(16,185,129,0.1); color: #34d399; }
+  .sr-changes .diff-entry { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85em; }
+  .sr-changes .diff-domain { font-weight: 600; white-space: nowrap; }
+  .sr-changes .diff-text { color: var(--fg); }
+  .sr-changes .empty-state { color: var(--dim); font-size: 0.88em; }
   .sr-pipeline { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.88em; }
+
+  /* ── Hero Action Card ── */
+  .hero-action { border: 2px solid; border-radius: 12px; padding: 24px; margin-bottom: 28px; background: var(--card); }
+  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; margin-bottom: 12px; }
+  .hero-target { font-size: 1.4em; font-weight: 700; margin-bottom: 8px; }
+  .hero-reasoning { font-size: 0.9em; color: var(--fg); line-height: 1.6; margin-bottom: 8px; }
+  .hero-guidance { font-size: 0.82em; color: var(--dim); font-style: italic; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-actions .buy-btn { display: inline-block; padding: 8px 16px; background: var(--green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85em; }
+  .hero-actions .explore-btn { display: inline-block; padding: 8px 16px; background: var(--surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; font-size: 0.85em; }
+  .hero-actions .explore-btn:hover { background: var(--card); border-color: var(--accent); }
+
+  /* ── Portal Map ── */
+  .portal-map { margin-bottom: 28px; }
+  .portal-map h3 { margin-bottom: 16px; }
+  .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .map-item { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); border-left: 3px solid; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .map-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .map-item .map-icon { font-size: 1.3em; }
+  .map-item .map-label { font-weight: 700; font-size: 0.95em; }
+  .map-item .map-desc { font-size: 0.78em; color: var(--dim); line-height: 1.4; }
+  .map-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8em; color: var(--dim); padding-top: 8px; border-top: 1px solid var(--border); }
+  .map-stats span { padding: 2px 8px; background: var(--surface); border-radius: 4px; }
 
   /* ── Knowledge Graph (styles defined inline per page) ── */
 """
@@ -8263,81 +8295,23 @@ def _generate_situation_room(state: dict, now: str) -> str:
     domain_icons = {"hardware": "🖥️", "models": "🧠", "optimization": "🔬", "setup": "⚙️"}
     domain_colors = {"hardware": "#3b82f6", "models": "#8b5cf6", "optimization": "#10b981", "setup": "#f59e0b"}
 
-    # 1. What Changed Today — proper diff section
-    today = now[:10]  # just date part YYYY-MM-DD
-    today_entries = [e for e in changelog if str(e.get("date", ""))[:10] >= today]
-    
-    # Count changes by type
-    domains_changed = set(e.get("domain", "") for e in today_entries)
-    new_findings = sum(1 for e in today_entries if "finding" in str(e.get("change", "")).lower() or "new" in str(e.get("change", "")).lower())
-    conflicts_resolved = sum(1 for e in today_entries if "conflict" in str(e.get("change", "")).lower() or "resolve" in str(e.get("change", "")).lower())
-    
-    # Build change-diff HTML
-    if today_entries:
-        diff_summary = (
-            f'<div class="sr-changes">'
-            f'<h3 style="margin-bottom:12px;">📋 What Changed Today</h3>'
-            f'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">'
-            f'<span class="diff-badge" style="background:rgba(59,130,246,0.1);color:#60a5fa;padding:4px 12px;border-radius:6px;font-size:0.85em;font-weight:600;">{len(today_entries)} changes</span>'
-            f'<span class="diff-badge" style="background:rgba(16,185,129,0.1);color:#34d399;padding:4px 12px;border-radius:6px;font-size:0.85em;">{len(domains_changed)} domains updated</span>'
-        )
-        if new_findings:
-            diff_summary += f'<span class="diff-badge" style="background:rgba(139,92,246,0.1);color:#a78bfa;padding:4px 12px;border-radius:6px;font-size:0.85em;">{new_findings} new findings</span>'
-        if conflicts_resolved:
-            diff_summary += f'<span class="diff-badge" style="background:rgba(245,158,11,0.1);color:#fbbf24;padding:4px 12px;border-radius:6px;font-size:0.85em;">{conflicts_resolved} conflicts resolved</span>'
-        diff_summary += '</div><div class="diff-entries">'
-        
-        for entry in today_entries[:8]:
-            domain_e = entry.get("domain", "general")
-            color_e = domain_colors.get(domain_e, "#6b7280")
-            change = _esc(entry.get("change", "")[:150])
-            diff_summary += (
-                f'<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:0.85em;">'
-                f'<span style="color:{color_e};font-weight:600;">{domain_icons.get(domain_e, "📊")} {domain_e.title()}</span>: {change}</div>'
-            )
-        diff_summary += '</div></div>'
-    else:
-        diff_summary = (
-            '<div class="sr-changes">'
-            '<h3 style="margin-bottom:8px;">📋 What Changed Today</h3>'
-            '<p style="color:var(--dim);font-size:0.88em;">No changes yet today. Run the pipeline to gather new intelligence.</p>'
-            '</div>'
-        )
-
-    # Latest Analysis Summary (compact — full analysis is on domain pages)
-    analysis_summary_html = '<div style="margin-bottom:32px;">'
-    analysis_summary_html += '<h3 style="margin-bottom:16px;font-size:1.1em;">📊 Latest Analysis</h3>'
-    for domain in ("hardware", "models", "optimization", "setup"):
-        ds = analytical_state.get(domain, {})
-        analysis_text = ds.get("current_analysis", "Awaiting first pipeline run.")
-        conf = int(ds.get("confidence", 0) * 100)
-        icon = domain_icons.get(domain, "📊")
-        color = domain_colors.get(domain, "#6b7280")
-        # Truncate to first 400 chars for summary
-        summary = _esc(analysis_text[:400]) + ("..." if len(analysis_text) > 400 else "")
-        analysis_summary_html += (
-            f'<div style="margin-bottom:16px;padding:16px;background:var(--card);border-radius:10px;border-left:4px solid {color};">'
-            f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-            f'<span style="font-weight:700;color:{color};">{icon} {domain.title()}</span>'
-            f'<span style="font-size:0.8em;color:{color};background:rgba(255,255,255,0.05);padding:2px 10px;border-radius:10px;">{conf}% confidence</span>'
-            f'</div>'
-            f'<p style="font-size:0.88em;line-height:1.7;color:var(--text);margin:0;">{summary}</p>'
-            f'<a href="pages/{domain}.html" style="display:inline-block;margin-top:8px;font-size:0.8em;color:var(--accent);text-decoration:none;">View full analysis →</a>'
-            f'</div>'
-        )
-    analysis_summary_html += '</div>'
-
-    # 2. Current Recommendation
+    # ── Section 0: Hero — What should I do? (action-first) ──
     rec_action = rec.get("recommendation", "wait")
     rec_best = _esc(rec.get("best_option", "No recommendation yet"))
-    rec_reasoning = _esc(str(rec.get("reasoning", ""))[:300])
+    rec_reasoning = _esc(str(rec.get("reasoning", ""))[:250])
     rec_confidence = rec.get("confidence", "medium")
     rec_links = rec.get("buy_links", [])
 
-    action_colors = {"buy_now": "var(--green)", "wait": "var(--yellow)", "consider_alternative": "var(--accent)"}
-    action_labels = {"buy_now": "✅ BUY NOW", "wait": "⏳ WAIT", "consider_alternative": "🔄 CONSIDER ALT"}
-    rec_color = action_colors.get(rec_action, "var(--dim)")
-    rec_label = action_labels.get(rec_action, "⏳ WAIT")
+    action_colors = {"buy_now": "#10b981", "wait": "#f59e0b", "consider_alternative": "#3b82f6"}
+    action_labels = {"buy_now": "✅ Ready to Buy", "wait": "⏳ Wait — Better Options Coming", "consider_alternative": "🔄 Consider Alternatives"}
+    action_guidance = {
+        "buy_now": "Our analysis shows high confidence in a specific option. Review the details below and purchase when ready.",
+        "wait": "Current evidence suggests waiting will yield better value. We're monitoring for changes.",
+        "consider_alternative": "Multiple viable paths exist. Explore the options matrix to find your best fit.",
+    }
+    rec_color = action_colors.get(rec_action, "#6b7280")
+    rec_label = action_labels.get(rec_action, "⏳ Monitoring...")
+    rec_guide = action_guidance.get(rec_action, "")
 
     buy_links_html = ""
     if rec_links and isinstance(rec_links, list):
@@ -8345,32 +8319,99 @@ def _generate_situation_room(state: dict, now: str) -> str:
             if isinstance(lnk, dict):
                 url = _esc(lnk.get("url", "#"))
                 title = _esc(lnk.get("title", "Buy"))
-                buy_links_html += f' <a href="{url}" target="_blank" style="color:var(--accent);font-size:0.82em;margin-left:8px;">🛒 {title}</a>'
+                buy_links_html += f'<a href="{url}" target="_blank" class="buy-btn">🛒 {title}</a>'
 
-    rec_html = (
-        f'<div class="rec-card" style="cursor:default;">'
-        f'<div class="rec-top"><span class="rec-badge {_esc(rec_action)}">{rec_label}</span>'
-        f'<span style="font-size:0.82em;color:var(--dim)">Confidence: {_esc(str(rec_confidence))}</span></div>'
-        f'<div class="rec-title">{rec_best}</div>'
-        f'<div class="rec-summary">{rec_reasoning}</div>'
-        f'{buy_links_html}'
-        f'</div>'
+    hero_html = (
+        f'<div class="hero-action" style="border-color:{rec_color};">'
+        f'<div class="hero-badge" style="background:{rec_color}22;color:{rec_color};">{rec_label}</div>'
+        f'<div class="hero-target">{rec_best}</div>'
+        f'<div class="hero-reasoning">{rec_reasoning}</div>'
+        f'<div class="hero-guidance">{_esc(rec_guide)}</div>'
+        f'<div class="hero-actions">{buy_links_html}'
+        f'<a href="pages/hardware.html" class="explore-btn">📊 See full analysis</a>'
+        f'<a href="pages/knowledge.html" class="explore-btn">🗺️ Explore knowledge map</a>'
+        f'</div></div>'
     )
 
-    # 3. Domain Confidence Cards
+    # ── Section 1: What's Inside — portal map for orientation ──
+    total_evidence = sum(len(analytical_state.get(d, {}).get("evidence", [])) for d in ("hardware", "models", "optimization", "setup"))
+    total_options = sum(len(analytical_state.get(d, {}).get("options", [])) for d in ("hardware", "models", "optimization", "setup"))
+    total_conflicts = sum(len(analytical_state.get(d, {}).get("conflicts_resolved", [])) for d in ("hardware", "models", "optimization", "setup"))
+
+    portal_map_html = (
+        '<div class="portal-map">'
+        '<h3>📚 What\'s in this portal</h3>'
+        '<div class="map-grid">'
+        f'<a href="pages/hardware.html" class="map-item" style="border-color:#3b82f6;">'
+        f'<span class="map-icon">🖥️</span><span class="map-label">Hardware</span>'
+        f'<span class="map-desc">GPU/CPU options, pricing in India, where to buy</span></a>'
+        f'<a href="pages/models.html" class="map-item" style="border-color:#8b5cf6;">'
+        f'<span class="map-icon">🧠</span><span class="map-label">Models</span>'
+        f'<span class="map-desc">Which LLMs run locally, benchmarks, coding performance</span></a>'
+        f'<a href="pages/optimization.html" class="map-item" style="border-color:#10b981;">'
+        f'<span class="map-icon">🔬</span><span class="map-label">Optimization</span>'
+        f'<span class="map-desc">Quantization, inference engines, speed tricks</span></a>'
+        f'<a href="pages/setup.html" class="map-item" style="border-color:#f59e0b;">'
+        f'<span class="map-icon">⚙️</span><span class="map-label">Setup</span>'
+        f'<span class="map-desc">How to actually run models — configs, commands, guides</span></a>'
+        f'<a href="pages/knowledge.html" class="map-item" style="border-color:#6366f1;">'
+        f'<span class="map-icon">🗺️</span><span class="map-label">Knowledge Map</span>'
+        f'<span class="map-desc">Interactive concept graph — click nodes, trace paths</span></a>'
+        f'<a href="pages/timeline.html" class="map-item" style="border-color:#6b7280;">'
+        f'<span class="map-icon">📈</span><span class="map-label">Timeline</span>'
+        f'<span class="map-desc">How our analysis evolved over time with reasoning</span></a>'
+        '</div>'
+        f'<div class="map-stats">'
+        f'<span>{total_evidence} evidence items</span>'
+        f'<span>{total_options} options ranked</span>'
+        f'<span>{total_conflicts} conflicts resolved</span>'
+        f'<span>{len(changelog)} changelog entries</span>'
+        f'</div></div>'
+    )
+
+    # ── Section 2: What Changed Today ──
+    today = now[:10]
+    today_entries = [e for e in changelog if str(e.get("date", ""))[:10] >= today]
+    domains_changed = set(e.get("domain", "") for e in today_entries)
+
+    if today_entries:
+        diff_summary = (
+            '<div class="sr-changes">'
+            '<h3>📋 Latest Changes</h3>'
+            '<div class="diff-badges">'
+            f'<span class="diff-badge blue">{len(today_entries)} updates</span>'
+            f'<span class="diff-badge green">{len(domains_changed)} domains</span>'
+            '</div><div class="diff-entries">'
+        )
+        for entry in today_entries[:6]:
+            domain_e = entry.get("domain", "general")
+            color_e = domain_colors.get(domain_e, "#6b7280")
+            change = _esc(entry.get("change", "")[:120])
+            diff_summary += (
+                f'<div class="diff-entry">'
+                f'<span class="diff-domain" style="color:{color_e};">{domain_icons.get(domain_e, "📊")} {domain_e.title()}</span>'
+                f'<span class="diff-text">{change}</span></div>'
+            )
+        diff_summary += '</div></div>'
+    else:
+        diff_summary = (
+            '<div class="sr-changes">'
+            '<h3>📋 Latest Changes</h3>'
+            '<p class="empty-state">No changes today. The pipeline runs daily to check for new developments.</p>'
+            '</div>'
+        )
+
+    # ── Section 3: Domain cards (quick status) ──
     cards_html = '<div class="sr-grid">'
     for domain in ("hardware", "models", "optimization", "setup"):
         ds = analytical_state.get(domain, {})
         conf = ds.get("confidence", 0)
         options = ds.get("options", [])
         evidence = ds.get("evidence", [])
-        last_changed = ds.get("last_changed", "—")
         top_opt = options[0].get("name", "—") if options else "—"
-        icon = domain_icons.get(domain, "📊")
         color = domain_colors.get(domain, "#6b7280")
         conf_pct = int(conf * 100)
 
-        # SVG confidence ring
         circumference = 2 * 3.14159 * 24
         dash = conf * circumference
         gap = circumference - dash
@@ -8386,16 +8427,15 @@ def _generate_situation_room(state: dict, now: str) -> str:
 
         cards_html += (
             f'<a href="pages/{domain}.html" class="sr-card" style="text-decoration:none;color:inherit;">'
-            f'<div class="domain-label">{icon} {_esc(domain.title())}</div>'
+            f'<div class="domain-label">{domain_icons.get(domain, "📊")} {_esc(domain.title())}</div>'
             f'{ring_svg}'
             f'<div class="top-option">{_esc(top_opt)}</div>'
-            f'<div class="ev-count">{len(evidence)} evidence items</div>'
-            f'<div class="last-updated">Changed: {_esc(str(last_changed)[:10])}</div>'
+            f'<div class="ev-count">{len(evidence)} evidence · {len(options)} options</div>'
             f'</a>'
         )
     cards_html += '</div>'
 
-    # 4. Pending Questions
+    # ── Section 4: Pending Questions ──
     pending = questions.get("pending", [])
     pending_html = ""
     if pending:
@@ -8405,38 +8445,25 @@ def _generate_situation_room(state: dict, now: str) -> str:
             pending_html += f'<div style="padding:8px 12px;background:var(--card);border-radius:8px;margin-bottom:6px;font-size:0.9em;border-left:3px solid var(--yellow)">{qt}</div>'
         pending_html += '</div>'
 
-    # 5. Pipeline Status
-    last_run = state.get("last_run", "Never")
-    critique = pipeline_meta.get("last_critique", {})
-    quality_score = critique.get("quality_score", "—")
-    pipeline_html = (
-        f'<div class="sr-pipeline">'
-        f'<h3 style="margin-bottom:8px;">🔧 Pipeline Status</h3>'
-        f'<div style="display:flex;gap:24px;flex-wrap:wrap;">'
-        f'<div><span style="color:var(--dim);">Last run:</span> <b>{_esc(str(last_run)[:19])}</b></div>'
-        f'<div><span style="color:var(--dim);">Quality score:</span> <b style="color:var(--accent);">{_esc(str(quality_score))}</b></div>'
-        f'</div></div>'
-    )
-
+    # ── Assemble ──
     body_content = (
         '\n<div class="header">'
         '\n  <div class="header-top">'
-        '\n    <h1>🏠 Situation Room</h1>'
-        f'\n    <div class="meta">Last updated: <b>{_esc(now)}</b></div>'
+        '\n    <h1>🏠 LLM Homelab</h1>'
+        f'\n    <div class="meta">Auto-updating local LLM research portal · Updated: <b>{_esc(now)}</b></div>'
         '\n  </div>'
         '\n</div>'
         '\n<div class="content">'
+        f'\n  {hero_html}'
+        f'\n  {portal_map_html}'
         f'\n  {diff_summary}'
-        f'\n  {rec_html}'
-        f'\n  {analysis_summary_html}'
         f'\n  {cards_html}'
         f'\n  {pending_html}'
-        f'\n  {pipeline_html}'
         '\n</div>'
     )
 
     modal_json = json.dumps({}, ensure_ascii=False, default=str)
-    return _generate_page_shell("Situation Room", nav_html, body_content, modal_json)
+    return _generate_page_shell("LLM Homelab - Situation Room", nav_html, body_content, modal_json)
 
 
 def _generate_analysis_page(state: dict, domain: str, now: str) -> str:
@@ -8775,7 +8802,8 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
         dx, dy = domain_positions[fdomain]
         color = DOMAIN_COLORS[fdomain]
         arrows_svg += (
-            f'<line x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{fx:.0f}" y2="{fy-16:.0f}" '
+            f'<line class="kg-edge" data-from="{fdomain}" data-to="{fid}" '
+            f'x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{fx:.0f}" y2="{fy-16:.0f}" '
             f'stroke="{color}" stroke-width="2" opacity="0.7"/>\n'
         )
 
@@ -8789,7 +8817,8 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
                 continue
             tx, ty = topic_positions[tid]
             arrows_svg += (
-                f'<line x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{tx:.0f}" y2="{ty - node_h/2:.0f}" '
+                f'<line class="kg-edge" data-from="{domain}" data-to="{tid}" '
+                f'x1="{dx:.0f}" y1="{dy+28:.0f}" x2="{tx:.0f}" y2="{ty - node_h/2:.0f}" '
                 f'stroke="{color}" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>\n'
             )
 
@@ -8806,7 +8835,8 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
             edge_color = DOMAIN_COLORS.get(linked_domain, "#6b7b8d") if linked_domain else "#6b7b8d"
             mid_y = (py + node_h/2 + ty - node_h/2) / 2
             arrows_svg += (
-                f'<path d="M{px:.0f},{py + node_h/2:.0f} C{px:.0f},{mid_y:.0f} {tx:.0f},{mid_y:.0f} {tx:.0f},{ty - node_h/2:.0f}" '
+                f'<path class="kg-edge" data-from="{prereq}" data-to="{tid}" '
+                f'd="M{px:.0f},{py + node_h/2:.0f} C{px:.0f},{mid_y:.0f} {tx:.0f},{mid_y:.0f} {tx:.0f},{ty - node_h/2:.0f}" '
                 f'fill="none" stroke="{edge_color}" stroke-width="1.5" opacity="0.5" '
                 f'marker-end="url(#kg-arrow)"/>\n'
             )
@@ -9003,6 +9033,12 @@ def _generate_knowledge_graph_page(state: dict, now: str) -> str:
 .kg-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.8rem; align-items: center; }
 .kg-legend-item { display: flex; align-items: center; gap: 6px; }
 .kg-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.kg-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+.kg-tool-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card);
+  color: var(--text); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.kg-tool-btn:hover { border-color: var(--accent); background: rgba(99,102,241,0.1); }
+.kg-tool-btn.active { background: rgba(251,191,36,0.15); border-color: #fbbf24; color: #fbbf24; }
+.kg-edge { transition: opacity 0.3s, stroke-width 0.3s, stroke 0.3s; }
 @media (max-width: 700px) { .kg-side-pane { width: 100vw; right: -100vw; } .kg-side-pane.open { right: 0; } }
 </style>'''
 
@@ -9013,12 +9049,148 @@ document.addEventListener("DOMContentLoaded", function() {{
   var pane = document.getElementById("kg-side-pane");
   var overlay = document.getElementById("kg-overlay");
   var content = document.getElementById("kg-pane-content");
+  var allNodes = document.querySelectorAll(".kg-node");
+  var allEdges = document.querySelectorAll(".kg-edge");
+  var pathMode = false;
+  var pathStart = null;
 
   function esc(s) {{ var d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }}
 
   window.closeKgPane = function() {{
     pane.classList.remove("open");
     overlay.classList.remove("open");
+  }};
+
+  // ── Path highlighting logic ──
+  function getConnected(nodeId) {{
+    // Find all nodes connected to this node (upstream + downstream)
+    var connected = new Set([nodeId]);
+    var edges = new Set();
+    // BFS upstream (find all that lead TO this node)
+    var queue = [nodeId];
+    while (queue.length) {{
+      var cur = queue.shift();
+      allEdges.forEach(function(e) {{
+        if (e.getAttribute("data-to") === cur) {{
+          var from = e.getAttribute("data-from");
+          if (!connected.has(from)) {{
+            connected.add(from);
+            edges.add(e);
+            queue.push(from);
+          }} else {{ edges.add(e); }}
+        }}
+      }});
+    }}
+    // BFS downstream (find all that lead FROM this node)
+    queue = [nodeId];
+    var visited = new Set([nodeId]);
+    while (queue.length) {{
+      var cur = queue.shift();
+      allEdges.forEach(function(e) {{
+        if (e.getAttribute("data-from") === cur) {{
+          var to = e.getAttribute("data-to");
+          edges.add(e);
+          if (!visited.has(to)) {{
+            visited.add(to);
+            connected.add(to);
+            queue.push(to);
+          }}
+        }}
+      }});
+    }}
+    return {{ nodes: connected, edges: edges }};
+  }}
+
+  function findPath(startId, endId) {{
+    // BFS shortest path
+    var visited = new Set([startId]);
+    var queue = [[startId, []]];
+    while (queue.length) {{
+      var item = queue.shift();
+      var cur = item[0], path = item[1];
+      var nextEdges = [];
+      allEdges.forEach(function(e) {{
+        var from = e.getAttribute("data-from"), to = e.getAttribute("data-to");
+        if (from === cur && !visited.has(to)) nextEdges.push({{edge: e, next: to}});
+        if (to === cur && !visited.has(from)) nextEdges.push({{edge: e, next: from}});
+      }});
+      for (var i = 0; i < nextEdges.length; i++) {{
+        var ne = nextEdges[i];
+        var newPath = path.concat([ne.edge]);
+        if (ne.next === endId) return newPath;
+        visited.add(ne.next);
+        queue.push([ne.next, newPath]);
+      }}
+    }}
+    return null;
+  }}
+
+  function highlightConnected(nodeId) {{
+    var result = getConnected(nodeId);
+    allNodes.forEach(function(n) {{
+      var nid = n.getAttribute("data-id");
+      if (result.nodes.has(nid)) {{
+        n.style.opacity = "1";
+      }} else {{
+        n.style.opacity = "0.15";
+      }}
+    }});
+    allEdges.forEach(function(e) {{
+      if (result.edges.has(e)) {{
+        e.style.opacity = "1";
+        e.style.strokeWidth = "3";
+      }} else {{
+        e.style.opacity = "0.05";
+      }}
+    }});
+  }}
+
+  function highlightPath(edges) {{
+    var pathNodes = new Set();
+    edges.forEach(function(e) {{
+      pathNodes.add(e.getAttribute("data-from"));
+      pathNodes.add(e.getAttribute("data-to"));
+    }});
+    allNodes.forEach(function(n) {{
+      n.style.opacity = pathNodes.has(n.getAttribute("data-id")) ? "1" : "0.15";
+    }});
+    allEdges.forEach(function(e) {{
+      if (edges.indexOf(e) >= 0) {{
+        e.style.opacity = "1";
+        e.style.strokeWidth = "3.5";
+        e.style.stroke = "#fbbf24";
+      }} else {{
+        e.style.opacity = "0.05";
+      }}
+    }});
+  }}
+
+  function resetHighlight() {{
+    allNodes.forEach(function(n) {{ n.style.opacity = "1"; }});
+    allEdges.forEach(function(e) {{ e.style.opacity = ""; e.style.strokeWidth = ""; e.style.stroke = ""; }});
+  }}
+
+  // ── Path mode toggle ──
+  window.togglePathMode = function() {{
+    pathMode = !pathMode;
+    pathStart = null;
+    var btn = document.getElementById("path-mode-btn");
+    if (pathMode) {{
+      btn.classList.add("active");
+      btn.textContent = "🔍 Path Mode ON — click two nodes";
+    }} else {{
+      btn.classList.remove("active");
+      btn.textContent = "🔍 Find Path";
+      resetHighlight();
+    }}
+  }};
+
+  window.resetGraph = function() {{
+    pathMode = false;
+    pathStart = null;
+    var btn = document.getElementById("path-mode-btn");
+    if (btn) {{ btn.classList.remove("active"); btn.textContent = "🔍 Find Path"; }}
+    resetHighlight();
   }};
 
   function renderDomain(d) {{
@@ -9109,10 +9281,36 @@ document.addEventListener("DOMContentLoaded", function() {{
     return html;
   }}
 
-  document.querySelectorAll(".kg-node").forEach(function(el) {{
-    el.addEventListener("click", function() {{
+  // ── Click handler ──
+  allNodes.forEach(function(el) {{
+    el.addEventListener("click", function(ev) {{
       var id = el.getAttribute("data-id");
       var type = el.getAttribute("data-type");
+
+      // Path mode: selecting two nodes
+      if (pathMode) {{
+        if (!pathStart) {{
+          pathStart = id;
+          highlightConnected(id);
+          document.getElementById("path-mode-btn").textContent = "🔍 Now click destination node...";
+        }} else {{
+          var path = findPath(pathStart, id);
+          if (path) {{
+            highlightPath(path);
+            document.getElementById("path-mode-btn").textContent = "🔍 Path shown! Click Reset to clear";
+          }} else {{
+            document.getElementById("path-mode-btn").textContent = "⚠️ No path found. Click Reset";
+          }}
+          pathStart = null;
+          pathMode = false;
+        }}
+        ev.stopPropagation();
+        return;
+      }}
+
+      // Normal mode: highlight connected + show pane
+      highlightConnected(id);
+
       var d = nodeData[id];
       if (!d) return;
       var html = "";
@@ -9124,6 +9322,16 @@ document.addEventListener("DOMContentLoaded", function() {{
       overlay.classList.add("open");
     }});
   }});
+
+  // Click on empty area resets
+  var svg = document.querySelector(".kg-svg");
+  if (svg) {{
+    svg.addEventListener("click", function(ev) {{
+      if (ev.target === svg || ev.target.tagName === "svg") {{
+        resetHighlight();
+      }}
+    }});
+  }}
 }});
 </script>'''
 
@@ -9148,7 +9356,11 @@ document.addEventListener("DOMContentLoaded", function() {{
         '\n</div>'
         f'\n{kg_css}'
         '\n<div class="content">'
-        '\n  <p style="color:var(--dim);margin-bottom:16px;font-size:0.88rem;">Unified map of research domains, findings, and learning topics. Click any node to explore details in the side pane.</p>'
+        '\n  <p style="color:var(--dim);margin-bottom:12px;font-size:0.88rem;">Interactive knowledge map. <b>Click</b> any node to see details + highlight connections. Use <b>Find Path</b> to trace the route between two concepts.</p>'
+        '\n  <div class="kg-toolbar">'
+        '\n    <button id="path-mode-btn" class="kg-tool-btn" onclick="togglePathMode()">🔍 Find Path</button>'
+        '\n    <button class="kg-tool-btn" onclick="resetGraph()">↺ Reset</button>'
+        '\n  </div>'
         f'\n  {legend_html}'
         f'\n  {svg_html}'
         '\n</div>'

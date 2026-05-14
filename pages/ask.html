@@ -465,13 +465,45 @@
   .sr-card .ev-count { font-size: 0.78em; color: var(--dim); margin-top: 4px; }
   .sr-card .last-updated { font-size: 0.72em; color: var(--dim); margin-top: 4px; }
   .sr-changes { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .sr-changes h3 { margin-bottom: 12px; }
+  .sr-changes .diff-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sr-changes .diff-badge { padding: 4px 12px; border-radius: 6px; font-size: 0.82em; font-weight: 600; }
+  .sr-changes .diff-badge.blue { background: rgba(59,130,246,0.1); color: #60a5fa; }
+  .sr-changes .diff-badge.green { background: rgba(16,185,129,0.1); color: #34d399; }
+  .sr-changes .diff-entry { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85em; }
+  .sr-changes .diff-domain { font-weight: 600; white-space: nowrap; }
+  .sr-changes .diff-text { color: var(--fg); }
+  .sr-changes .empty-state { color: var(--dim); font-size: 0.88em; }
   .sr-pipeline { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.88em; }
+
+  /* ── Hero Action Card ── */
+  .hero-action { border: 2px solid; border-radius: 12px; padding: 24px; margin-bottom: 28px; background: var(--card); }
+  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; margin-bottom: 12px; }
+  .hero-target { font-size: 1.4em; font-weight: 700; margin-bottom: 8px; }
+  .hero-reasoning { font-size: 0.9em; color: var(--fg); line-height: 1.6; margin-bottom: 8px; }
+  .hero-guidance { font-size: 0.82em; color: var(--dim); font-style: italic; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-actions .buy-btn { display: inline-block; padding: 8px 16px; background: var(--green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85em; }
+  .hero-actions .explore-btn { display: inline-block; padding: 8px 16px; background: var(--surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; font-size: 0.85em; }
+  .hero-actions .explore-btn:hover { background: var(--card); border-color: var(--accent); }
+
+  /* ── Portal Map ── */
+  .portal-map { margin-bottom: 28px; }
+  .portal-map h3 { margin-bottom: 16px; }
+  .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .map-item { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); border-left: 3px solid; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .map-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .map-item .map-icon { font-size: 1.3em; }
+  .map-item .map-label { font-weight: 700; font-size: 0.95em; }
+  .map-item .map-desc { font-size: 0.78em; color: var(--dim); line-height: 1.4; }
+  .map-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8em; color: var(--dim); padding-top: 8px; border-top: 1px solid var(--border); }
+  .map-stats span { padding: 2px 8px; background: var(--surface); border-radius: 4px; }
 
   /* ── Knowledge Graph (styles defined inline per page) ── */
 </style>
 </head>
-<body data-run-id="e850" data-run-date="2026-05-14">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link">🗺️ Knowledge</a><a href="ask.html" class="nav-link active">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:10:41</span></nav>
+<body data-run-id="2a91" data-run-date="2026-05-14">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link">🗺️ Knowledge</a><a href="ask.html" class="nav-link active">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:22:47</span></nav>
 <div class="container" style="max-width:900px; margin:auto; padding:24px;"><h1 style="margin-bottom:8px;">Ask LLM Homelab</h1><p style="color:var(--dim); margin-bottom:24px;">Submit questions about local LLM setup — answered with full analytical rigor on the next pipeline run. To ask a question, create a GitHub Issue with the label <code>homelab-question</code>.</p><div style="background:var(--bg2); border-radius:12px; padding:20px; margin-bottom:24px;"><h3 style="margin-bottom:12px;">Pending Questions (0)</h3><p style="color:var(--dim);">No pending questions.</p></div><div style="background:var(--bg2); border-radius:12px; padding:20px;"><h3 style="margin-bottom:12px;">Answered (0)</h3><p style="color:var(--dim);">No answered questions yet.</p></div></div>
 
 <!-- Side Pane Modal -->

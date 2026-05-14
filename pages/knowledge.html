@@ -465,18 +465,50 @@
   .sr-card .ev-count { font-size: 0.78em; color: var(--dim); margin-top: 4px; }
   .sr-card .last-updated { font-size: 0.72em; color: var(--dim); margin-top: 4px; }
   .sr-changes { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 24px; }
+  .sr-changes h3 { margin-bottom: 12px; }
+  .sr-changes .diff-badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sr-changes .diff-badge { padding: 4px 12px; border-radius: 6px; font-size: 0.82em; font-weight: 600; }
+  .sr-changes .diff-badge.blue { background: rgba(59,130,246,0.1); color: #60a5fa; }
+  .sr-changes .diff-badge.green { background: rgba(16,185,129,0.1); color: #34d399; }
+  .sr-changes .diff-entry { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.85em; }
+  .sr-changes .diff-domain { font-weight: 600; white-space: nowrap; }
+  .sr-changes .diff-text { color: var(--fg); }
+  .sr-changes .empty-state { color: var(--dim); font-size: 0.88em; }
   .sr-pipeline { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.88em; }
+
+  /* ── Hero Action Card ── */
+  .hero-action { border: 2px solid; border-radius: 12px; padding: 24px; margin-bottom: 28px; background: var(--card); }
+  .hero-badge { display: inline-block; padding: 4px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 700; margin-bottom: 12px; }
+  .hero-target { font-size: 1.4em; font-weight: 700; margin-bottom: 8px; }
+  .hero-reasoning { font-size: 0.9em; color: var(--fg); line-height: 1.6; margin-bottom: 8px; }
+  .hero-guidance { font-size: 0.82em; color: var(--dim); font-style: italic; margin-bottom: 16px; }
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-actions .buy-btn { display: inline-block; padding: 8px 16px; background: var(--green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.85em; }
+  .hero-actions .explore-btn { display: inline-block; padding: 8px 16px; background: var(--surface); color: var(--accent); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; font-size: 0.85em; }
+  .hero-actions .explore-btn:hover { background: var(--card); border-color: var(--accent); }
+
+  /* ── Portal Map ── */
+  .portal-map { margin-bottom: 28px; }
+  .portal-map h3 { margin-bottom: 16px; }
+  .map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .map-item { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); border-left: 3px solid; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .map-item:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .map-item .map-icon { font-size: 1.3em; }
+  .map-item .map-label { font-weight: 700; font-size: 0.95em; }
+  .map-item .map-desc { font-size: 0.78em; color: var(--dim); line-height: 1.4; }
+  .map-stats { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8em; color: var(--dim); padding-top: 8px; border-top: 1px solid var(--border); }
+  .map-stats span { padding: 2px 8px; background: var(--surface); border-radius: 4px; }
 
   /* ── Knowledge Graph (styles defined inline per page) ── */
 </style>
 </head>
-<body data-run-id="e850" data-run-date="2026-05-14">
-<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link active">🗺️ Knowledge</a><a href="ask.html" class="nav-link">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:10:41</span></nav>
+<body data-run-id="2a91" data-run-date="2026-05-14">
+<nav class="nav-bar"><a href="../index.html" class="nav-link">🏠 Situation Room</a><a href="hardware.html" class="nav-link">🖥️ Hardware</a><a href="models.html" class="nav-link">🧠 Models</a><a href="optimization.html" class="nav-link">🔬 Optimization</a><a href="setup.html" class="nav-link">⚙️ Setup</a><a href="knowledge.html" class="nav-link active">🗺️ Knowledge</a><a href="ask.html" class="nav-link">❓ Ask</a><a href="timeline.html" class="nav-link">📈 Timeline</a><span class="nav-time">Last: 2026-05-14 16:22:47</span></nav>
 
 <div class="header">
   <div class="header-top">
     <h1>🗺️ Knowledge Graph</h1>
-    <div class="meta">Last updated: <b>2026-05-14 16:10:41</b></div>
+    <div class="meta">Last updated: <b>2026-05-14 16:22:47</b></div>
   </div>
 </div>
 <style>
@@ -516,10 +548,20 @@
 .kg-legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.8rem; align-items: center; }
 .kg-legend-item { display: flex; align-items: center; gap: 6px; }
 .kg-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.kg-toolbar { display: flex; gap: 10px; margin-bottom: 12px; }
+.kg-tool-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card);
+  color: var(--text); cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+.kg-tool-btn:hover { border-color: var(--accent); background: rgba(99,102,241,0.1); }
+.kg-tool-btn.active { background: rgba(251,191,36,0.15); border-color: #fbbf24; color: #fbbf24; }
+.kg-edge { transition: opacity 0.3s, stroke-width 0.3s, stroke 0.3s; }
 @media (max-width: 700px) { .kg-side-pane { width: 100vw; right: -100vw; } .kg-side-pane.open { right: 0; } }
 </style>
 <div class="content">
-  <p style="color:var(--dim);margin-bottom:16px;font-size:0.88rem;">Unified map of research domains, findings, and learning topics. Click any node to explore details in the side pane.</p>
+  <p style="color:var(--dim);margin-bottom:12px;font-size:0.88rem;">Interactive knowledge map. <b>Click</b> any node to see details + highlight connections. Use <b>Find Path</b> to trace the route between two concepts.</p>
+  <div class="kg-toolbar">
+    <button id="path-mode-btn" class="kg-tool-btn" onclick="togglePathMode()">🔍 Find Path</button>
+    <button class="kg-tool-btn" onclick="resetGraph()">↺ Reset</button>
+  </div>
   <div class="kg-legend"><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#3b82f6;"></div>Hardware</div><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#8b5cf6;"></div>Models</div><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#10b981;"></div>Optimization</div><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#f59e0b;"></div>Setup</div><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#f472b6;"></div>Research Findings</div><div class="kg-legend-item"><div class="kg-legend-dot" style="background:#6366f1;"></div>Learning Topics</div></div>
   <div class="kg-container">
 <svg viewBox="0 0 1540 939" xmlns="http://www.w3.org/2000/svg"
@@ -538,76 +580,76 @@
   <text x="50" y="667" font-size="12" fill="#888" font-family="system-ui" font-weight="600">General Topics (cross-domain)</text>
 <line x1="50" y1="677" x2="1490" y2="677" stroke="#444" stroke-width="0.5" stroke-dasharray="4 4"/>
 
-  <line x1="230" y1="98" x2="230" y2="129" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
-<line x1="230" y1="98" x2="230" y2="165" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
-<line x1="230" y1="98" x2="230" y2="201" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
-<line x1="590" y1="98" x2="590" y2="129" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
-<line x1="590" y1="98" x2="590" y2="165" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
-<line x1="590" y1="98" x2="590" y2="201" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
-<line x1="950" y1="98" x2="950" y2="129" stroke="#10b981" stroke-width="2" opacity="0.7"/>
-<line x1="950" y1="98" x2="950" y2="165" stroke="#10b981" stroke-width="2" opacity="0.7"/>
-<line x1="950" y1="98" x2="950" y2="201" stroke="#10b981" stroke-width="2" opacity="0.7"/>
-<line x1="1310" y1="98" x2="1310" y2="129" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
-<line x1="1310" y1="98" x2="1310" y2="165" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
-<line x1="1310" y1="98" x2="1310" y2="201" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
-<line x1="230" y1="98" x2="230" y2="274" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="230" y1="98" x2="230" y2="328" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="230" y1="98" x2="230" y2="382" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="230" y1="98" x2="230" y2="436" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="230" y1="98" x2="230" y2="490" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="230" y1="98" x2="230" y2="544" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="590" y1="98" x2="590" y2="274" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="590" y1="98" x2="590" y2="328" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="590" y1="98" x2="590" y2="382" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="590" y1="98" x2="590" y2="436" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="274" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="328" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="382" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="436" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="490" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="950" y1="98" x2="950" y2="544" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="274" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="328" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="382" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="436" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="490" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<line x1="1310" y1="98" x2="1310" y2="544" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
-<path d="M590,312 C590,293 230,293 230,274" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,312 C590,495 230,495 230,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,312 C590,495 590,495 590,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,716 C230,697 950,697 950,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,312 C230,495 1310,495 1310,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,716 C590,724 230,724 230,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,312 C230,293 950,293 950,274" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,312 C950,320 950,320 950,328" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,312 C950,347 950,347 950,382" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M1310,716 C1310,576 950,576 950,436" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,474 C950,482 950,482 950,490" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,716 C590,630 950,630 950,544" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,366 C950,320 1310,320 1310,274" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,474 C950,374 1310,374 1310,274" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,528 C950,428 1310,428 1310,328" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,770 C230,576 1310,576 1310,382" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M1310,716 C1310,576 1310,576 1310,436" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M1310,312 C1310,401 1310,401 1310,490" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,528 C950,428 590,428 590,328" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,770 C230,576 590,576 590,382" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,420 C590,576 590,576 590,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,770 C590,603 590,603 590,436" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,312 C230,374 590,374 590,436" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,716 C950,724 950,724 950,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,716 C230,724 950,724 950,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,474 C590,603 1310,603 1310,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,770 C230,778 230,778 230,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M1310,770 C1310,778 590,778 590,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,312 C230,320 230,320 230,328" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,312 C950,320 230,320 230,328" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,474 C950,428 230,428 230,382" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M230,366 C230,401 230,401 230,436" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,474 C950,482 230,482 230,490" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M1310,528 C1310,536 1310,536 1310,544" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M950,312 C950,549 950,549 950,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
-<path d="M590,474 C590,630 1310,630 1310,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+  <line class="kg-edge" data-from="hardware" data-to="finding_hardware_0" x1="230" y1="98" x2="230" y2="129" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="hardware" data-to="finding_hardware_1" x1="230" y1="98" x2="230" y2="165" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="hardware" data-to="finding_hardware_2" x1="230" y1="98" x2="230" y2="201" stroke="#3b82f6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="models" data-to="finding_models_0" x1="590" y1="98" x2="590" y2="129" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="models" data-to="finding_models_1" x1="590" y1="98" x2="590" y2="165" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="models" data-to="finding_models_2" x1="590" y1="98" x2="590" y2="201" stroke="#8b5cf6" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="optimization" data-to="finding_optimization_0" x1="950" y1="98" x2="950" y2="129" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="optimization" data-to="finding_optimization_1" x1="950" y1="98" x2="950" y2="165" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="optimization" data-to="finding_optimization_2" x1="950" y1="98" x2="950" y2="201" stroke="#10b981" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="setup" data-to="finding_setup_0" x1="1310" y1="98" x2="1310" y2="129" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="setup" data-to="finding_setup_1" x1="1310" y1="98" x2="1310" y2="165" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="setup" data-to="finding_setup_2" x1="1310" y1="98" x2="1310" y2="201" stroke="#f59e0b" stroke-width="2" opacity="0.7"/>
+<line class="kg-edge" data-from="hardware" data-to="vram_calculation" x1="230" y1="98" x2="230" y2="274" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="hardware" data-to="vram_tiers_and_gpus" x1="230" y1="98" x2="230" y2="328" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="hardware" data-to="ram_bandwidth_for_offload" x1="230" y1="98" x2="230" y2="382" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="hardware" data-to="pcie_lanes_multi_gpu" x1="230" y1="98" x2="230" y2="436" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="hardware" data-to="ssd_weight_loading" x1="230" y1="98" x2="230" y2="490" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="hardware" data-to="power_thermals_noise" x1="230" y1="98" x2="230" y2="544" stroke="#3b82f6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="models" data-to="tokens_and_parameters" x1="590" y1="98" x2="590" y2="274" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="models" data-to="dense_vs_moe" x1="590" y1="98" x2="590" y2="328" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="models" data-to="coding_model_traits" x1="590" y1="98" x2="590" y2="382" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="models" data-to="model_selection_for_agents" x1="590" y1="98" x2="590" y2="436" stroke="#8b5cf6" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="quantization_basics" x1="950" y1="98" x2="950" y2="274" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="gguf_formats" x1="950" y1="98" x2="950" y2="328" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="exl2_awq_gptq" x1="950" y1="98" x2="950" y2="382" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="offloading_gpu_cpu_disk" x1="950" y1="98" x2="950" y2="436" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="moe_expert_routing" x1="950" y1="98" x2="950" y2="490" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="optimization" data-to="speculative_decoding" x1="950" y1="98" x2="950" y2="544" stroke="#10b981" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="llama_cpp" x1="1310" y1="98" x2="1310" y2="274" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="ktransformers" x1="1310" y1="98" x2="1310" y2="328" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="vllm_tensorrt" x1="1310" y1="98" x2="1310" y2="382" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="mlx_apple_silicon" x1="1310" y1="98" x2="1310" y2="436" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="runtime_compat" x1="1310" y1="98" x2="1310" y2="490" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<line class="kg-edge" data-from="setup" data-to="os_runtime_friction" x1="1310" y1="98" x2="1310" y2="544" stroke="#f59e0b" stroke-width="1.5" opacity="0.45" stroke-dasharray="6 3"/>
+<path class="kg-edge" data-from="tokens_and_parameters" data-to="vram_calculation" d="M590,312 C590,293 230,293 230,274" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="tokens_and_parameters" data-to="context_window_math" d="M590,312 C590,495 230,495 230,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="tokens_and_parameters" data-to="prefill_vs_decode" d="M590,312 C590,495 590,495 590,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="context_window_math" data-to="kv_cache_growth" d="M230,716 C230,697 950,697 950,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="vram_calculation" data-to="memory_bandwidth_vs_compute" d="M230,312 C230,495 1310,495 1310,678" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="prefill_vs_decode" data-to="latency_vs_throughput" d="M590,716 C590,724 230,724 230,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="vram_calculation" data-to="quantization_basics" d="M230,312 C230,293 950,293 950,274" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="quantization_basics" data-to="gguf_formats" d="M950,312 C950,320 950,320 950,328" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="quantization_basics" data-to="exl2_awq_gptq" d="M950,312 C950,347 950,347 950,382" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="memory_bandwidth_vs_compute" data-to="offloading_gpu_cpu_disk" d="M1310,716 C1310,576 950,576 950,436" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="offloading_gpu_cpu_disk" data-to="moe_expert_routing" d="M950,474 C950,482 950,482 950,490" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="prefill_vs_decode" data-to="speculative_decoding" d="M590,716 C590,630 950,630 950,544" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="gguf_formats" data-to="llama_cpp" d="M950,366 C950,320 1310,320 1310,274" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="offloading_gpu_cpu_disk" data-to="llama_cpp" d="M950,474 C950,374 1310,374 1310,274" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="moe_expert_routing" data-to="ktransformers" d="M950,528 C950,428 1310,428 1310,328" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="latency_vs_throughput" data-to="vllm_tensorrt" d="M230,770 C230,576 1310,576 1310,382" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="memory_bandwidth_vs_compute" data-to="mlx_apple_silicon" d="M1310,716 C1310,576 1310,576 1310,436" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="llama_cpp" data-to="runtime_compat" d="M1310,312 C1310,401 1310,401 1310,490" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="moe_expert_routing" data-to="dense_vs_moe" d="M950,528 C950,428 590,428 590,328" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="latency_vs_throughput" data-to="coding_model_traits" d="M230,770 C230,576 590,576 590,382" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="coding_model_traits" data-to="reasoning_chains" d="M590,420 C590,576 590,576 590,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="reasoning_chains" data-to="model_selection_for_agents" d="M590,770 C590,603 590,603 590,436" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="vram_calculation" data-to="model_selection_for_agents" d="M230,312 C230,374 590,374 590,436" fill="none" stroke="#8b5cf6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="kv_cache_growth" data-to="agent_context_management" d="M950,716 C950,724 950,724 950,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="context_window_math" data-to="agent_context_management" d="M230,716 C230,724 950,724 950,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="model_selection_for_agents" data-to="yolo_coding_mode" d="M590,474 C590,603 1310,603 1310,732" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="latency_vs_throughput" data-to="batch_concurrency" d="M230,770 C230,778 230,778 230,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="yolo_coding_mode" data-to="tool_use_function_calling" d="M1310,770 C1310,778 590,778 590,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="vram_calculation" data-to="vram_tiers_and_gpus" d="M230,312 C230,320 230,320 230,328" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="quantization_basics" data-to="vram_tiers_and_gpus" d="M950,312 C950,320 230,320 230,328" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="offloading_gpu_cpu_disk" data-to="ram_bandwidth_for_offload" d="M950,474 C950,428 230,428 230,382" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="vram_tiers_and_gpus" data-to="pcie_lanes_multi_gpu" d="M230,366 C230,401 230,401 230,436" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="offloading_gpu_cpu_disk" data-to="ssd_weight_loading" d="M950,474 C950,482 230,482 230,490" fill="none" stroke="#3b82f6" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="runtime_compat" data-to="os_runtime_friction" d="M1310,528 C1310,536 1310,536 1310,544" fill="none" stroke="#f59e0b" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="quantization_basics" data-to="lora_qlora_basics" d="M950,312 C950,549 950,549 950,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
+<path class="kg-edge" data-from="model_selection_for_agents" data-to="when_to_finetune" d="M590,474 C590,630 1310,630 1310,786" fill="none" stroke="#6b7b8d" stroke-width="1.5" opacity="0.5" marker-end="url(#kg-arrow)"/>
 
   <rect x="50" y="30" width="350" height="637" rx="16" fill="#3b82f6" fill-opacity="0.03" stroke="#3b82f6" stroke-width="0.5" stroke-opacity="0.15"/>
 <rect x="410" y="30" width="350" height="637" rx="16" fill="#8b5cf6" fill-opacity="0.03" stroke="#8b5cf6" stroke-width="0.5" stroke-opacity="0.15"/>
@@ -680,12 +722,148 @@ document.addEventListener("DOMContentLoaded", function() {
   var pane = document.getElementById("kg-side-pane");
   var overlay = document.getElementById("kg-overlay");
   var content = document.getElementById("kg-pane-content");
+  var allNodes = document.querySelectorAll(".kg-node");
+  var allEdges = document.querySelectorAll(".kg-edge");
+  var pathMode = false;
+  var pathStart = null;
 
   function esc(s) { var d=document.createElement("div"); d.textContent=s||""; return d.innerHTML; }
 
   window.closeKgPane = function() {
     pane.classList.remove("open");
     overlay.classList.remove("open");
+  };
+
+  // ── Path highlighting logic ──
+  function getConnected(nodeId) {
+    // Find all nodes connected to this node (upstream + downstream)
+    var connected = new Set([nodeId]);
+    var edges = new Set();
+    // BFS upstream (find all that lead TO this node)
+    var queue = [nodeId];
+    while (queue.length) {
+      var cur = queue.shift();
+      allEdges.forEach(function(e) {
+        if (e.getAttribute("data-to") === cur) {
+          var from = e.getAttribute("data-from");
+          if (!connected.has(from)) {
+            connected.add(from);
+            edges.add(e);
+            queue.push(from);
+          } else { edges.add(e); }
+        }
+      });
+    }
+    // BFS downstream (find all that lead FROM this node)
+    queue = [nodeId];
+    var visited = new Set([nodeId]);
+    while (queue.length) {
+      var cur = queue.shift();
+      allEdges.forEach(function(e) {
+        if (e.getAttribute("data-from") === cur) {
+          var to = e.getAttribute("data-to");
+          edges.add(e);
+          if (!visited.has(to)) {
+            visited.add(to);
+            connected.add(to);
+            queue.push(to);
+          }
+        }
+      });
+    }
+    return { nodes: connected, edges: edges };
+  }
+
+  function findPath(startId, endId) {
+    // BFS shortest path
+    var visited = new Set([startId]);
+    var queue = [[startId, []]];
+    while (queue.length) {
+      var item = queue.shift();
+      var cur = item[0], path = item[1];
+      var nextEdges = [];
+      allEdges.forEach(function(e) {
+        var from = e.getAttribute("data-from"), to = e.getAttribute("data-to");
+        if (from === cur && !visited.has(to)) nextEdges.push({edge: e, next: to});
+        if (to === cur && !visited.has(from)) nextEdges.push({edge: e, next: from});
+      });
+      for (var i = 0; i < nextEdges.length; i++) {
+        var ne = nextEdges[i];
+        var newPath = path.concat([ne.edge]);
+        if (ne.next === endId) return newPath;
+        visited.add(ne.next);
+        queue.push([ne.next, newPath]);
+      }
+    }
+    return null;
+  }
+
+  function highlightConnected(nodeId) {
+    var result = getConnected(nodeId);
+    allNodes.forEach(function(n) {
+      var nid = n.getAttribute("data-id");
+      if (result.nodes.has(nid)) {
+        n.style.opacity = "1";
+      } else {
+        n.style.opacity = "0.15";
+      }
+    });
+    allEdges.forEach(function(e) {
+      if (result.edges.has(e)) {
+        e.style.opacity = "1";
+        e.style.strokeWidth = "3";
+      } else {
+        e.style.opacity = "0.05";
+      }
+    });
+  }
+
+  function highlightPath(edges) {
+    var pathNodes = new Set();
+    edges.forEach(function(e) {
+      pathNodes.add(e.getAttribute("data-from"));
+      pathNodes.add(e.getAttribute("data-to"));
+    });
+    allNodes.forEach(function(n) {
+      n.style.opacity = pathNodes.has(n.getAttribute("data-id")) ? "1" : "0.15";
+    });
+    allEdges.forEach(function(e) {
+      if (edges.indexOf(e) >= 0) {
+        e.style.opacity = "1";
+        e.style.strokeWidth = "3.5";
+        e.style.stroke = "#fbbf24";
+      } else {
+        e.style.opacity = "0.05";
+      }
+    });
+  }
+
+  function resetHighlight() {
+    allNodes.forEach(function(n) { n.style.opacity = "1"; });
+    allEdges.forEach(function(e) { e.style.opacity = ""; e.style.strokeWidth = ""; e.style.stroke = ""; });
+  }
+
+  // ── Path mode toggle ──
+  window.togglePathMode = function() {
+    pathMode = !pathMode;
+    pathStart = null;
+    var btn = document.getElementById("path-mode-btn");
+    if (pathMode) {
+      btn.classList.add("active");
+      btn.textContent = "🔍 Path Mode ON — click two nodes";
+    } else {
+      btn.classList.remove("active");
+      btn.textContent = "🔍 Find Path";
+      resetHighlight();
+    }
+  };
+
+  window.resetGraph = function() {
+    pathMode = false;
+    pathStart = null;
+    var btn = document.getElementById("path-mode-btn");
+    if (btn) { btn.classList.remove("active"); btn.textContent = "🔍 Find Path"; }
+    resetHighlight();
   };
 
   function renderDomain(d) {
@@ -776,10 +954,36 @@ document.addEventListener("DOMContentLoaded", function() {
     return html;
   }
 
-  document.querySelectorAll(".kg-node").forEach(function(el) {
-    el.addEventListener("click", function() {
+  // ── Click handler ──
+  allNodes.forEach(function(el) {
+    el.addEventListener("click", function(ev) {
       var id = el.getAttribute("data-id");
       var type = el.getAttribute("data-type");
+
+      // Path mode: selecting two nodes
+      if (pathMode) {
+        if (!pathStart) {
+          pathStart = id;
+          highlightConnected(id);
+          document.getElementById("path-mode-btn").textContent = "🔍 Now click destination node...";
+        } else {
+          var path = findPath(pathStart, id);
+          if (path) {
+            highlightPath(path);
+            document.getElementById("path-mode-btn").textContent = "🔍 Path shown! Click Reset to clear";
+          } else {
+            document.getElementById("path-mode-btn").textContent = "⚠️ No path found. Click Reset";
+          }
+          pathStart = null;
+          pathMode = false;
+        }
+        ev.stopPropagation();
+        return;
+      }
+
+      // Normal mode: highlight connected + show pane
+      highlightConnected(id);
+
       var d = nodeData[id];
       if (!d) return;
       var html = "";
@@ -791,6 +995,16 @@ document.addEventListener("DOMContentLoaded", function() {
       overlay.classList.add("open");
     });
   });
+
+  // Click on empty area resets
+  var svg = document.querySelector(".kg-svg");
+  if (svg) {
+    svg.addEventListener("click", function(ev) {
+      if (ev.target === svg || ev.target.tagName === "svg") {
+        resetHighlight();
+      }
+    });
+  }
 });
 </script>
 
