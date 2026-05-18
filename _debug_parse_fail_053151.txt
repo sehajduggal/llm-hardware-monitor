@@ -1,0 +1,37 @@
+Now let me write the JSON output to the repository's data file.
+
+I have enough data. Here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now achieves 1.7x speedup on Qwen3.6 27B (38→65 tok/s on RTX 3090) with ~80% draft token acceptance rate",
+      "source": "datacamp.com/tutorial/multi-token-prediction-llama-cpp, carteakey.dev/blog/running-qwen3-6-mtp-locally",
+      "source_type": "community",
+      "date": "May 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38→65 tok/s on RTX 3090 (1.7x), 80% acceptance rate",
+      "related_domains": ["inference", "speculative_decoding"]
+    },
+    {
+      "claim": "Gemma 4 31B Dense with MTP drafter achieves 2.6-3x lossless speedup in llama.cpp (40→120+ tok/s on RTX 3090/H100), but MoE variant (26B-A4B) sees only +13% on Apple Silicon",
+      "source": "buildfastwithai.com/blogs/gemma-4-mtp-drafter-faster-inference, lilting.ch/en/articles/gemma-4-mtp-drafter-speed",
+      "source_type": "blog",
+      "date": "May 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Dense: 2.6-3x speedup; MoE: +13% on M1 Max; logit compute cut 45x for edge models",
+      "related_domains": ["inference", "speculative_decoding", "models"]
+    },
+    {
+      "claim": "Qwen 3.6 27B achieves 52.8 tok/s on AMD MI50s using MTP + TurboQuant combination",
+      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant",
+      "source_type": "blog",
+      "date": "May 18, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "52.8 tok/s on MI50s with MTP+TurboQuant",
+      "related_domains": ["inference", "hardware", "quantization"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend delivers 1.6-2x speedup over Metal: prefill 1100→1810 tok/s, decode 58→112-134 tok/s on M4 Max 128GB",
+      "source": "andrew.ooo/answers/ollama-mlx-vs-ollama-metal-apple-silicon-2026, byteiota.com/ollama-mlx-2x-faster-

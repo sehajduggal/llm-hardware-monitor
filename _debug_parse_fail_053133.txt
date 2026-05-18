@@ -1,0 +1,41 @@
+Now let me get US pricing for Mac Studio and check Framework Desktop pricing.
+
+Now I have enough data. Let me check the Apple India Mac Studio pricing page one more way, and get Framework Desktop pricing.
+
+Now I have enough data to compile the findings. Let me write the output.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio with M4 Max remains current on apple.com/in with base 36GB config and CTO up to 64GB (M4 Max 16-core CPU/40-core GPU). M3 Ultra config offers 96GB. Max listed unified memory is 96GB, not 128GB, on the India specs page.",
+      "source": "apple.com/in/mac-studio/specs/",
+      "source_type": "official",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "Starting price includes ₹10,000 instant cashback offer per apple.com/in promo banner",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple has NOT announced M4 Ultra Mac Studio. Current Mac Studio lineup is M4 Max + M3 Ultra (not M4 Ultra). Apple continues to skip M4 Ultra generation for Mac Studio.",
+      "source": "apple.com/in/mac-studio/specs/ and apple.com/mac-studio/specs/",
+      "source_type": "official",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "WWDC 2026 confirmed for June 8-12, 2026. Apple developer site confirms dates. Online and free. No hardware announcements previewed yet.",
+      "source": "developer.apple.com/wwdc26/",
+      "source_type": "official",
+      "date": "May 18, 2026",
+      "confidence_signal": "official_announcement",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Apple's most recent event (apple.com/apple-events) was for iPhone 17 Pro, iPhone Air, iPhone 17, AirPods Pro 3, Apple Watch Series 11. No Mac hardware announced at that event.",
+      "source": "apple.com/apple-events/",
+      "source_type": "official",
+      "d

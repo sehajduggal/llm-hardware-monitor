@@ -1,0 +1,37 @@
+Let me search for the latest community intel across multiple sources.
+
+I have enough data. Let me compile the JSON findings now.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 runs Qwen3 32B Q4_K_M at ~61 tok/s (4k ctx) and Qwen3-30B-A3B MoE at ~234 tok/s (4k ctx) via llama.cpp — the 1,792 GB/s GDDR7 bandwidth is ~80% above RTX 4090",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "vLLM 0.4.0 on RTX 5090 achieves 9.7 req/s throughput for 70B Q4, with p99 latency of 142ms vs Ollama's 217ms — vLLM dominates for multi-user/production local setups",
+      "source": "dev.to/johalputt/performance-test-ollama-050-vs-vllm-040-local-llm-inference-latency-on-nvidia-rtx-5090",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: ZOTAC AMP Extreme INFINITY at ₹3,79,250 on Flipkart, MSI Gaming Trio OC at ₹4,58,999 on Amazon, ASUS TUF at ₹6,24,399. Stock present but 1-2 units per seller. Prices range ₹3.29L to ₹8L+",
+      "source": "amazon.in/rtx-5090, flipkart.com ZOTAC RTX 5090 listing",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "N/A - retail listings",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M4 Max 128GB runs Llama 70B Q4 at 11-13 tok/s generation, 32B Q4 at 22-25 tok/s, and 7B at ~100 tok/s via llama.cpp with Metal backend. Bandwidth-limited at 546 GB/s",
+      "source": "mljourney.com/mac-m1-vs-m2-vs-m3-vs-m4-for-running-llms-real-tests/, blog.starmorph.com apple-silicon-llm-infer

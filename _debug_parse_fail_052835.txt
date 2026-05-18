@@ -1,0 +1,45 @@
+I have enough data. Here's the JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 prices in India have risen significantly: MSI Gaming Trio OC at ₹4.37L-4.69L, ASUS TUF OC at ₹4.57L-4.70L, Gigabyte Aorus Master ICE at ₹4.91L-5.30L, ZOTAC AMP Extreme at ₹4.42L — well above the earlier ₹3.05L MSI Vanguard SOC Flipkart listing",
+      "source": "Amazon.in, EliteHubs, PrimeABGB",
+      "source_type": "retailer",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 4,30,000 - 5,30,000",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "PNY RTX 5090 32GB listed on IndiaMART at ₹2,52,500 — anomalously low, likely wholesale/grey market, not retail-verified",
+      "source": "indiamart.com",
+      "source_type": "retailer",
+      "date": "May 18, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": "INR 2,52,500",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "RTX 5090 availability in India improved — cards now in stock at Amazon India, EliteHubs, PrimeABGB, though selling out quickly",
+      "source": "Amazon.in, EliteHubs, PrimeABGB",
+      "source_type": "retailer",
+      "date": "May 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base (36GB/512GB) available in India at ₹2,14,900 from Apple India, Croma, Reliance Digital, Aptronix — in stock",
+      "source": "isensestore.in, indiaistore.com, aptronixindia.com",
+      "source_type": "retailer",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB CTO configuration estimated at ₹3.5L-4L via Apple India build-to-order, with delivery extended by a few weeks",
+      "source": "isensestore.in, indiaistore.com",
+      "source_type": "r
