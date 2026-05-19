@@ -1,0 +1,48 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M4 Max base (36GB/512GB) available on apple.com/in at INR 2,14,900 with immediate delivery",
+      "source": "apple.com/in, Economic Times, Deccan Herald",
+      "source_type": "retailer",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB CTO estimated at INR 3,50,000-4,20,000 range based on upgrade pricing (exact CTO price requires configurator)",
+      "source": "apple.com/in configurator, Economic Times",
+      "source_type": "retailer",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "INR 3,50,000-4,20,000 (estimated)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio expected at WWDC 2026 (June 8-12) with up to 256GB unified memory, 80 GPU cores, ~1100 GB/s bandwidth, possible $3,999 starting price",
+      "source": "MacRumors, TechRepublic, Geeky Gadgets, felloai.com",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$3,999 (rumored starting)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple skipped M4 Ultra entirely, going straight to M5 Ultra — confirms no M4 Ultra Mac Studio will exist",
+      "source": "MacRumors, IBTimes, TechRepublic",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "M5 Ultra delivery may slip to October 2026 due to global DRAM shortages despite WWDC announcement",
+      "source": "felloai.com, TechRepublic",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": ""

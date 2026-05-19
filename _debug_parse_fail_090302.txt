@@ -1,0 +1,35 @@
+Now I have enough data. Let me compile the JSON.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.6-35B-A3B released April 16, 2026 — MoE with 35B total / ~3B active params, scores 73.4% on SWE-bench Verified, 80.4% LiveCodeBench v6, runs locally at Q4 in ~21GB. Apache 2.0 licensed.",
+      "source": "huggingface.co/Qwen/Qwen3.6-35B-A3B and buildfastwithai.com review",
+      "source_type": "community",
+      "date": "May 18, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "High engagement across r/LocalLLaMA and HuggingFace",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing now ₹4.30L-5.30L for standard AIBs (MSI Gaming Trio ₹4.37L, ASUS TUF ₹4.56L, ZOTAC Solid OC ₹4.45L). Premium/liquid models up to ₹8.70L. Stock sells out within hours of restock on Amazon.in, EliteHubs, mdcomputers.",
+      "source": "amazon.in, mdcomputers.in, elitehubs.com, primeabgb.com RTX 5090 listings",
+      "source_type": "community",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "N/A — retail listings",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 benchmarks: Qwen3 35B MXFP4 at ~97 tok/s, DeepSeek-R1 14B Q4_K_M at ~114 tok/s, Llama 3.1 8B at ~200 tok/s. Memory bandwidth 1,792 GB/s. Prompt processing ~4,473 tok/s at 14B/4k context.",
+      "source": "insiderllm.com RTX 5090 benchmark guide and github.com/sudhanshu746/local-llm-benchmark",
+      "source_type": "community",
+      "date": "May 18, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "Referenced across multiple benchmark sites",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M4 Max 128GB benchmarks: Llama 3.1 8B Q4_K_M ~42 tok/s, DeepSeek-R1 14B ~24 tok/s. Roughly 4-5x slower than RTX 5090 on small models, but can run 70B+ fully in memory without offloading.",
+      

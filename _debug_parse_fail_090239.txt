@@ -1,0 +1,34 @@
+Based on my research, here's the community intelligence JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.6-35B-A3B (MoE, 3B active params) released April 15, 2026 — scores 73.4% SWE-bench Verified, runs locally on ~21GB GGUF, Apache 2.0 license. Community calls it the best open-weight coding model for local inference.",
+      "source": "dev.to/czmilo/qwen36-35b-a3b-complete-review + qwen.ai/blog + runyard.dev",
+      "source_type": "community",
+      "date": "May 19, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "high engagement across multiple platforms",
+      "related_domains": ["models", "optimization", "coding"]
+    },
+    {
+      "claim": "Strix Halo (Ryzen AI Max+ 395) achieves 25 tok/s on Qwen3.6-35B at Q8_K_XL with 151k context under 100W total system power via Vulkan RADV + llama.cpp. Runs full 70B models at 4-6 tok/s with 128GB LPDDR5X.",
+      "source": "kmarble.dev/posts/strix-halo-llm-inference-show-and-tell + forum.level1techs.com/t/strix-halo-llm-inference-notes/249466",
+      "source_type": "community",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "dedicated benchmark site at slb350.github.io/strix-benchmarks",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 benchmarks: Qwen3.5-35B MXFP4 at 97.3 tok/s (256k context), Qwen3-32B at 43.8 tok/s (32k context), Qwen3-8B Q4_K_M at 186 tok/s. 32GB GDDR7 at 1,792 GB/s bandwidth.",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "May 19, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "referenced across multiple GPU buyer guides",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB achieves ~18 tok/s on Llama 3.1 70B Q4_K_M via llama.cpp, ~55 tok/s on 8B models. MLX backend is 30-50% faster 

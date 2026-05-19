@@ -1,0 +1,41 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 now widely available in India from multiple retailers (Amazon, Flipkart, EliteHubs, MD Computers) with prices ranging ₹4.30L-₹7.90L depending on variant — significantly higher than the ₹3.05L-5.99L range previously tracked",
+      "source": "amazon.in, mdcomputers.in, elitehubs.com, pricehistory.app",
+      "source_type": "retailer",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 4,30,000 - 7,90,000",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "ASUS TUF Gaming RTX 5090 price history shows historical low of ₹3,86,000 and recent selling price of ₹6,20,000-₹6,50,000 — the previous ₹3.05L MSI Vanguard SOC price appears to have been a transient anomaly",
+      "source": "pricehistory.app",
+      "source_type": "retailer",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 3,86,000 (historical low) to INR 6,50,000 (current)",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "RTX 5090 Founders Edition MSRP in India is ₹2,14,000-₹2,19,000 but almost never available at that price — effectively unobtainable at MSRP",
+      "source": "pcstudio.in, digit.in",
+      "source_type": "retailer",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "INR 2,14,000 (MSRP, unavailable)",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "M5 Mac Studio may be delayed to October 2026 due to global RAM shortage (driven by AI data center demand), per Mark Gurman/Bloomberg — WWDC June 8 reveal not ruled out but October launch more probable",
+      "source": "macworld.com, geeky-gadgets.com, digitaltrends.com",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+  

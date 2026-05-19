@@ -1,0 +1,38 @@
+I have enough data. Let me compile the JSON output now.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models natively, delivering 2.6-3x lossless speedup. Gemma 4 26B-A4B on RTX 4070 goes from ~44 tok/s baseline to 50-58 tok/s with MTP+TurboQuant",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp, carteakey.dev/blog/running-gemma-4-mtp-locally/",
+      "source_type": "github",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.6-3x speedup; 44 tok/s → 50-58 tok/s on RTX 4070 12GB",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP flag changed from --spec-type mtp to --spec-type draft-mtp in mainline mid-May 2026. No longer requires custom branches or PRs.",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.5-2x speedup confirmed across platforms",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Qwen3.6-27B with MTP on RTX 3090 achieves 65 tok/s, up from 38 tok/s baseline - a 1.7x improvement",
+      "source": "forums.developer.nvidia.com/t/mtp-llama-cpp-a-look-at-qwen3-6-27b/370298",
+      "source_type": "community",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "38 tok/s → 65 tok/s on RTX 3090",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX is NOT enabled by default - requires environment variable opt-in. Previous understanding that it was default was incorrect. Benchmarks: 112 tok/s decode (MLX) vs 58 tok/s (llama.cpp) for Qwen3.5-35B-A3B on Apple Silicon - 93% improvement",
+      "source": "ollama.com/blog/mlx, dev.to/alanwest/ollama-just-got-93-faster-on-mac",
+      "source_type": "official",
+      "date": "May 19, 2026",
+      "

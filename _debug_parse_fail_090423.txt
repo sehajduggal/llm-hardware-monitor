@@ -1,0 +1,34 @@
+Now I have enough data. Let me compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Gemma 4 31B Dense with MTP in llama.cpp achieves 2,600+ tok/s on H100 (up from 869 tok/s without MTP), a 3x speedup with ~80% draft acceptance rate",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp, byteiota.com/gemma4-mtp-3x-faster-inference",
+      "source_type": "benchmark",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "3x throughput increase on H100; 2.6-3x on consumer GPUs. MoE 26B variant only ~13% speedup at batch=1",
+      "related_domains": ["inference_engines", "speculative_decoding"]
+    },
+    {
+      "claim": "Qwen 3.6 27B achieves 52.8 tok/s on AMD MI50 GPUs using MTP + TurboQuant KV cache compression in llama.cpp",
+      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant",
+      "source_type": "blog",
+      "date": "May 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "52.8 tok/s on AMD MI50 (2018 GPU) for a 27B model",
+      "related_domains": ["hardware", "quantization", "inference_engines"]
+    },
+    {
+      "claim": "TurboQuant (Google Research, ICLR 2026) compresses KV cache 4-6x (16-bit to 3-4 bit) with near-zero accuracy loss, enabling 100K+ context on RTX 3090 24GB with only ~7% speed penalty",
+      "source": "research.google/blog/turboquant, insiderllm.com/guides/turboquant-kv-cache-compression-local-ai",
+      "source_type": "official",
+      "date": "May 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "4-6x KV cache compression; context window jump from 8K to 100K+ on 24GB GPU; ~7% speed overhead",
+      "related_domains": ["memory_optimization", "quantization"]
+    },
+    {
+      "claim": "TurboQuant KV cache is available in llama.cpp forks (animehacker/llama-turboquant, TheTom/llama-cpp-turboquant) via --cache-type-k turbo3 flags; mainline PR (attn-rot) captures ~80% of b

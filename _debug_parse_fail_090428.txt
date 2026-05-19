@@ -1,0 +1,37 @@
+Based on my research, here's the consolidated JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3-30B-A3B MoE achieves ~78 tok/s on M4 Max 128GB with MLX optimizations, and ~48 tok/s on RTX 5090 at full precision. Q4_K_M quantized fits in 18GB VRAM with 40-78 tok/s range",
+      "source": "alexdong.com/qwen3-30b-a3b and localclaw.io/models/qwen3-30b-a3b",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 achieves 102.7 tok/s on 14B models at 16k context (Q4), Qwen3 8B Q4_K_M at ~186 tok/s, and Qwen3.5 35B (MXFP4, 256k context) at 97.3 tok/s — 30-50% faster than RTX 4090",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ and insiderllm.com RTX 5090 benchmarks PDF",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: ZOTAC AMP Extreme on Flipkart at ₹3,79,250 (offers as low as ₹2,83,346). Most models range ₹4,20,000-5,50,000. Stock available but fluctuating mid-May 2026",
+      "source": "flipkart.com/zotac-rtx-5090-amp-extreme-infinity listing",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M5 Mac Studio now rumored for October 2026 delay (not WWDC June) due to global DRAM shortage. M5 Max: 18-core CPU, 40-core GPU, 128GB max. M5 Ultra: 36 CPU/80 GPU cores, 256GB, ~1100 GB/s bandwidth",
+      "source": "macworld.com/article/2973459 and techrepublic.com M5 Mac Studio article and geeky-gadgets.com M5 delay report",
+      "source_type": "community",
+      "date": "May 2026",

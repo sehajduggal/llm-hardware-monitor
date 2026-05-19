@@ -1,0 +1,35 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Gemma 4 now has MTP support in llama.cpp forks (ik_llama.cpp, atomic-llama-cpp-turboquant), delivering 2.6x-2.98x speedup with dedicated assistant/drafter models and zero quality loss",
+      "source": "blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/",
+      "source_type": "official",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Gemma 4 26B MoE on RTX 4070: 50-58 tok/s with MTP+TurboQuant vs 44 tok/s baseline; 2.6-2.98x speedup on high-end GPUs",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6-27B achieves 52.8 tok/s on AMD MI50 GPUs using MTP combined with TurboQuant KV cache compression in llama.cpp",
+      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant/",
+      "source_type": "community",
+      "date": "May 19, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "52.8 tok/s on MI50 for 27B model; MTP+TurboQuant stack on AMD hardware",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP on RTX 3090 with Qwen3.6-27B shows throughput jump from 38 tok/s to 65 tok/s (1.7x speedup) with no quality degradation",
+      "source": "startupfortune.com/llamacpp-now-supports-multi-token-prediction-in-beta-and-the-implications-for-local-ai-tooling-are-bigger-than-the-pr-suggests/",
+      "source_type": "blog",
+      "date": "May 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 tok/s -> 65 tok/s on RTX 3090 for Qwen3.6-27B (1.7x)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX on M5 Max shows Qwen3.5-35B decode speed of 112 tok/s (up from 58 tok/s on Metal backend), with int4 pushing to 134 tok/s",
+      "source": "andrew.ooo/posts/ollama-mlx-apple-silicon-revi

@@ -1,0 +1,43 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M4 Max 128GB is in stock and shipping in India via Apple Store, Aptronix, Flipkart. Base M4 Max (36GB) at ₹2,14,900, 128GB CTO well above ₹3,00,000",
+      "source": "apple.com/in, indiatoday.in, gadgets360.com",
+      "source_type": "retailer",
+      "date": "May 18, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 base; INR 3,00,000+ for 128GB CTO",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "WWDC 2026 officially confirmed June 8-12, keynote June 8 at 10am PT. Apple emphasizing AI advancements. Possible M5 Mac hardware announcement",
+      "source": "macrumors.com, techcrunch.com, igeeksblog.com",
+      "source_type": "official",
+      "date": "May 18, 2026",
+      "confidence_signal": "official_announcement",
+      "price": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio rumored: 32-36 core CPU, 80-core GPU, up to 256GB unified memory, ~1100 GB/s bandwidth. Reveal possible at WWDC but shipping may slip to October 2026 due to RAM shortages",
+      "source": "macworld.com, macrumors.com, felloai.com",
+      "source_type": "blog",
+      "date": "May 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Expected ~$3,999 USD entry",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max confirmed shipping in MacBook Pros already (early 2026): 18-core CPU, 40-core GPU, 128GB unified memory, ~614 GB/s bandwidth",
+      "source": "macworld.com, apfelpatient.de",
+      "source_type": "blog",
+      "date": "May 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing has shifted UP significantly: entry-level AIB cards (Zotac, ASUS TUF) now ₹4.30L-4.56L, mid-range ₹4.50L-5.50L, pr
