@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves 234 tok/s on Qwen3 30B-A3B (MoE) and 61 tok/s on Qwen3 32B dense at Q4_K_M with 4K context in llama.cpp",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ - RTX 5090 Local LLM Benchmarks 2026",
+      "source_type": "community",
+      "date": "May 20, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 runs Llama 4 70B GGUF 4-bit at ~28 tok/s generation speed, requiring quantization/offload to fit in 32GB VRAM",
+      "source": "botmonster.com/posts/how-to-run-llama-4-on-consumer-gpus-2026/",
+      "source_type": "community",
+      "date": "May 20, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 vs Radeon AI PRO R9700: 5090 is 2.6-3.4x faster on prompt processing, ~1.5x faster token gen (194 vs 127 t/s on Qwen3.5-35B-A3B) per llama.cpp discussion #19890",
+      "source": "github.com/ggml-org/llama.cpp/discussions/19890 - RTX 5090 (CUDA) vs Radeon AI PRO R9700 (Vulkan)",
+      "source_type": "github",
+      "date": "May 20, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "active discussion thread",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395) with 128GB LPDDR5x achieves 109 gen tok/s on LFM2-24B MoE and 66.3 tok/s on Qwen3 30B-A3B via Vulkan in llama.cpp",
+      "source": "slb350.github.io/strix-benchmarks/ and community.frame.work Strix Halo GPU LLM tests",
+      "source_type": "github",
+      "date": "May 20, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "multiple community benchmark repos",
+      "related_domains": ["h

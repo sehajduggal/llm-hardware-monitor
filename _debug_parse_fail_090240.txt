@@ -1,0 +1,43 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Gemma 4 26B MoE achieves 2.6-2.98x lossless MTP speedup via ik_llama.cpp fork PR #1744, reaching ~400 tok/s on RTX 4090 at Q4 (up from ~150 tok/s baseline)",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp",
+      "source_type": "github",
+      "date": "May 20, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "150 → 400 tok/s on RTX 4090, 2.6-2.98x speedup, 14GB VRAM",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6-35B MoE hits 144 tok/s with MTP on RTX 5060 Ti 16GB (up from 98 tok/s baseline), confirming 1.47x speedup on budget hardware",
+      "source": "njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/",
+      "source_type": "blog",
+      "date": "May 20, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "98 → 144 tok/s, 1.47x speedup on 16GB GPU",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 31B Dense with MTP yields 250-280 tok/s on RTX 4090 at Q4_K_M (up from ~95 tok/s), requiring ~19GB VRAM",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp",
+      "source_type": "github",
+      "date": "May 20, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "95 → 250-280 tok/s, ~2.8x speedup",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang now delivers 29% higher throughput than vLLM on H100 GPUs (16,200 vs 12,500 tokens/sec) with RadixAttention prefix caching providing up to 6.4x speedup for RAG workloads",
+      "source": "particula.tech/blog/sglang-vs-vllm-inference-engine-comparison",
+      "source_type": "benchmark",
+      "date": "May 20, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "16,200 vs 12,500 tok/s on H100; 6.4x best-case with prefix reuse",
+      "related_domains": ["hardware"]
+    },
+    {
+      "

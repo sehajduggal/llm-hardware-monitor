@@ -1,0 +1,38 @@
+Now I have enough data to compile the JSON findings.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, with up to 80% token acceptance rate using built-in MTP prediction heads",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 20, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "80% acceptance rate, up to 2x tok/s improvement for supported models",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "Qwen3.6-35B MoE with MTP on RTX 5060 Ti 16GB achieves 144 tok/s, up from 31 tok/s for dense 35B models — a 4.6x effective speedup from MoE+MTP combined",
+      "source": "njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/",
+      "source_type": "benchmark",
+      "date": "May 20, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "144 tok/s on 16GB GPU, 4.6x over dense equivalent",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "TurboQuant quantization format added to llama.cpp enables Qwen3.6-35B to run at full 262K native context on RTX 5060 Ti 16GB, and extends to 400K context with caveats",
+      "source": "njannasch.dev/blog/qwen-3-6-turboquant-local-inference/",
+      "source_type": "benchmark",
+      "date": "May 20, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "262K context in 16GB VRAM, 30-60% faster inference vs traditional quants, 1.8x memory bandwidth reduction",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang v0.5.11 with RadixAttention is 29% faster than vLLM on H100 benchmarks (16,200 vs 12,500 tok/s on Llama 3 70B), and up to 6.4x faster on prefix-heavy workloads",
+      "source": "morphllm.com/comparisons/vllm-vs-sglang",
+      "source_type": "benchmark",
+      "date": "May 20, 2026",
+      "confidence_signal
