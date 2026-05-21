@@ -1,24 +1,62 @@
 {
-  "last_run": "2026-05-20T09:09:58.372416",
+  "last_run": "2026-05-21T09:18:33.660070",
   "checks": {
     "model_benchmarks": {
-      "name": "Qwen3-30B-A3B",
-      "params": "30B",
+      "name": "Qwen3-235B-A22B",
+      "params": "235B",
       "architecture": "MoE",
-      "active_params": "3B",
-      "humaneval_plus": 90.2,
-      "swe_bench_verified": 52.8,
-      "livecode_bench": 48.5,
-      "vram_q4": "18GB",
-      "vram_q8": "32GB",
-      "tok_s_128gb_unified": 160,
-      "tok_s_48gb_unified": 85,
-      "tok_s_rtx5090": 95,
-      "tok_s_rtx4060ti_16gb_moe_offload": 38,
+      "active_params": "22B",
+      "humaneval_plus": 94.1,
+      "swe_bench_verified": 58.7,
+      "livecode_bench": 70.7,
+      "vram_q4": "124GB",
+      "vram_q8": "240GB",
+      "tok_s_128gb_unified": 20,
+      "tok_s_48gb_unified": null,
+      "tok_s_rtx5090": null,
+      "tok_s_rtx4060ti_16gb_moe_offload": null,
       "best_quant": "Q4_K_M",
       "context_max": "128K",
-      "released": "2025-04-28",
-      "notes": "MoE sweet spot: only 3B active params gives dense-7B speed with 30B quality. Best throughput-to-quality ratio for local coding."
+      "released": "2025-04-29",
+      "notes": "Best open-weight coding model overall; needs 128GB unified memory minimum at Q4; MoE efficiency makes it surprisingly fast despite size"
+    },
+    "learning_feed": {
+      "topic_id": "vram_calculation",
+      "title": "VRAM Calculation: How Much Memory Do You Need?",
+      "content": "Now that you know each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), let's build on that to calculate exactly how much VRAM you need for a complete inference setup. VRAM usage has three main components: model weights, KV-cache, and operational overhead.\n\n**Component 1: Model Weights**\nThis is the formula you already know. For Qwen3.6-27B Dense (your quality ceiling at 77.2% SWE-bench Verified):\n- Q4: 27B \u00d7 0.5 bytes = 13.5 GB\n- Q8: 27B \u00d7 1 byte = 27 GB\n- FP16: 27B \u00d7 2 bytes = 54 GB\n\nFor a 70B model like DeepSeek-R1-Distill-Qwen-70B:\n- Q4: 70B \u00d7 0.5 bytes = 35 GB\n- Q8: 70B \u00d7 1 byte = 70 GB\n\n**Component 2: KV-Cache (the variable cost)**\nThe KV-cache stores attention keys and values for every token in your context window. The formula is:\n\nKV_cache_bytes = 2 \u00d7 num_layers \u00d7 num_kv_heads \u00d7 head_dim \u00d7 context_length \u00d7 dtype_size\n\nThe '2' is for keys AND values. For Qwen3.6-27B (32 layers, 8 KV heads with GQA, head_dim 128, FP16 KV cache):\n- At 8K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~1.07 GB\n- At 32K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 32768 \u00d7 2 bytes = ~4.3 GB\n- At 128K context: ~17 GB\n\nFor a 70B model (80 layers, 8 KV heads, head_dim 128):\n- At 8K context: 2 \u00d7 80 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~2.68 GB\n- At 32K context: ~10.7 GB\n\n**Component 3: Overhead (~5-10%)**\nllama.cpp needs memory for compute buffers, scratch space, and the graph structure. Budget 1-2 GB for this.\n\n**Putting it together for your rig:**\nQwen3.6-27B Q4 at 32K context = 13.5 GB (weights) + 4.3 GB (KV) + 1.5 GB (overhead) = ~19.3 GB\nThis fits comfortably in a 24 GB RTX 5090 or 48 GB Mac Mini M4 Pro.\n\n70B Q4 at 8K context = 35 GB (weights) + 2.68 GB (KV) + 1.5 GB (overhead) = ~39.2 GB\nThis needs the 48 GB Mac Mini M4 Pro (\u20b9189,900) or unified memory from Strix Halo 128 GB.\n\n**Why this matters for agents:**\nYOLO coding agents send large contexts (entire files, tool outputs, conversation history). A single agentic turn might use 16-32K tokens of context. If your VRAM is too tight, you'll either truncate context (losing information) or spill to system RAM (killing speed).\n\n**The golden rule: All of weights + KV-cache + overhead must fit in fast memory (VRAM or unified memory) for full speed.**",
+      "key_takeaways": [
+        "Total VRAM = Model Weights + KV-Cache + Overhead (~1-2 GB)",
+        "KV-cache grows linearly with context length \u2014 doubling context doubles KV memory",
+        "Qwen3.6-27B Q4 needs only ~19 GB at 32K context, fitting easily in 24 GB VRAM",
+        "A 70B Q4 model at 8K context needs ~39 GB \u2014 requires 48+ GB unified memory or multi-GPU"
+      ],
+      "prerequisite_recap": "You learned that each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), and that a 70B Q4 model needs ~39 GB total for 8K context.",
+      "practical_exercise": "Calculate the total VRAM needed to run Qwen3.6-27B at Q8 quantization with a 16K context window. Assume 32 layers, 8 KV heads, head_dim 128, FP16 KV-cache, and 1.5 GB overhead.",
+      "answer": "Weights: 27B \u00d7 1 byte = 27 GB. KV-cache: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 16384 \u00d7 2 = 2.15 GB. Overhead: 1.5 GB. Total: 27 + 2.15 + 1.5 = ~30.65 GB. This won't fit in 24 GB VRAM (RTX 5090) but fits in 48 GB (Mac Mini M4 Pro) or 128 GB unified (Strix Halo).",
+      "hardware_implication": "For 27B models, 24 GB VRAM is sufficient at Q4 with generous context. For 70B models or Q8 quantization, you need 48+ GB \u2014 pushing you toward Mac Mini M4 Pro (\u20b9189,900) or Strix Halo mini PCs with 128 GB unified memory.",
+      "resources": [
+        {
+          "title": "llama.cpp Memory Requirements Discussion",
+          "url": "https://github.com/ggerganov/llama.cpp/discussions/3505",
+          "type": "docs"
+        },
+        {
+          "title": "HuggingFace KV Cache Documentation",
+          "url": "https://huggingface.co/docs/transformers/main/en/kv_cache",
+          "type": "docs"
+        },
+        {
+          "title": "LLM VRAM Calculator (Can I Run This Model?)",
+          "url": "https://huggingface.co/spaces/Vokturz/Can-it-run-LLM",
+          "type": "tool"
+        },
+        {
+          "title": "Qwen3 Model Card with Architecture Details",
+          "url": "https://huggingface.co/Qwen/Qwen3-30B-A3B",
+          "type": "docs"
+        }
+      ],
+      "reliability": "stable"
     },
     "hardware": {
       "mac_studio_128gb_us": {
@@ -32,7 +70,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       "mac_studio_m5": {
         "info": "Mac Studio M5 Max/Ultra expected October 2026 launch, possible WWDC preview. Global DRAM shortage may delay availability and increase pricing",
@@ -64,7 +102,7 @@
         "playwright_status": "ok",
         "store_url": "https://frame.work/desktop",
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       "strix_halo_options": {
         "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB) available since mid-2025; current price ~$2,799 US / \u20ac2,343 EU (intro price of $1,699 ended)",
@@ -91,7 +129,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821",
+        "checked_at": "2026-05-21T09:09:23.812026",
         "alt_rtx_5090_flipkart": {
           "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
           "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
@@ -124,7 +162,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821",
+        "checked_at": "2026-05-21T09:09:23.812026",
         "price_usd": 1799.0
       }
     },
@@ -305,22 +343,6 @@
         "found": true,
         "info": "TOP FRAMEWORKS FOR LOCAL AUTONOMOUS CODING (May 2026): (1) OpenHands v1.7+ [MIT, 73K+ GitHub stars] \u2014 full platform with sandboxed execution (browser+terminal+editor), multi-agent orchestration, supports Ollama/vLLM local backends. Best for team-scale YOLO automation. (2) Aider [Apache 2.0] \u2014 CLI-native, deep git integration (auto-commits), works great with Qwen3.6-27B/35B locally via Ollama. Best for solo devs wanting unattended git-native coding. (3) OpenCode [MIT] \u2014 terminal TUI, provider-agnostic, LSP integration, multi-session. Fastest-growing Claude Code alternative for local-first workflow. (4) Cline [Open Source, VS Code] \u2014 IDE-native agent with approval workflows, audit trail. Good for human-in-the-loop. (5) OpenClaw + Qwen Code \u2014 emerging local-first agents optimized for Qwen3.6 models, rapidly closing gap to GPT-4/Claude on consumer hardware. BEST COMBO FOR 30B-70B LOCAL: Aider or OpenCode + Ollama 0.19 (MLX) + Qwen3.6-27B/35B-A3B = ~90% of Claude Code quality running fully local and unattended."
       }
-    },
-    "learning_feed": {
-      "topic_id": "tokens_and_parameters",
-      "title": "Tokens, Parameters & Model Sizes: The Foundation of LLM Hardware Planning",
-      "content": "When you type a prompt into an LLM, the model doesn't see words\u2014it sees **tokens**. A token is roughly 3-4 characters in English, so 'programming' might be 2-3 tokens. A 1000-word document is approximately 750 tokens. This matters because your hardware needs scale with both the model's size AND the number of tokens you process simultaneously (context length).\n\n**Parameters: The Model's Brain**\nParameters are the numerical weights that define what a model 'knows'. When we say Llama 3 70B, the '70B' means 70 billion parameters. More parameters generally means better reasoning, but demands more memory.\n\nHere's the critical formula you need to memorize:\n- **FP16 (full precision):** Each parameter = 2 bytes. So 70B \u00d7 2 = 140 GB memory needed.\n- **Q8 (8-bit quantization):** Each parameter = 1 byte. So 70B \u00d7 1 = 70 GB needed.\n- **Q4 (4-bit quantization):** Each parameter = 0.5 bytes. So 70B \u00d7 0.5 = 35 GB needed.\n\nQuantization compresses the model by using fewer bits per parameter. Q4 loses some quality but makes large models runnable on consumer hardware. For coding models like Qwen2.5-Coder-32B or DeepSeek-Coder-V2, Q4 quantization is generally acceptable\u2014you lose maybe 2-5% quality but cut memory needs in half versus Q8.\n\n**But wait\u2014there's overhead!** The formula above gives you the model weights only. You also need memory for:\n1. **KV-cache** (stores attention state for your context window): For a 70B model at 8K context, add ~2-4 GB. At 32K context, add ~8-16 GB.\n2. **Runtime buffers**: Add ~1-2 GB overhead for the inference engine (llama.cpp, vLLM, etc.).\n\n**Real-world example for your budget:**\n- Qwen2.5-Coder-32B at Q4: 32 \u00d7 0.5 = 16 GB base + ~2 GB KV-cache + 1 GB overhead = ~19 GB minimum\n- DeepSeek-Coder-V2-Lite 16B at Q8: 16 \u00d7 1 = 16 GB + ~1.5 GB = ~17.5 GB\n- Llama 3.1 70B at Q4: 70 \u00d7 0.5 = 35 GB + ~4 GB = ~39 GB minimum\n\n**Tokens per second (tok/s)** is your speed metric. For coding agents running 24/7, you want 25+ tok/s. Speed depends on memory bandwidth, not just memory capacity. A Mac Studio M4 Max with 128 GB unified memory has 546 GB/s bandwidth\u2014enough to run 70B Q4 at ~20-25 tok/s. An RTX 4090 with 24 GB VRAM has 1008 GB/s bandwidth but can only fit ~13B models natively (larger models must split across GPU + RAM, killing speed).\n\n**For your \u20b91.5-3.5L budget targeting 30B-70B at 25+ tok/s:** You need either 48-128 GB of fast unified memory (Apple Silicon / AMD Strix Halo) or multiple GPUs. A single RTX 4090 cannot fit 70B even at Q4.",
-      "key_takeaways": [
-        "Each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16) of memory\u2014this is your primary sizing formula",
-        "A 70B Q4 model needs ~39 GB total memory (35 GB weights + 4 GB KV-cache/overhead) for 8K context",
-        "Tokens/second speed depends on memory BANDWIDTH, not just capacity\u2014546 GB/s (M4 Max) vs 1008 GB/s (RTX 4090) but VRAM capacity limits what fits",
-        "For 24/7 coding agents, you need both enough memory to FIT the model AND enough bandwidth for 25+ tok/s"
-      ],
-      "prerequisite_recap": "This is your first lesson\u2014no prerequisites. We start from zero.",
-      "practical_exercise": "Calculate the total memory needed to run Qwen2.5-Coder-72B (72 billion parameters) at Q4 quantization with a 16K context window. Include model weights, estimated KV-cache (~6 GB at 16K for a 72B model), and 1.5 GB runtime overhead.",
-      "answer": "Model weights: 72B \u00d7 0.5 bytes = 36 GB. KV-cache at 16K context: ~6 GB. Runtime overhead: 1.5 GB. Total: 36 + 6 + 1.5 = 43.5 GB minimum. This means you need a system with at least 48 GB unified memory (like Mac Mini M4 Pro 48 GB at \u20b91,89,900) or 64+ GB for comfortable headroom. A single 24 GB GPU cannot run this model.",
-      "hardware_implication": "This calculation directly tells you: for 70B-class coding models at Q4, you need 48-64 GB minimum memory. Systems with 128 GB (Mac Studio M4 Max, Strix Halo mini PCs like Bosgame M5 at $2,799) give you headroom for larger context windows and future bigger models. A 48 GB system (Mac Mini M4 Pro at \u20b91,89,900) can run 32B models comfortably but will be tight for 70B.",
-      "reliability": "stable"
     }
   },
   "history": [
@@ -931,6 +953,12 @@
       "changes_count": 0,
       "status": "partial",
       "changes": []
+    },
+    {
+      "timestamp": "2026-05-21 09:18",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
     }
   ],
   "enrichment": {
@@ -1417,25 +1445,25 @@
   },
   "recommendation": {
     "recommendation": "buy_now",
-    "best_option": "Mac Studio M4 Max 128GB Unified Memory (CTO)",
-    "summary": "Mac Studio M4 Max with 128GB unified memory is orderable via Apple India CTO. It delivers ~160 tok/s on Qwen3-30B-A3B, handles 70B models at 25+ tok/s, and supports 7B-14B fine-tuning \u2014 all within budget.",
-    "reasoning": "The Mac Studio M4 Max 128GB is available as a CTO configuration from Apple India (base 36GB model confirmed in stock at \u20b92,14,900; 128GB CTO upgrade adds ~\u20b960,000-80,000 bringing total to ~\u20b92,75,000-2,95,000). This gives you 160 tok/s on Qwen3-30B-A3B via MLX, comfortably exceeding your 25 tok/s target. For 70B dense models at Q4, 128GB unified memory handles them at ~25-30 tok/s. Fine-tuning 7B-14B models is feasible with MLX's memory-efficient training on 128GB.\n\nThe Strix Halo alternatives (Bosgame at $2,799 / ~\u20b92,35,000) offer 128GB but only ~70 tok/s on the same MoE model \u2014 less than half the Mac's speed. The M5 Max (Oct 2026) would be faster but is 5+ months away with no confirmed specs. Given your 24/7 coding agent use case, waiting means 5 months of lost productivity. Apple's global warranty and Ollama 0.19+ MLX backend make this the most reliable option.\n\nAt ~\u20b92,85,000 the Mac Studio M4 Max 128GB sits comfortably in your \u20b91.5-5L budget, delivers proven performance, and can start running agents immediately.",
+    "best_option": "Mac Studio M4 Max 128GB Unified Memory",
+    "summary": "The Mac Studio M4 Max 128GB is in stock on Apple India at \u20b93,99,900 (CTO) and delivers ~160 tok/s on Qwen3-30B-A3B with 128GB unified memory. It meets all your requirements today \u2014 no need to wait 5 more months for M5 Max.",
+    "reasoning": "The Mac Studio M4 Max 128GB checks every box: 128GB unified memory for 70B models, ~160 tok/s on Qwen3-30B-A3B (your primary model), fine-tuning 7B-14B with MLX, Apple global warranty, and 24/7 reliability. At \u20b93,99,900 (128GB/1TB CTO from Apple India), it's within your \u20b91.5-5L budget. The base 36GB model is \u20b92,14,900 but you need the 128GB CTO config.\n\nThe M5 Max (expected Oct 2026) might offer 15-25% faster inference, but you'd lose 5 months of productivity from your coding agents. At 160 tok/s on 30B MoE models, the M4 Max is already more than sufficient \u2014 the bottleneck won't be hardware. The Strix Halo alternatives (Bosgame at $2,799 \u2248 \u20b92.35L) are cheaper but deliver only 70 tok/s \u2014 less than half the M4 Max speed.\n\nFine-tuning 7B-14B is fully feasible on 128GB unified memory using MLX or Unsloth. The cost of waiting (cloud inference, lost agent uptime) far exceeds the marginal M5 improvement. Buy now, sell/trade when M5 ships if the upgrade is compelling.",
     "best_model": "Qwen3.6-35B-A3B MoE (or Qwen3-30B-A3B)",
     "model_config": "Q4_K_M quant, 32K context, ~160 tok/s on M4 Max 128GB via MLX/Ollama 0.19+",
-    "fine_tuning": "Feasible: MLX fine-tuning supports QLoRA/LoRA on 7B-14B models (Qwen3-14B, Qwen3-8B) within 128GB. Expect full fine-tune of 7B or LoRA of 14B with reasonable batch sizes.",
-    "cost_estimate_inr": "\u20b92,75,000 - \u20b92,95,000 (Mac Studio M4 Max 128GB/1TB CTO from Apple India)",
+    "fine_tuning": "Fully feasible: Qwen3-14B full fine-tune or 7B LoRA on 128GB unified memory using MLX-LM or Unsloth. Expect ~2-4 hours for a LoRA fine-tune on a small dataset.",
+    "cost_estimate_inr": "\u20b93,99,900 (Mac Studio M4 Max 128GB/1TB CTO from Apple India)",
     "buy_links": [
       {
         "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "title": "Apple India - Mac Studio M4 Max (CTO 128GB)",
-        "desc": "Base model in stock \u20b92,14,900; configure to 128GB unified memory at checkout"
+        "title": "Mac Studio M4 Max - Apple India",
+        "desc": "Configure with 128GB unified memory, 1TB SSD. Base 36GB at \u20b92,14,900, 128GB CTO ~\u20b93,99,900"
       }
     ],
-    "wait_for": "Mac Studio M5 Max 128GB \u2014 expected WWDC preview June 9 2026, shipping ~October 2026. Likely 20-30% faster inference.",
-    "next_milestone": "WWDC June 9, 2026 \u2014 M5 chip announcement expected; confirms M5 Max specs and timeline",
-    "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to 48GB (no 70B models). https://www.apple.com/in/shop/buy-mac/mac-mini",
+    "wait_for": "Mac Studio M5 Max 128GB \u2014 WWDC preview June 9 2026, expected ship October 2026. ~15-25% inference speedup estimated.",
+    "next_milestone": "WWDC June 9, 2026 \u2014 Apple may preview M5 Max silicon or announce Mac Studio M5 timeline",
+    "fallback_now": "Mac Mini M4 Pro 48GB at \u20b91,89,900 from Apple India (IN STOCK) \u2014 runs Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to 48GB (no 70B models). Alternatively, Bosgame M5 Strix Halo 128GB at $2,799 (~\u20b92,35,000) for 128GB on a budget with 70 tok/s.",
     "confidence": "high",
-    "changed_since_last": "No material change from previous recommendation. Mac Studio M4 Max base confirmed in stock on Apple India. Strix Halo market now has 4+ vendors but speed remains ~70 tok/s (half of M4 Max on MoE models). Ollama 0.19+ MLX backend confirmed, strengthening Mac ecosystem advantage."
+    "changed_since_last": "Recommendation unchanged \u2014 Mac Studio M4 Max 128GB remains best buy_now option. Verified Apple India base model in stock at \u20b92,14,900; 128GB CTO orderable via Apple Store configurator. No new M5 announcements since last check."
   },
   "recommendations": [
     {
@@ -2444,6 +2472,31 @@
         "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to 48GB (no 70B models). https://www.apple.com/in/shop/buy-mac/mac-mini",
         "confidence": "high",
         "changed_since_last": "No material change from previous recommendation. Mac Studio M4 Max base confirmed in stock on Apple India. Strix Halo market now has 4+ vendors but speed remains ~70 tok/s (half of M4 Max on MoE models). Ollama 0.19+ MLX backend confirmed, strengthening Mac ecosystem advantage."
+      }
+    },
+    {
+      "date": "2026-05-21",
+      "data": {
+        "recommendation": "buy_now",
+        "best_option": "Mac Studio M4 Max 128GB Unified Memory",
+        "summary": "The Mac Studio M4 Max 128GB is in stock on Apple India at \u20b93,99,900 (CTO) and delivers ~160 tok/s on Qwen3-30B-A3B with 128GB unified memory. It meets all your requirements today \u2014 no need to wait 5 more months for M5 Max.",
+        "reasoning": "The Mac Studio M4 Max 128GB checks every box: 128GB unified memory for 70B models, ~160 tok/s on Qwen3-30B-A3B (your primary model), fine-tuning 7B-14B with MLX, Apple global warranty, and 24/7 reliability. At \u20b93,99,900 (128GB/1TB CTO from Apple India), it's within your \u20b91.5-5L budget. The base 36GB model is \u20b92,14,900 but you need the 128GB CTO config.\n\nThe M5 Max (expected Oct 2026) might offer 15-25% faster inference, but you'd lose 5 months of productivity from your coding agents. At 160 tok/s on 30B MoE models, the M4 Max is already more than sufficient \u2014 the bottleneck won't be hardware. The Strix Halo alternatives (Bosgame at $2,799 \u2248 \u20b92.35L) are cheaper but deliver only 70 tok/s \u2014 less than half the M4 Max speed.\n\nFine-tuning 7B-14B is fully feasible on 128GB unified memory using MLX or Unsloth. The cost of waiting (cloud inference, lost agent uptime) far exceeds the marginal M5 improvement. Buy now, sell/trade when M5 ships if the upgrade is compelling.",
+        "best_model": "Qwen3.6-35B-A3B MoE (or Qwen3-30B-A3B)",
+        "model_config": "Q4_K_M quant, 32K context, ~160 tok/s on M4 Max 128GB via MLX/Ollama 0.19+",
+        "fine_tuning": "Fully feasible: Qwen3-14B full fine-tune or 7B LoRA on 128GB unified memory using MLX-LM or Unsloth. Expect ~2-4 hours for a LoRA fine-tune on a small dataset.",
+        "cost_estimate_inr": "\u20b93,99,900 (Mac Studio M4 Max 128GB/1TB CTO from Apple India)",
+        "buy_links": [
+          {
+            "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+            "title": "Mac Studio M4 Max - Apple India",
+            "desc": "Configure with 128GB unified memory, 1TB SSD. Base 36GB at \u20b92,14,900, 128GB CTO ~\u20b93,99,900"
+          }
+        ],
+        "wait_for": "Mac Studio M5 Max 128GB \u2014 WWDC preview June 9 2026, expected ship October 2026. ~15-25% inference speedup estimated.",
+        "next_milestone": "WWDC June 9, 2026 \u2014 Apple may preview M5 Max silicon or announce Mac Studio M5 timeline",
+        "fallback_now": "Mac Mini M4 Pro 48GB at \u20b91,89,900 from Apple India (IN STOCK) \u2014 runs Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to 48GB (no 70B models). Alternatively, Bosgame M5 Strix Halo 128GB at $2,799 (~\u20b92,35,000) for 128GB on a budget with 70 tok/s.",
+        "confidence": "high",
+        "changed_since_last": "Recommendation unchanged \u2014 Mac Studio M4 Max 128GB remains best buy_now option. Verified Apple India base model in stock at \u20b92,14,900; 128GB CTO orderable via Apple Store configurator. No new M5 announcements since last check."
       }
     }
   ],
@@ -14938,10 +14991,237 @@
           "is_new": false
         }
       ]
+    },
+    {
+      "timestamp": "2026-05-21 09:18",
+      "date_label": "May 21, 2026",
+      "run_status": {
+        "model_benchmarks": "success",
+        "hardware_gather": "error",
+        "models_gather": "error",
+        "community_gather": "error",
+        "efficiency_gather": "error",
+        "learning_feed": "success",
+        "researcher": "skipped",
+        "critique": "skipped"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "model_benchmarks",
+          "key": "name",
+          "label": "Name",
+          "data": "Qwen3-235B-A22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "params",
+          "label": "Params",
+          "data": "235B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "active_params",
+          "label": "Active Params",
+          "data": "22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "humaneval_plus",
+          "label": "Humaneval Plus",
+          "data": 94.1,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "swe_bench_verified",
+          "label": "Swe Bench Verified",
+          "data": 58.7,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "livecode_bench",
+          "label": "Livecode Bench",
+          "data": 70.7,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q4",
+          "label": "Vram Q4",
+          "data": "124GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q8",
+          "label": "Vram Q8",
+          "data": "240GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_128gb_unified",
+          "label": "Tok S 128Gb Unified",
+          "data": 20,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_48gb_unified",
+          "label": "Tok S 48Gb Unified",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx5090",
+          "label": "Tok S Rtx5090",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx4060ti_16gb_moe_offload",
+          "label": "Tok S Rtx4060Ti 16Gb Moe Offload",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "released",
+          "label": "Released",
+          "data": "2025-04-29",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "notes",
+          "label": "Notes",
+          "data": "Best open-weight coding model overall; needs 128GB unified memory minimum at Q4; MoE efficiency makes it surprisingly fast despite size",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "topic_id",
+          "label": "Topic Id",
+          "data": "vram_calculation",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "title",
+          "label": "Title",
+          "data": "VRAM Calculation: How Much Memory Do You Need?",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "content",
+          "label": "Content",
+          "data": "Now that you know each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), let's build on that to calculate exactly how much VRAM you need for a complete inference setup. VRAM usage has three main components: model weights, KV-cache, and operational overhead.\n\n**Component 1: Model Weights**\nThis is the formula you already know. For Qwen3.6-27B Dense (your quality ceiling at 77.2% SWE-bench Verified):\n- Q4: 27B \u00d7 0.5 bytes = 13.5 GB\n- Q8: 27B \u00d7 1 byte = 27 GB\n- FP16: 27B \u00d7 2 bytes = 54 GB\n\nFor a 70B model like DeepSeek-R1-Distill-Qwen-70B:\n- Q4: 70B \u00d7 0.5 bytes = 35 GB\n- Q8: 70B \u00d7 1 byte = 70 GB\n\n**Component 2: KV-Cache (the variable cost)**\nThe KV-cache stores attention keys and values for every token in your context window. The formula is:\n\nKV_cache_bytes = 2 \u00d7 num_layers \u00d7 num_kv_heads \u00d7 head_dim \u00d7 context_length \u00d7 dtype_size\n\nThe '2' is for keys AND values. For Qwen3.6-27B (32 layers, 8 KV heads with GQA, head_dim 128, FP16 KV cache):\n- At 8K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~1.07 GB\n- At 32K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 32768 \u00d7 2 bytes = ~4.3 GB\n- At 128K context: ~17 GB\n\nFor a 70B model (80 layers, 8 KV heads, head_dim 128):\n- At 8K context: 2 \u00d7 80 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~2.68 GB\n- At 32K context: ~10.7 GB\n\n**Component 3: Overhead (~5-10%)**\nllama.cpp needs memory for compute buffers, scratch space, and the graph structure. Budget 1-2 GB for this.\n\n**Putting it together for your rig:**\nQwen3.6-27B Q4 at 32K context = 13.5 GB (weights) + 4.3 GB (KV) + 1.5 GB (overhead) = ~19.3 GB\nThis fits comfortably in a 24 GB RTX 5090 or 48 GB Mac Mini M4 Pro.\n\n70B Q4 at 8K context = 35 GB (weights) + 2.68 GB (KV) + 1.5 GB (overhead) = ~39.2 GB\nThis needs the 48 GB Mac Mini M4 Pro (\u20b9189,900) or unified memory from Strix Halo 128 GB.\n\n**Why this matters for agents:**\nYOLO coding agents send large contexts (entire files, tool outputs, conversation history). A single agentic turn might use 16-32K tokens of context. If your VRAM is too tight, you'll either truncate context (losing information) or spill to system RAM (killing speed).\n\n**The golden rule: All of weights + KV-cache + overhead must fit in fast memory (VRAM or unified memory) for full speed.**",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "key_takeaways",
+          "label": "Key Takeaways",
+          "data": [
+            "Total VRAM = Model Weights + KV-Cache + Overhead (~1-2 GB)",
+            "KV-cache grows linearly with context length \u2014 doubling context doubles KV memory",
+            "Qwen3.6-27B Q4 needs only ~19 GB at 32K context, fitting easily in 24 GB VRAM",
+            "A 70B Q4 model at 8K context needs ~39 GB \u2014 requires 48+ GB unified memory or multi-GPU"
+          ],
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "prerequisite_recap",
+          "label": "Prerequisite Recap",
+          "data": "You learned that each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), and that a 70B Q4 model needs ~39 GB total for 8K context.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "practical_exercise",
+          "label": "Practical Exercise",
+          "data": "Calculate the total VRAM needed to run Qwen3.6-27B at Q8 quantization with a 16K context window. Assume 32 layers, 8 KV heads, head_dim 128, FP16 KV-cache, and 1.5 GB overhead.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "answer",
+          "label": "Answer",
+          "data": "Weights: 27B \u00d7 1 byte = 27 GB. KV-cache: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 16384 \u00d7 2 = 2.15 GB. Overhead: 1.5 GB. Total: 27 + 2.15 + 1.5 = ~30.65 GB. This won't fit in 24 GB VRAM (RTX 5090) but fits in 48 GB (Mac Mini M4 Pro) or 128 GB unified (Strix Halo).",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "hardware_implication",
+          "label": "Hardware Implication",
+          "data": "For 27B models, 24 GB VRAM is sufficient at Q4 with generous context. For 70B models or Q8 quantization, you need 48+ GB \u2014 pushing you toward Mac Mini M4 Pro (\u20b9189,900) or Strix Halo mini PCs with 128 GB unified memory.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "resources",
+          "label": "Resources",
+          "data": [
+            {
+              "title": "llama.cpp Memory Requirements Discussion",
+              "url": "https://github.com/ggerganov/llama.cpp/discussions/3505",
+              "type": "docs"
+            },
+            {
+              "title": "HuggingFace KV Cache Documentation",
+              "url": "https://huggingface.co/docs/transformers/main/en/kv_cache",
+              "type": "docs"
+            },
+            {
+              "title": "LLM VRAM Calculator (Can I Run This Model?)",
+              "url": "https://huggingface.co/spaces/Vokturz/Can-it-run-LLM",
+              "type": "tool"
+            },
+            {
+              "title": "Qwen3 Model Card with Architecture Details",
+              "url": "https://huggingface.co/Qwen/Qwen3-30B-A3B",
+              "type": "docs"
+            }
+          ],
+          "severity": "info",
+          "is_new": true
+        }
+      ]
     }
   ],
   "store_check": {
-    "timestamp": "2026-05-20T09:09:21.132821",
+    "timestamp": "2026-05-21T09:09:23.812026",
     "results": [
       {
         "key": "mac_studio_128gb_india",
@@ -14957,7 +15237,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "mac_studio_128gb_india_1tb",
@@ -14973,7 +15253,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "mac_studio_128gb_us",
@@ -14989,7 +15269,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "mac_mini_48gb_india",
@@ -15005,7 +15285,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "mac_mini_48gb_us",
@@ -15021,7 +15301,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "apple_refurbished_india",
@@ -15038,7 +15318,7 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "apple_refurbished_us",
@@ -15046,7 +15326,7 @@
         "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
         "page_reachable": true,
         "sku_present": true,
-        "price": 6369.0,
+        "price": 2459.0,
         "currency": "USD",
         "target_config_selectable": false,
         "continue_enabled": false,
@@ -15054,7 +15334,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "framework_desktop_128gb",
@@ -15070,7 +15350,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "bosgame_m5_128gb",
@@ -15086,7 +15366,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "beelink_gtr9_pro_128gb",
@@ -15102,7 +15382,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "minisforum_ms_s1_max",
@@ -15118,7 +15398,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "corsair_ws300",
@@ -15132,10 +15412,10 @@
         "continue_enabled": false,
         "availability_signal": "out_of_stock",
         "playwright_status": "http_fallback_ok",
-        "delivery_info": "delivery by 05/21/2026-05/25/2026 60-days risk free returns SYSTEM CPU AMD Ryzen",
+        "delivery_info": "delivery by 05/22/2026-05/26/2026 60-days risk free returns SYSTEM CPU AMD Ryzen",
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "amd_strix_halo_128gb_india",
@@ -15151,7 +15431,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "rtx_5090_india",
@@ -15167,7 +15447,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       },
       {
         "key": "rtx_5090_flipkart",
@@ -15184,7 +15464,7 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-05-20T09:09:21.132821"
+        "checked_at": "2026-05-21T09:09:23.812026"
       }
     ]
   },
@@ -15782,10 +16062,10 @@
       ],
       "warranty": "global Apple warranty",
       "last_enrichment": "M5 Mac Studio expected October 2026 (delayed from WWDC due to global RAM shortage). M5 Max: 18-core CPU, up to 128GB unified memory, ~$2,499. M5 Ultra: 36-core CPU, up to 256GB unified memory, ~800GB/s+ bandwidth, ~$3,999. Significantly better than M4 Max 128GB for 70B inference due to higher bandwidth and potential 256GB capacity. Wait if budget allows; current M4 Max 128GB is the best available now.",
-      "enrichment_date": "2026-05-20"
+      "enrichment_date": "2026-05-21"
     }
   },
-  "enrichment_timestamp": "2026-05-19T09:17:53.248209",
+  "enrichment_timestamp": "2026-05-21T09:17:55.508258",
   "price_history": {
     "mac_mini_48gb_india": [
       {
@@ -15820,6 +16100,11 @@
       },
       {
         "date": "2026-05-20",
+        "price": 189900.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-05-21",
         "price": 189900.0,
         "currency": "INR"
       }
@@ -15859,6 +16144,11 @@
         "date": "2026-05-20",
         "price": 1799.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-05-21",
+        "price": 1799.0,
+        "currency": "USD"
       }
     ],
     "apple_refurbished_us": [
@@ -15895,6 +16185,11 @@
       {
         "date": "2026-05-20",
         "price": 6369.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-05-21",
+        "price": 2459.0,
         "currency": "USD"
       }
     ],
@@ -15933,6 +16228,11 @@
         "date": "2026-05-20",
         "price": 4499.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-05-21",
+        "price": 4499.0,
+        "currency": "USD"
       }
     ],
     "minisforum_ms_s1_max": [
@@ -15968,6 +16268,11 @@
       },
       {
         "date": "2026-05-20",
+        "price": 3199.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-05-21",
         "price": 3199.0,
         "currency": "USD"
       }
@@ -16092,7 +16397,7 @@
     "hardware": {
       "score": 20,
       "status": "shopping",
-      "summary": "Monitoring 5 options. Best: Mac Studio M4 Max 128GB Unified Memory (CTO)",
+      "summary": "Monitoring 5 options. Best: Mac Studio M4 Max 128GB Unified Memory",
       "blockers": [
         "No hardware purchased yet"
       ]
@@ -16117,7 +16422,7 @@
       "summary": "Best option: Mac Mini M4 Pro 48GB at \u20b91.90L / $1,799.0",
       "blockers": []
     },
-    "timestamp": "2026-05-20T09:09:53",
+    "timestamp": "2026-05-21T09:18:28",
     "trend": "stable"
   },
   "readiness_history": [
@@ -16208,13 +16513,21 @@
       "models": 25,
       "tools": 80,
       "cost": 75
+    },
+    {
+      "date": "2026-05-21",
+      "overall": 41,
+      "hardware": 20,
+      "models": 25,
+      "tools": 80,
+      "cost": 75
     }
   ],
   "model_benchmark_history": [],
   "copilot_sessions": {
-    "run_id": "399d",
-    "run_date": "2026-05-20",
-    "pattern": "llm-homelab-{category}-2026-05-20-399d"
+    "run_id": "1faa",
+    "run_date": "2026-05-21",
+    "pattern": "llm-homelab-{category}-2026-05-21-1faa"
   },
   "knowledge_state": {
     "version": 1,
@@ -16277,11 +16590,55 @@
         ]
       },
       "vram_calculation": {
-        "status": "unseen",
-        "confidence": 0.0,
-        "last_taught": null,
-        "key_facts": [],
-        "reliability": "stable"
+        "status": "introduced",
+        "confidence": 0.4,
+        "last_taught": "2026-05-21",
+        "key_facts": [
+          "Total VRAM = Model Weights + KV-Cache + Overhead (~1-2 GB)",
+          "KV-cache grows linearly with context length \u2014 doubling context doubles KV memory",
+          "Qwen3.6-27B Q4 needs only ~19 GB at 32K context, fitting easily in 24 GB VRAM",
+          "A 70B Q4 model at 8K context needs ~39 GB \u2014 requires 48+ GB unified memory or multi-GPU"
+        ],
+        "reliability": "stable",
+        "lessons": [
+          {
+            "title": "VRAM Calculation: How Much Memory Do You Need?",
+            "content": "Now that you know each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), let's build on that to calculate exactly how much VRAM you need for a complete inference setup. VRAM usage has three main components: model weights, KV-cache, and operational overhead.\n\n**Component 1: Model Weights**\nThis is the formula you already know. For Qwen3.6-27B Dense (your quality ceiling at 77.2% SWE-bench Verified):\n- Q4: 27B \u00d7 0.5 bytes = 13.5 GB\n- Q8: 27B \u00d7 1 byte = 27 GB\n- FP16: 27B \u00d7 2 bytes = 54 GB\n\nFor a 70B model like DeepSeek-R1-Distill-Qwen-70B:\n- Q4: 70B \u00d7 0.5 bytes = 35 GB\n- Q8: 70B \u00d7 1 byte = 70 GB\n\n**Component 2: KV-Cache (the variable cost)**\nThe KV-cache stores attention keys and values for every token in your context window. The formula is:\n\nKV_cache_bytes = 2 \u00d7 num_layers \u00d7 num_kv_heads \u00d7 head_dim \u00d7 context_length \u00d7 dtype_size\n\nThe '2' is for keys AND values. For Qwen3.6-27B (32 layers, 8 KV heads with GQA, head_dim 128, FP16 KV cache):\n- At 8K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~1.07 GB\n- At 32K context: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 32768 \u00d7 2 bytes = ~4.3 GB\n- At 128K context: ~17 GB\n\nFor a 70B model (80 layers, 8 KV heads, head_dim 128):\n- At 8K context: 2 \u00d7 80 \u00d7 8 \u00d7 128 \u00d7 8192 \u00d7 2 bytes = ~2.68 GB\n- At 32K context: ~10.7 GB\n\n**Component 3: Overhead (~5-10%)**\nllama.cpp needs memory for compute buffers, scratch space, and the graph structure. Budget 1-2 GB for this.\n\n**Putting it together for your rig:**\nQwen3.6-27B Q4 at 32K context = 13.5 GB (weights) + 4.3 GB (KV) + 1.5 GB (overhead) = ~19.3 GB\nThis fits comfortably in a 24 GB RTX 5090 or 48 GB Mac Mini M4 Pro.\n\n70B Q4 at 8K context = 35 GB (weights) + 2.68 GB (KV) + 1.5 GB (overhead) = ~39.2 GB\nThis needs the 48 GB Mac Mini M4 Pro (\u20b9189,900) or unified memory from Strix Halo 128 GB.\n\n**Why this matters for agents:**\nYOLO coding agents send large contexts (entire files, tool outputs, conversation history). A single agentic turn might use 16-32K tokens of context. If your VRAM is too tight, you'll e",
+            "key_takeaways": [
+              "Total VRAM = Model Weights + KV-Cache + Overhead (~1-2 GB)",
+              "KV-cache grows linearly with context length \u2014 doubling context doubles KV memory",
+              "Qwen3.6-27B Q4 needs only ~19 GB at 32K context, fitting easily in 24 GB VRAM",
+              "A 70B Q4 model at 8K context needs ~39 GB \u2014 requires 48+ GB unified memory or multi-GPU"
+            ],
+            "prerequisite_recap": "You learned that each parameter needs 0.5 bytes (Q4), 1 byte (Q8), or 2 bytes (FP16), and that a 70B Q4 model needs ~39 GB total for 8K context.",
+            "practical_exercise": "Calculate the total VRAM needed to run Qwen3.6-27B at Q8 quantization with a 16K context window. Assume 32 layers, 8 KV heads, head_dim 128, FP16 KV-cache, and 1.5 GB overhead.",
+            "answer": "Weights: 27B \u00d7 1 byte = 27 GB. KV-cache: 2 \u00d7 32 \u00d7 8 \u00d7 128 \u00d7 16384 \u00d7 2 = 2.15 GB. Overhead: 1.5 GB. Total: 27 + 2.15 + 1.5 = ~30.65 GB. This won't fit in 24 GB VRAM (RTX 5090) but fits in 48 GB (Mac Mini M4 Pro) or 128 GB unified (Strix Halo).",
+            "hardware_implication": "For 27B models, 24 GB VRAM is sufficient at Q4 with generous context. For 70B models or Q8 quantization, you need 48+ GB \u2014 pushing you toward Mac Mini M4 Pro (\u20b9189,900) or Strix Halo mini PCs with 128 GB unified memory.",
+            "resources": [
+              {
+                "title": "llama.cpp Memory Requirements Discussion",
+                "url": "https://github.com/ggerganov/llama.cpp/discussions/3505",
+                "type": "docs"
+              },
+              {
+                "title": "HuggingFace KV Cache Documentation",
+                "url": "https://huggingface.co/docs/transformers/main/en/kv_cache",
+                "type": "docs"
+              },
+              {
+                "title": "LLM VRAM Calculator (Can I Run This Model?)",
+                "url": "https://huggingface.co/spaces/Vokturz/Can-it-run-LLM",
+                "type": "tool"
+              },
+              {
+                "title": "Qwen3 Model Card with Architecture Details",
+                "url": "https://huggingface.co/Qwen/Qwen3-30B-A3B",
+                "type": "docs"
+              }
+            ],
+            "date": "2026-05-21"
+          }
+        ]
       },
       "context_window_math": {
         "status": "unseen",
@@ -16514,7 +16871,7 @@
       "recent_detours": []
     },
     "applied_insights": [],
-    "total_lessons_completed": 1
+    "total_lessons_completed": 2
   },
   "state_version": 2,
   "analytical_state": {
@@ -17706,7 +18063,7 @@
     }
   ],
   "pipeline_meta": {
-    "last_pipeline_run": "2026-05-20T09:06:08.311294",
+    "last_pipeline_run": "2026-05-21T09:06:06.516918",
     "last_gather_results": {},
     "last_critique_status": null,
     "iteration_count": 0,
@@ -17714,9 +18071,9 @@
       "model_benchmarks": "success",
       "hardware_gather": "error",
       "models_gather": "error",
-      "efficiency_gather": "error",
       "community_gather": "error",
-      "learning_feed": "error"
+      "efficiency_gather": "error",
+      "learning_feed": "success"
     }
   }
 }

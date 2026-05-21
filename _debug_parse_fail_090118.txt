@@ -1,0 +1,43 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP merged into mainline (PR #22673) with updated flag --spec-type draft-mtp, supporting draft-n-max up to 5 tokens ahead",
+      "source": "thomasthelliez.com/blog/llama-cpp-multi-token-prediction-mtp-local-ai/",
+      "source_type": "blog",
+      "date": "May 21, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.5x-2.4x speedup on consumer hardware, 38 tok/s baseline to 65 tok/s with MTP on Qwen3.6 27B RTX 3090",
+      "related_domains": ["inference_engines", "speculative_decoding"]
+    },
+    {
+      "claim": "llama.cpp MTP acceptance rates consistently 80-98% depending on model and settings, maximizing speedup with no quality loss",
+      "source": "startupfortune.com/llamacpp-now-supports-multi-token-prediction-in-beta",
+      "source_type": "blog",
+      "date": "May 21, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "80-98% acceptance rate",
+      "related_domains": ["speculative_decoding"]
+    },
+    {
+      "claim": "Gemma 4 models now confirmed as MTP-compatible in llama.cpp alongside Qwen3.6, broadening MTP model support",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 21, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": null,
+      "related_domains": ["models", "inference_engines"]
+    },
+    {
+      "claim": "Qwen3.6-35B-A3B (MoE) runs locally on 12GB VRAM with MTP enabled in llama.cpp",
+      "source": "carteakey.dev/blog/running-qwen3-6-mtp-locally/",
+      "source_type": "community",
+      "date": "May 21, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "35B parameter MoE model fitting in 12GB VRAM with MTP active",
+      "related_domains": ["hardware", "budget_configs", "MoE"]
+    },
+    {
+      "claim": "llama.cpp MTP b
