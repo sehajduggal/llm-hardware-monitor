@@ -1,0 +1,43 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves 50-140 tok/s on 30B models (Q4 quantization, 16K context) and up to 260 tok/s on 20B models in llama.cpp/LM Studio benchmarks",
+      "source": "github.com/patrickwhelan-uk/llm-inference-benchmarks and hardware-corner.net GPU ranking",
+      "source_type": "github",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: ZOTAC Gaming from ₹3.62L on Amazon, MSI Gaming Trio OC at ₹4.26L on Flipkart, ASUS ROG Astral ₹7L+. Stock critically limited (1-2 units per listing)",
+      "source": "amazon.in and flipkart.com RTX 5090 listings, May 2026",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "live marketplace data",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB runs Qwen3 30B-A3B (Q4) at 85 tok/s in llama.cpp and 110 tok/s in MLX; Qwen3 72B (Q4) at 17-18 tok/s",
+      "source": "antekapetanovic.com/blog/qwen3.5-apple-silicon-benchmark/ and insiderllm.com Mac LLM guide",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "MLX consistently 10-25% faster than llama.cpp on Apple Silicon for same models; Ollama slightly slower than both but easiest setup",
+      "source": "antekapetanovic.com/blog/ollama-llama-cpp-mlx-qwen35/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["optimization"]
+    },
+    {
+      "claim": "M5 Mac Studio may be

@@ -1,0 +1,36 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP PR #22673 merged into mainline, enabling Multi-Token Prediction with --spec-type draft-mtp flag, delivering 1.7x-2x speedup on Qwen3.6-27B (38 to 65 tok/s on RTX 3090)",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 tok/s to 65 tok/s on RTX 3090 (1.7x); up to 65% on Metal/MacBook Pro",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6-35B-A3B MoE + MTP on RTX 5090 achieves 267 tok/s (vs 171 tok/s baseline without MTP), demonstrating exceptional MoE+MTP synergy",
+      "source": "dev.to/prospectorlabs/267-toks-local-inference-on-rtx-5090-llamacpp-mtp-qwen3-35b-a3b-moe-2m6p",
+      "source_type": "community",
+      "date": "May 25, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "267 tok/s with MTP vs 171 tok/s without (56% gain); Q4_K_XL quant, 65536 context",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "TurboQuant (Turbo3/Turbo4) introduced for KV-cache-only quantization at 3-4 bits, enabling 100K context on RTX 3090 with ~8% speed loss and 4-6x KV-cache memory reduction",
+      "source": "dasroot.net/posts/2026/04/turbo-quantization-llama-cpp-turbo3-turbo4-context-length/",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "8192 to 100K context on RTX 3090; +12% VRAM, -7.5% gen speed; 4-6x KV cache reduction",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang outperforms vLLM by 29% on H100 (16,200 vs 12,500 tok/s) and up to 6.4x on prefix-heavy workloads via RadixAttention KV-cache reuse",
+      "source": "morphllm.com/comparisons/vllm-vs-sglang",
+     

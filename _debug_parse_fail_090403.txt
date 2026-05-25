@@ -1,0 +1,43 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports --spec-draft-n-max up to 5 tokens, with Qwen3.6 27B achieving 38→65 tok/s (1.7x) on RTX 3090",
+      "source": "forums.developer.nvidia.com/t/mtp-llama-cpp-a-look-at-qwen3-6-27b/370298",
+      "source_type": "community",
+      "date": "May 22, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.7x speedup (38→65 tok/s) on RTX 3090 for Qwen3.6 27B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP flag changed from --spec-type mtp to --spec-type draft-mtp in mainline, indicating API stabilization",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "May 22, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": null,
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Gemma 4 MTP PR was closed unmerged in mainline llama.cpp; MTP officially supports only Qwen3.5/3.6. Gemma 4 MTP requires atomic-llama-cpp-turboquant fork",
+      "source": "carteakey.dev/blog/running-gemma-4-mtp-locally/",
+      "source_type": "blog",
+      "date": "May 22, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Gemma 4 26B MoE: 44→50-58 tok/s with MTP+TurboQuant on RTX 4070 12GB",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX decode speed on M5: Qwen3.5-35B INT4 at 134 tok/s decode, 1851 tok/s prefill. 93% faster decode vs Metal backend (58→112 tok/s)",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "official",
+      "date": "May 22, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "93% decode speedup (58→112 tok/s), 1.6x prefill (1154→1810 tok/s) on M5",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.1

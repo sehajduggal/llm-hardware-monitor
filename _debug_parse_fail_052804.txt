@@ -1,0 +1,43 @@
+Now I have enough information to compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 now widely available in India with stable stock and 1-3 day delivery from Amazon, EliteHubs, Vedant Computers. Zotac RTX 5090 starting at ₹3,61,990, MSI Vanguard SOC at ₹3,66,899-5,49,157, ASUS variants ₹4,19,334-5,29,999",
+      "source": "amazon.in, elitehubs.com, primeabgb.com, vedantcomputers.com",
+      "source_type": "retailer",
+      "date": "May 25, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 3,61,990 - 5,49,157",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India availability has dramatically improved since last analysis — stock is now stable across major retailers, no longer 'critically limited'",
+      "source": "amazon.in, vedantcomputers.com, elitehubs.com",
+      "source_type": "retailer",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "WWDC 2026 confirmed June 8-12 keynote. M5 Mac Studio with M5 Max and M5 Ultra expected to be announced. M5 Max: 18-core CPU, 40-core GPU. M5 Ultra: 32-36 CPU cores, 80 GPU cores, up to 256GB unified memory, memory bandwidth exceeding 1TB/s",
+      "source": "macworld.com, appleinsider.com, felloai.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Global DRAM/LPDDR5X shortages could delay M5 Mac Studio high-end configurations until October 2026. Higher starting prices expected due to component costs",
+      "source": "macworld.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac S

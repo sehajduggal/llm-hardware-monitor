@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.6-27B (dense, Apache 2.0) released April 2026, scores 77.2% SWE-bench Verified, runs at 50-120 tok/s on RTX 4090, needs only 18GB VRAM. Outperforms 397B MoE models on coding benchmarks.",
+      "source": "buildfastwithai.com/blogs/qwen3-6-27b-review-2026",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Qwen3.6-35B-A3B MoE achieves 249 tok/s on RTX 5090 laptop, only 3B active params per pass, runs on 6GB VRAM + 32GB RAM at ~30 TPS via llama.cpp",
+      "source": "medium.com - Run Qwen3.6-35B-A3B on 6GB VRAM Using Llama.cpp",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "high engagement on r/LocalLLaMA",
+      "related_domains": ["models", "hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: Flipkart Zotac AMP Extreme at ₹3.79L, Amazon ₹4.5L-8.7L range, IndiaMART MSI at ₹3.96L. Stock remains 1-2 units per model, sells out within minutes of restock.",
+      "source": "flipkart.com, amazon.in, indiamart.com RTX 5090 listings",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M4 Max 128GB runs Llama 70B at 12-20 tok/s via MLX, 7B-13B at 50-90+ tok/s. 546 GB/s bandwidth makes it competitive with discrete GPUs for large models that fit in unified memory.",
+      "source": "blog.imseankim.com/apple-m4-max-macbook-pro-ai-inference-benchmarks",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_d

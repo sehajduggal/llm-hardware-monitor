@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, achieving 1.5x-2.4x speedup with ~80% token acceptance rate and no separate draft model needed",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38→65 tok/s (1.7x) on RTX 3090; 25→45 tok/s (78%) on A10G",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen 3.6 27B achieves 52.8 tok/s on AMD MI50 GPUs using MTP + TurboQuant quantization in llama.cpp",
+      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant/",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "52.8 tok/s on MI50 with TurboQuant + MTP",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "KTransformers achieves 2,540 tok/s prefill on FP8 (32K input) with RTX 5090 + 2x AMD EPYC 9355, representing 4.5x prefill speedup vs llama.cpp Q8_0",
+      "source": "ktransformers.net",
+      "source_type": "official",
+      "date": "May 25, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "2,540 tok/s prefill; 4.5x faster than llama.cpp Q8_0; 4x PyTorch baseline on MoE decode",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "KTransformers adds DeepSeek-V4-Flash support (May 2, 2026) with AMX-optimized CPU kernels delivering 4x throughput of PyTorch and CUDA Graph scheduling reducing GPU kernel launch overhead to near zero",
+      "source": "github.com/sgl-project/sglang/issues/11425",
+      "source_type": "github",
+      "date": "May 25, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "4x PyTorch throughput on CPU; 2-4x
