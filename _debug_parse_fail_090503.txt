@@ -1,0 +1,35 @@
+Based on my research, here's the compiled JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3-30B-A3B MoE achieves ~30 tok/s on M4 Max 96GB with MLX backend at Q4_K_M quantization, with MLX now 20-87% faster than llama.cpp on Apple Silicon for sub-32B models",
+      "source": "deepnewz.com - Qwen3-30B-A3B Model with MLX Weights Shows M4 Max, M3 Ultra Lead in Tokens Per Second",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 generates 43.8 tok/s on Qwen3 32B Q4_K at 32K context, 102.7 tok/s on 14B models, and 97 tok/s on Qwen3.5 35B MXFP4 at 256K context — 30-50% faster than RTX 4090",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ and knightli.com RTX 5090/5080 AI Inference Benchmarks (May 8, 2026)",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "patrickwhelan-uk/llm-inference-benchmarks GitHub repo provides reproducible RTX 5090 benchmarks: Mistral-3 3B at 265 tok/s, Qwen2.5 7B at 146 tok/s, Llama-3.1 8B at 140 tok/s with VRAM and power consumption data",
+      "source": "github.com/patrickwhelan-uk/llm-inference-benchmarks",
+      "source_type": "github",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395, 128GB LPDDR5X) achieves 5-10 tok/s on 70B Q4 models and ~20 tok/s on MoE 70B-class models. Measured bandwidth ~215 GB/s vs Apple M4 Max's 546 GB/s — about half Apple's speed for 70B",
+      "source": "llmhardware.io/guides/amd-strix-halo-llm-guide and github.com/slb350/

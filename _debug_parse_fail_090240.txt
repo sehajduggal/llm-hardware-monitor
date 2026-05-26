@@ -1,43 +1,43 @@
-Based on my research, here's the JSON output:
+Based on my research, here's the community intelligence JSON:
 
 ```json
 {
   "findings": [
     {
-      "claim": "Gemma 4 26B MoE achieves 2.6-2.98x lossless MTP speedup via ik_llama.cpp fork PR #1744, reaching ~400 tok/s on RTX 4090 at Q4 (up from ~150 tok/s baseline)",
-      "source": "github.com/karany97/llamacpp-gemma4-mtp",
-      "source_type": "github",
-      "date": "May 20, 2026",
+      "claim": "Qwen3.6 27B achieves 77.2% on SWE-bench Verified, runs on 18GB VRAM, beats 397B MoEs for coding tasks — becoming the new community favorite for local coding",
+      "source": "haimaker.ai/blog/best-local-models-for-openclaw/ — Best Local LLM for OpenClaw 2026",
+      "source_type": "community",
+      "date": "May 2026",
       "confidence_signal": "multiple_reports",
-      "performance_data": "150 → 400 tok/s on RTX 4090, 2.6-2.98x speedup, 14GB VRAM",
-      "related_domains": ["hardware", "models"]
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "Qwen3.6-35B MoE hits 144 tok/s with MTP on RTX 5060 Ti 16GB (up from 98 tok/s baseline), confirming 1.47x speedup on budget hardware",
-      "source": "njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/",
-      "source_type": "blog",
-      "date": "May 20, 2026",
-      "confidence_signal": "direct_observation",
-      "performance_data": "98 → 144 tok/s, 1.47x speedup on 16GB GPU",
-      "related_domains": ["hardware", "models"]
+      "claim": "RTX 5090 achieves 102.7 tok/s on 14B models (4-bit), 186 tok/s on Qwen3 8B Q4_K_M, and can fit Qwen3 32B Q4_K fully in 32GB VRAM at 32K context",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ and markaicode.com/benchmarks/rtx-5090-local-llm-benchmark/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
     },
     {
-      "claim": "Gemma 4 31B Dense with MTP yields 250-280 tok/s on RTX 4090 at Q4_K_M (up from ~95 tok/s), requiring ~19GB VRAM",
-      "source": "github.com/karany97/llamacpp-gemma4-mtp",
-      "source_type": "github",
-      "date": "May 20, 2026",
-      "confidence_signal": "multiple_reports",
-      "performance_data": "95 → 250-280 tok/s, ~2.8x speedup",
-      "related_domains": ["hardware", "models"]
+      "claim": "RTX 5090 Ollama vs vLLM benchmarks: Llama 3.1 8B Q4_K_M gets 143 tok/s (Ollama) vs 157 tok/s (vLLM); at batch size 8, vLLM hits 412 tok/s vs Ollama's 204 tok/s",
+      "source": "markaicode.com/benchmarks/rtx-5090-local-llm-benchmark/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
     },
     {
-      "claim": "SGLang now delivers 29% higher throughput than vLLM on H100 GPUs (16,200 vs 12,500 tokens/sec) with RadixAttention prefix caching providing up to 6.4x speedup for RAG workloads",
-      "source": "particula.tech/blog/sglang-vs-vllm-inference-engine-comparison",
-      "source_type": "benchmark",
-      "date": "May 20, 2026",
-      "confidence_signal": "multiple_reports",
-      "performance_data": "16,200 vs 12,500 tok/s on H100; 6.4x best-case with prefix reuse",
-      "related_domains": ["hardware"]
+      "claim": "M4 Max 128GB runs Llama 3.1 70B Q4_K_M at 12.5 tok/s via llama.cpp Metal backend, using 46GB RAM — 2.3x faster than M2 Ultra",
+      "source": "markaicode.com/benchmarks/llamacpp-m4-max-benchmark/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
     },
     {
-      "
+ 

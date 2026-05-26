@@ -1,0 +1,39 @@
+Based on my research, here's the consolidated JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves 124 tok/s on Qwen3 14B Q4_K and 97.3 tok/s on Qwen3.5 35B MXFP4 at 256k context with 32GB GDDR7 at 1,792 GB/s bandwidth",
+      "source": "quantized.fyi/hardware/rtx-5090-32gb-ai-llm-performance-guide-2026-benchmarks",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M4 Max 128GB achieves ~100 tok/s on Qwen3.5-35B-A3B via MLX, ~80-90 tok/s via llama.cpp. Qwen3.5-122B-A10B runs at 25.7 tok/s Q4 quantized",
+      "source": "antekapetanovic.com/blog/qwen3.5-apple-silicon-benchmark and omlx.ai/benchmarks/4j1b41ok",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395) with 128GB LPDDR5X achieves 5-10 tok/s on 70B Q4 models, 15+ tok/s on 30B models. Vulkan backend with AMDVLK driver is fastest, seeing all unified RAM as VRAM",
+      "source": "hardware-corner.net/strix-halo-llm-optimization and github.com/slb350/strix-benchmarks",
+      "source_type": "github",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "ZOTAC RTX 5090 AMP Extreme INFINITY now listed at ₹2,83,346 on Flipkart India — lowest India price seen. Amazon India range ₹3.29L-₹8.73L across MSI/ASUS/Gigabyte models. Stock showing 'only 1 left' on some listings",
+      "source": "flipkart.com and amazon.in RTX 5090 listings",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      

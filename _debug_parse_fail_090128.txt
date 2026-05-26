@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now confirmed with Qwen3.6-27B on A10G GPU achieving 78% speedup (25 to 45 tok/s) using --spec-type draft-mtp --spec-draft-n-max 2 flags",
+      "source": "kucoin.com/news/flash/llama-cpp-supports-mtp",
+      "source_type": "community",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "78% speedup on A10G (25→45 tok/s), >2x on RTX 3090 with Q4_K_M",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen 3.6, with 50-100% inference speed gains reported across NVIDIA, AMD, and Apple Silicon",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026",
+      "source_type": "blog",
+      "date": "May 25, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "50-100% speed gains across hardware platforms",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "SGLang now delivers 16,200 tok/s on H100, 29% higher than vLLM on standard chat workloads, and up to 6.4x higher throughput for prefix-heavy tasks via RadixAttention",
+      "source": "morphllm.com/comparisons/vllm-vs-sglang",
+      "source_type": "benchmark",
+      "date": "May 25, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "16,200 tok/s H100; 29% over vLLM; 6.4x on prefix-heavy workloads",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "KTransformers v0.6.1-v0.6.2 released May 2026 with MXFP4 MoE native paths for AVX512F and DeepSeek-V4-Flash support, enabling DeepSeek-R1-671B on single RTX 4090",
+      "source": "github.com/kvcache-ai/ktransformers",
+      "source_type": "github",
+      "date": "May 25, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "DeepSeek-R1-671B running on single RTX 4090 with CPU

@@ -1,0 +1,46 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) confirmed to unveil M5 Mac Studio with M5 Max (18-core CPU, 40-core GPU, up to 128GB) and M5 Ultra (36 CPU cores, 80 GPU cores, up to 256GB unified memory)",
+      "source": "macworld.com, techrepublic.com, zeerawireless.com",
+      "source_type": "blog",
+      "date": "May 26, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "TBD, expected higher than current M4 Mac Studio",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Mac Studio availability may slip to October 2026 for high-memory configurations due to global RAM shortages",
+      "source": "macworld.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "May 26, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base (36GB) available on apple.com/in at INR 2,14,900; 128GB CTO estimated at INR 3.5-4L",
+      "source": "apple.com/in/shop/buy-mac/mac-studio",
+      "source_type": "retailer",
+      "date": "May 26, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 base; ~INR 3.5-4L for 128GB CTO",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "NVIDIA RTX 5090 official India starting price is INR 2,14,000; AIB models range INR 3,60,000-9,00,000 on Amazon India and EliteHubs",
+      "source": "moneycontrol.com, bizzbuzz.news, elitehubs.com",
+      "source_type": "retailer",
+      "date": "May 26, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "INR 2,14,000-9,00,000",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 stock in India sells out within minutes of restocks; availability remains critically limited",
+      "source": "moneycontrol.com, bizzbuzz.news",
+      "source_type": "community",
+      "da

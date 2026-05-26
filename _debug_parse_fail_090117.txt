@@ -1,0 +1,43 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports --spec-draft-n-max 3 (up from 2), with PR #22673+ enabling 3-token speculation for additional throughput gains",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "May 26, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "n=3 speculation available; n=2-3 is sweet spot for consistency",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP on AMD Strix Halo: Qwen3.6 27B Q4_K_M jumps from 11.7 to 21.2 tok/s (1.81x), Q8_0 from 7.4 to 18.1 tok/s (2.44x)",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo",
+      "source_type": "benchmark",
+      "date": "May 26, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "1.81x-2.44x speedup on Strix Halo APU",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP on RTX 3090: token generation improved from 38 to 65 tok/s (1.71x) with 67-86% draft acceptance rate",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "benchmark",
+      "date": "May 26, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "38->65 tok/s (1.71x), 67-86% acceptance rate",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Gemma 4 series now supported by llama.cpp MTP speculative decoding alongside Qwen3.6",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "May 26, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "MTP head integrated in Gemma 4 GGUF models",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "vLLM v0.21.0 a

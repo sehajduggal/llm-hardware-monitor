@@ -1,0 +1,39 @@
+Now I have enough data to compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.6-27B with MTP achieves 52.8 tok/s on AMD MI50 (up from ~29.9 tok/s baseline), a 76% speedup using MTP + TurboQuant KV cache compression",
+      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant/",
+      "source_type": "blog",
+      "date": "May 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "29.9 → 52.8 tok/s (+76%) on MI50, batch=1",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6-27B with MTP on RTX 3090 goes from ~38 tok/s to ~65 tok/s (+71%) with no quality degradation, no separate draft model required",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 → 65 tok/s (+71%) on RTX 3090",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "TurboQuant KV cache quantization (tbq3_0/tbq4_0) enables 12.2x context length extension on RTX 3090 (8K → 100K tokens) with only -7.5% speed loss and +1.8GB VRAM. Presented at ICLR 2026.",
+      "source": "huggingface.co/spaces/ai-engineering-at/llama-cpp-turboquant-guide",
+      "source_type": "github",
+      "date": "May 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "12.2x context (8K→100K) on RTX 3090, -7.5% TPS, +1.8GB VRAM",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend doubles decode speed on Apple Silicon: 58 tok/s (Metal) → 112-134 tok/s (MLX), prefill 1100 → 1810-1851 tok/s",
+      "source": "andrew.ooo/posts/ollama-mlx-apple-silicon-review/",
+      "source_type": "blog",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Decode: 58→112-134 tok/s (2x), Prefill: 1
