@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP merged in PR #22673 with updated flag --spec-type draft-mtp, Qwen3.6 27B on RTX 3090 achieves 65 tok/s (up from 38), a 1.71x gain",
+      "source": "startupfortune.com/llamacpp-now-supports-multi-token-prediction-in-beta",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 -> 65 tok/s on RTX 3090 (1.71x), 80-90% draft acceptance rate",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 MTP in llama.cpp delivers 2.6-3x lossless speedup; Gemma 4 26B-A4B hits 133 tok/s on RTX 5060 Ti 16GB with drafter model",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp",
+      "source_type": "github",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "133 tok/s on RTX 5060 Ti 16GB, 2.6-3x speedup, ~80% acceptance rate",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 E4B variant runs with MTP on 6-8GB VRAM consumer GPUs, enabling interactive coding on laptops",
+      "source": "codersera.com/blog/gemma-4-vs-llama-4-local-deployment-2026/",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "6-8GB VRAM requirement for Gemma 4 E4B with MTP",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang RadixAttention achieves 16,200 tok/s on H100 vs vLLM's 12,500 tok/s — 29-40% lower latency in prefix-heavy workloads, up to 6.4x in best-case RAG scenarios",
+      "source": "morphllm.com/comparisons/vllm-vs-sglang",
+      "source_type": "benchmark",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "16,200 vs 12,500 tok/s (H100), 29-40% latency reduction, 6.4x peak in prefix-heavy",
+      "related_domains": ["h

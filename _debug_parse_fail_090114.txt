@@ -4,49 +4,45 @@ Based on the research gathered, here's the JSON output:
 {
   "findings": [
     {
-      "claim": "WWDC 2026 (June 8-12) confirmed to feature M5 Mac Studio with M5 Max and M5 Ultra chips as headlining hardware launches",
-      "source": "macworld.com, techrepublic.com, digitaltrends.com",
+      "claim": "WWDC 2026 (June 8-12) will focus on software (iOS 27, Siri 2.0, macOS); M5 Mac Studio hardware launch delayed to October 2026 due to DRAM shortages",
+      "source": "macworld.com, macrumors.com",
       "source_type": "blog",
-      "date": "May 26, 2026",
+      "date": "June 02, 2026",
       "confidence_signal": "multiple_reports",
       "price": "",
       "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "M5 Ultra Mac Studio specs: up to 36 CPU cores, 80 GPU cores, 256GB unified memory, Thunderbolt 5, 'Fusion Architecture' separating CPU/GPU tiles",
-      "source": "macworld.com, felloai.com, zeerawireless.com",
+      "claim": "M5 Max confirmed specs: 18-core CPU, 40-core GPU, up to 128GB unified memory; M5 Ultra: 36-core CPU, 80-core GPU, up to 256GB unified memory",
+      "source": "macworld.com, macrumors.com, apfelpatient.de",
       "source_type": "blog",
-      "date": "May 26, 2026",
+      "date": "June 02, 2026",
       "confidence_signal": "multiple_reports",
       "price": "",
       "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "M5 Max confirmed at 18-core CPU, 40-core GPU, max 128GB unified memory for Mac Studio",
-      "source": "zeerawireless.com, macworld.com",
+      "claim": "M5 Mac Studio expected to have $200+ price increase over M4 generation due to memory shortages; M5 Max starts at 36GB, M5 Ultra at 96GB base RAM",
+      "source": "macworld.com, felloai.com",
       "source_type": "blog",
-      "date": "May 26, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "M5 Mac Studio availability expected summer 2026, possible slip to October 2026 due to RAM supply shortages",
-      "source": "macworld.com, techrepublic.com",
-      "source_type": "blog",
-      "date": "May 26, 2026",
+      "date": "June 02, 2026",
       "confidence_signal": "multiple_reports",
       "price": "",
       "related_domains": ["models"]
     },
     {
-      "claim": "M5 Mac Studio pricing expected higher than M4 due to global DRAM shortages; entry-level configs may be dropped",
-      "source": "macworld.com, techrepublic.com",
-      "source_type": "blog",
-      "date": "May 26, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "",
-      "related_domains": ["models"]
+      "claim": "RTX 5090 now widely available in India on Amazon, EliteHubs, PrimeABGB. Official starting price ₹2,14,000; mainstream AIB cards ₹4.3L-5.5L",
+      "source": "moneycontrol.com, amazon.in, elitehubs.com",
+      "source_type": "retailer",
+      "date": "June 02, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,000 - 5,50,000",
+      "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "RTX 5090 now widely available in I
+      "claim": "MSI RTX 5090 Gaming Trio 32GB priced at ₹4,69,000-5,11,000 on Indian retailers",
+      "source": "amazon.in",
+      "source_type": "retailer",
+      "date": "June 02, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 4,69,000 - 5

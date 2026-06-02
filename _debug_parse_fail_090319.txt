@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models via ik_llama.cpp PR #1744 (merged May 10, 2026), delivering 2.6-3x speedup over single-token inference. Gemma 4 31B goes from ~58 tok/s to ~165 tok/s on a single GPU.",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp and thecodersblog.com",
+      "source_type": "github",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.6-3x speedup; 58 tok/s -> 165 tok/s on Gemma 4 31B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP on Qwen 3.6 27B RTX 3090 confirmed: 38 tok/s to 65 tok/s (1.7x boost) with --spec-type draft-mtp flag",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.7x speedup, 38->65 tok/s on RTX 3090",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend delivers 93-130% decode speed improvement on Apple Silicon: decode from 58 tok/s to 112-134 tok/s, prefill from 1150 tok/s to 1850 tok/s on M5 Max",
+      "source": "dev.to/alanwest/ollama-just-got-93-faster-on-mac",
+      "source_type": "community",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Decode: 58->134 tok/s (+93-130%), Prefill: 1150->1850 tok/s (+60%)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 adds NVFP4 quantization support and dynamic precision switching (4-bit/8-bit/full on the fly without restart)",
+      "source": "aiindigo.com/blog/mlx-powered-ollama-on-apple-silicon",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "NVFP4 reduces

@@ -1,0 +1,44 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) expected to announce Mac Studio with M5 Max and M5 Ultra, but shipping likely delayed to October 2026 due to global memory shortages",
+      "source": "macworld.com, macrumors.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Base price expected ~$200 above current $1,999",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra rumored specs: 36-core CPU, 80-84 core GPU, 256GB unified memory, 1100GB/s+ bandwidth, 90-100% faster AI inference vs M3 Ultra",
+      "source": "geeky-gadgets.com, felloai.com",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max rumored specs: 18-core CPU, 42-core GPU, 50-55% faster GPU than previous Max, starting at 36GB unified memory",
+      "source": "geeky-gadgets.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 now generally available in India at Amazon, EliteHubs, PrimeABGB, MDComputers with 1-7 day delivery. Price range ₹2,14,000 (NVIDIA MSRP) to ₹6,00,000+ for custom models",
+      "source": "amazon.in, elitehubs.com, primeabgb.com",
+      "source_type": "retailer",
+      "date": "June 02, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,000 - 6,00,000+",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB is in stock and shipping in India from Apple and authorized retailers since March 2025. Base config (36GB) at ₹2,14,900",
+      "source": "apple.com/in, g

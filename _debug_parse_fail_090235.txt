@@ -1,0 +1,34 @@
+Based on all gathered data, here is the compiled JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP (Multi-Token Prediction) on Qwen3.6 27B delivers 71% speedup on RTX 3090: from 38 tok/s to 65 tok/s without quality loss. Broader MTP benchmarks show up to 2.4x faster inference for large models.",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 01, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 → 65 tok/s on RTX 3090 (Qwen3.6 27B); up to 2.4x on large models",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp b9196 ships prebuilt Windows binaries with CUDA 13.1/13.3, Vulkan, HIP (AMD ROCm), and SYCL (Intel Arc) backends, eliminating source compilation requirement for most users.",
+      "source": "knightli.com/en/2026/05/18/llama-cpp-windows-cuda-vulkan-gguf/",
+      "source_type": "blog",
+      "date": "June 01, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "N/A — deployment/accessibility improvement",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Intel OpenVINO 2026.1 introduces an official backend for llama.cpp supporting CPU, iGPU, and NPU (Intel AI Boost in Core Ultra). Qwen3 8B INT4-CW on NPU achieves ~5.2 tok/s at 2–4x lower power vs CPU (~7.4 tok/s). Intel Arc Pro B70 (32GB) now supported for 20–30B models.",
+      "source": "phoronix.com/news/OpenVINO-2026.1-Released",
+      "source_type": "official",
+      "date": "June 01, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "NPU: 5.2 tok/s; CPU: 7.4 tok/s; 2–4x power reduction on NPU",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend on Apple Silicon (M5 MacBook Pro) achieves prefill 1,851 tok/s and decode 134 tok/s on Qwen3.5-35B INT4 — decode nearly 2x faster than pri

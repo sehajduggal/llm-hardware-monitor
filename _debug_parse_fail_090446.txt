@@ -1,0 +1,36 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.6-27B (dense) achieves 77.2% on SWE-bench Verified, beating the 397B MoE Qwen3.5 (76.2%), running on 18-24GB VRAM with Apache 2.0 license",
+      "source": "aimadetools.com/blog/qwen-3-6-27b-complete-guide, noqta.tn, letsdatascience.com",
+      "source_type": "community",
+      "date": "May 28, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "High engagement across multiple tech blogs and r/LocalLLaMA",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M4 Max 128GB runs Llama 3.1 70B Q4_K_M at 12.5 tok/s fully GPU-offloaded via llama.cpp Metal, using 46GB RAM with 0.8s TTFT",
+      "source": "markaicode.com/benchmarks/llamacpp-m4-max-benchmark, forums.macrumors.com M4 Max Studio 128GB LLM testing thread",
+      "source_type": "forum",
+      "date": "May 28, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "Active MacRumors thread with multiple contributors",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 achieves 102.7 tok/s on 14B Q4 models, 186 tok/s on Qwen3 8B Q4_K_M, and can fit up to 34B Q4 fully in 32GB VRAM. Power draw 119-160W during inference",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090, insiderllm.com RTX 5090 vs DGX Spark benchmark",
+      "source_type": "community",
+      "date": "May 28, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "Comprehensive benchmark sites with community validation",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: ZOTAC base models at ₹3.6L, ASUS TUF ₹4.5-5L, MSI Gaming Trio ₹4.66-5.11L, high-end models ₹5.5-7L+. Stock sells out within minutes of restock",
+      "source": "amazon.in, elitehubs.com, pricehistory.app/msi-geforce-rtx-5090-32g-vanguard-soc",
+      "

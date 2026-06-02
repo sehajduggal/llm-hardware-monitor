@@ -1,0 +1,40 @@
+Based on my research, here's the compiled JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves ~100-120 tok/s on 70B Q4 models and ~97 tok/s on Qwen3.5 35B at 256K context. Prompt ingestion hits 4,473 tok/s on 14B models.",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB runs Qwen3 72B Q4_K_M at 12-20 tok/s (llama.cpp) and 18-26 tok/s (MLX). Qwen3 30B hits 60-120 tok/s on llama.cpp, 130+ on MLX.",
+      "source": "andrew.ooo/answers/best-local-llms-mac-m4-2026/",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio expected at WWDC 2026 (June 8-12): up to 80 GPU cores, 256GB unified memory, ~1,100 GB/s bandwidth, $3,999 base. Shipments may slip to October due to DRAM shortages.",
+      "source": "geeky-gadgets.com/mac-studio-m5-ultra-2/ and macrumors.com",
+      "source_type": "community",
+      "date": "May 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "high engagement across Apple rumor sites",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "llama.cpp b9371 (May 27, 2026) adds Multi-Token Prediction: up to 65% faster inference on MacBook Pro, 23% on budget GPUs. Qwen 3.6 27B on RTX 3090 went from 38 to 65 tok/s.",
+      "source": "youtube.com/watch?v=kpMLDIj6Ls8 and github.com/ggml-org/llama.cpp/releases",
+      "source_type": "github",
+      "date": "May 27, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "YouTube video + GitHub release",
+      "related_domains": ["optim

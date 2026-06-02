@@ -1,0 +1,48 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M5 Mac Studio delayed to October 2026 due to global DRAM shortage; will NOT be announced at WWDC June 8-12",
+      "source": "Geeky Gadgets, Macworld, MacRumors",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Expected $200 above current base due to higher RAM minimums",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio confirmed with up to 256GB unified memory, 32-36 CPU cores, 80 GPU cores, shipping October 2026",
+      "source": "iGeeksBlog, felloai.com, MacRumors",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 series claims 4x speedup over M4 for local LLM and AI workloads with Neural Accelerators in every GPU core",
+      "source": "felloai.com, TechRepublic",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "WWDC 2026 confirmed June 8-12, keynote June 8 at 10am PT; focus on iOS 27, macOS 27, advanced AI Siri — no Mac Studio hardware expected",
+      "source": "MacRumors, iGeeksBlog",
+      "source_type": "official",
+      "date": "May 27, 2026",
+      "confidence_signal": "official_announcement",
+      "price": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "RTX 5090 now broadly available in India — Zotac at ₹3,61,990, MSI Gaming Trio OC at ₹4,58,999, ASUS ROG Astral at ₹5,29,999 on Amazon India, EliteHubs, Vedant Computers",
+      "source": "Amazon.in, EliteHubs, Vedant Computers",
+      "source_type": "retailer",
+      "date": "May 27, 2026",
+      "confidence_signal": "direct_observation",
+      "price

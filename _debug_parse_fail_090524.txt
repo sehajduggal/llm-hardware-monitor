@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3-30B-A3B MoE achieves 78 tok/s on M4 Max 128GB with MLX optimization, faster than Claude Haiku 3.5 API streaming (~52-68 tok/s)",
+      "source": "alexdong.com/qwen3-30b-a3b and localclaw.io/models/qwen3-30b-a3b",
+      "source_type": "community",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 achieves 10,400 tokens/sec prompt processing (prefill) on Qwen3 8B with Flash Attention in llama.cpp, and 186 tok/s generation at 4k context",
+      "source": "hardware-corner.net/rtx-5090-llm-benchmarks/",
+      "source_type": "community",
+      "date": "June 02, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395, 128GB LPDDR5X) achieves 45.5 tok/s on Qwen 3.6 35B MoE Q8, boosted to 51 tok/s with Multi-Token Prediction (+12%). Dense 27B model sees +69.5% speedup with MTP",
+      "source": "dev.to/agustinsacco/frontier-logic-at-local-speed-the-2026-strix-halo-ultimate-benchmark-suite",
+      "source_type": "community",
+      "date": "June 02, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio rumored with 256GB unified memory, 1100 GB/s bandwidth, 80-84 GPU cores on 2nm. WWDC reveal June 8-12 but shipping delayed to October 2026 due to RAM shortages",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+      "source_type": "community",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "high

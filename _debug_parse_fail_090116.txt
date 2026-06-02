@@ -1,0 +1,44 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP merged in mainline (PR #22673) now delivers up to 78% speedup on Qwen3.6-27B, raising throughput from 25-38 tok/s to 45-65 tok/s on RTX 3090",
+      "source": "phemex.com/news/article/llamacpp-boosts-local-model-speed-by-78-with-mtp-support-83306",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "25-38 tok/s → 45-65 tok/s (up to 78% faster) on RTX 3090 with Qwen3.6-27B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP flag changed from --spec-type mtp to --spec-type draft-mtp in mainline merge",
+      "source": "gist.github.com/eeshansrivastava89/85797104af34181944bfd1360d69e8af",
+      "source_type": "github",
+      "date": "May 27, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Qwen3.6-35B-A3B MTP runs at 67 tok/s at 128k context on RTX 4070 12GB VRAM with llama.cpp mainline",
+      "source": "carteakey.dev/blog/running-qwen3-6-mtp-locally/",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "67 tok/s at 128k context on 12GB VRAM RTX 4070",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Memory leak bug discovered in llama.cpp MTP initial merge, workarounds and fixes now available",
+      "source": "xhinker.medium.com/the-new-mtp-merge-to-llama-cpp-6203518cb888",
+      "source_type": "blog",
+      "date": "May 27, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": null,
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "KTransformers v0.6.1 released with DeepSeek-V4-Flash support and AVX2-only CPU backend for broader hardware compatibility",
+      "source": "git

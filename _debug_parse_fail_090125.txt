@@ -1,0 +1,39 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp PR #22673 merges native MTP support into mainline, enabling speculative decoding without external draft models using built-in MTP heads in GGUF files",
+      "source": "baguaai.com/llama-cpp-merges-mtp-support-a-paradigm-shift-for-local-llm-inference-efficiency/",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Up to 2.4x speedup; Qwen3.6 27B goes from ~38 tok/s to ~65 tok/s (71% improvement)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP now works on both dense and MoE models including Qwen3.6-35B-A3B and Gemma 4, with token acceptance rates of 80-98%",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "June 02, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "80-98% acceptance rate on drafted tokens; ~10% extra RAM overhead for MTP context/KV cache",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "llama.cpp MTP benchmarked on AMD Strix Halo showing significant gains for unified memory architectures",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo",
+      "source_type": "benchmark",
+      "date": "June 02, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "Strix Halo-specific benchmarks available (exact numbers require full article)",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "BoFan-tunning/llama.cpp-MTP-TurboQuant fork fuses MTP logic with TurboQuant quantization for additional speedups on CUDA hardware",
+      "source": "github.com/BoFan-tunning/llama.cpp-MTP-TurboQuant",
+      "source_type": "github",
+      "date": "June 02, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "Co
