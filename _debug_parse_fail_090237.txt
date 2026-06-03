@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3.5-35B-A3B (MoE, 3B active) achieves 80-100 tok/s on M4 Max 128GB via llama.cpp Metal, and up to 130 tok/s via MLX natively",
+      "source": "techplained.com/qwen-3-5-apple-silicon and markaicode.com/benchmarks/llamacpp-m4-max-benchmark/",
+      "source_type": "community",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 runs Qwen3.5-35B at MXFP4 with 97.3 tok/s generation and 2,003 tok/s prompt processing, supporting up to 256k context in 32GB VRAM",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "June 03, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M5 Mac Studio likely delayed to October 2026 due to global RAM shortage despite expected WWDC announcement June 8-12. M5 Ultra: 36-core CPU, 80-core GPU, up to 256GB unified memory, >1TB/s bandwidth",
+      "source": "macrumors.com/guide/mac-studio-2026-rumors/ and geeky-gadgets.com/apple-m5-mac-studio-delayed/",
+      "source_type": "community",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: Zotac Solid at ₹3,61,990, MSI Gaming Trio OC at ₹5,11,329, ASUS TUF at ₹6,24,399. Stock extremely limited with 1-2 units per model, selling out in minutes",
+      "source": "amazon.in/rtx-5090 and primeabgb.com/geforce-rtx-5090-graphic-card/",
+      "source_type": "community",
+      "date": "June 03, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+   

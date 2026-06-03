@@ -1,0 +1,48 @@
+Now I have enough information to compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M5 Max/Ultra NOT announced at WWDC 2026 due to DRAM shortages; now expected October 2026",
+      "source": "macworld.com, macrumors.com",
+      "source_type": "blog",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "M5 Max expected ~$2,399 base, M5 Ultra ~$3,999 base (estimated $200+ increase over M4 gen)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra leaked specs: 36-core CPU, up to 84-core GPU, 256GB unified memory, ~1100 GB/s bandwidth via UltraFusion",
+      "source": "felloai.com, ibtimes.co.uk, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "~$3,999 base (estimated)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max leaked specs: 18-core CPU, 32-42 core GPU, up to 128GB unified memory, ~614 GB/s bandwidth",
+      "source": "macworld.com, macrumors.com",
+      "source_type": "blog",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "~$2,399 base (estimated)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 now widely available in India; Zotac AMP Extreme at ₹2,87,346 on Flipkart — lowest price seen",
+      "source": "flipkart.com",
+      "source_type": "retailer",
+      "date": "June 03, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,87,346",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "RTX 5090 India stock situation improved significantly — now in stock at Amazon.in, Flipkart, EliteHubs, MDComputers with 2-7 day delivery",
+      "source": "amazon.in, elitehubs.com, flipkart.com",
+      "source_type": "retailer",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+  

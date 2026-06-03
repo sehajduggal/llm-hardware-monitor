@@ -1,0 +1,36 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Gemma 4 MTP support merged into llama.cpp, delivering 2.6-3x speedup on RTX 4090. Gemma 4 27B MoE with MTP+TurboQuant achieves 50-58 tok/s vs 44 tok/s baseline",
+      "source": "ai.plainenglish.io/i-spent-3-nights-testing-gemma-4-mtp, buildfastwithai.com/blogs/gemma-4-mtp-drafter-faster-inference",
+      "source_type": "community",
+      "date": "June 03, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.6-3x speedup; Gemma 4 26B-A4B MoE: 44->58 tok/s with MTP on RTX 4090",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "LM Studio 0.4.14 ships stable MTP speculative decoding in GUI, 1.5-2x throughput gains. MLX engine v1.8.1 gives 30-50% speed gains over llama.cpp on Apple Silicon",
+      "source": "aiweekly.co/alerts/lm-studio-adds-native-mtp-speculative-decoding, lmstudio.ai/changelog",
+      "source_type": "official",
+      "date": "June 03, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "1.5-2x MTP throughput gain; MLX backend 30-50% faster than llama.cpp on Metal",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama reaches v0.30 with updated llama.cpp backend. MLX further optimized for Apple Silicon. Added AMD iGPU support fixes",
+      "source": "github.com/ollama/ollama/releases",
+      "source_type": "github",
+      "date": "June 03, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "Version bump from 0.19 to 0.30; improved AMD iGPU compatibility",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 (32GB GDDR7, 1792 GB/s bandwidth) benchmarked: Qwen3.5 35B MXFP4 at 97 tok/s @256K context, 14B Q4 at 103 tok/s, Qwen 2.5 7B at 145 tok/s",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090, markaicode.com/benchmarks/rtx-5090-inference-benchmark",
+      "s

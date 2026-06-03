@@ -1,48 +1,39 @@
-Based on my research, here's the JSON output:
+Based on my research, here's the findings JSON:
 
 ```json
 {
   "findings": [
     {
-      "claim": "M5 Mac Studio delayed to October 2026 due to global DRAM shortage; will NOT be announced at WWDC June 8-12",
-      "source": "Geeky Gadgets, Macworld, MacRumors",
+      "claim": "llama.cpp build 9200+ (May 16, 2026+) adds Gemma 4 MTP support alongside Qwen 3.6 MTP, with --spec-type draft-mtp flag variant",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
       "source_type": "blog",
-      "date": "May 27, 2026",
+      "date": "June 03, 2026",
       "confidence_signal": "multiple_reports",
-      "price": "Expected $200 above current base due to higher RAM minimums",
-      "related_domains": ["models", "optimization"]
+      "performance_data": "1.7x-2.4x speedup; Qwen 3.6-27B goes from ~38 tok/s to ~65 tok/s on RTX 3090",
+      "related_domains": ["hardware", "models"]
     },
     {
-      "claim": "M5 Ultra Mac Studio confirmed with up to 256GB unified memory, 32-36 CPU cores, 80 GPU cores, shipping October 2026",
-      "source": "iGeeksBlog, felloai.com, MacRumors",
+      "claim": "LM Studio 2.15.0+ adds native MTP speculative decoding support via integrated llama.cpp backend, no manual flag configuration needed",
+      "source": "aiweekly.co/alerts/lm-studio-adds-native-mtp-speculative-decoding",
       "source_type": "blog",
-      "date": "May 27, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": null,
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "M5 series claims 4x speedup over M4 for local LLM and AI workloads with Neural Accelerators in every GPU core",
-      "source": "felloai.com, TechRepublic",
-      "source_type": "blog",
-      "date": "May 27, 2026",
-      "confidence_signal": "single_anecdote",
-      "price": null,
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "WWDC 2026 confirmed June 8-12, keynote June 8 at 10am PT; focus on iOS 27, macOS 27, advanced AI Siri — no Mac Studio hardware expected",
-      "source": "MacRumors, iGeeksBlog",
-      "source_type": "official",
-      "date": "May 27, 2026",
+      "date": "June 03, 2026",
       "confidence_signal": "official_announcement",
-      "price": null,
+      "performance_data": "Same 1.7-2.4x speedup as llama.cpp MTP via GUI toggle",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 MTP models now available as GGUF from ggml-org on HuggingFace, enabling MTP without separate draft model and ~10% extra memory overhead",
+      "source": "blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/",
+      "source_type": "official",
+      "date": "June 03, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "2-3x inference speed on consumer GPUs and Apple Silicon",
       "related_domains": ["models"]
     },
     {
-      "claim": "RTX 5090 now broadly available in India — Zotac at ₹3,61,990, MSI Gaming Trio OC at ₹4,58,999, ASUS ROG Astral at ₹5,29,999 on Amazon India, EliteHubs, Vedant Computers",
-      "source": "Amazon.in, EliteHubs, Vedant Computers",
-      "source_type": "retailer",
-      "date": "May 27, 2026",
+      "claim": "llama.cpp MTP on AMD Strix Halo (integrated APU with unified memory) benchmarked showing significant gains for memory-bound scenarios",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo",
+      "source_type": "benchmark",
+      "date": "June 03, 2026",
       "confidence_signal": "direct_observation",
-      "price
+      "performance_data": "Not yet quantified vs dis
