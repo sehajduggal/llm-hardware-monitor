@@ -1,0 +1,43 @@
+Now I have enough data. Let me compile the JSON response.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) expected to reveal M5 Mac Studio with M5 Max (18-core CPU, 40-core GPU, 128GB max) and M5 Ultra (36-core CPU, 80-core GPU, 256GB unified memory), but shipping may be delayed to October 2026 due to DRAM shortages",
+      "source": "macworld.com, digitaltrends.com, Mark Gurman/Bloomberg reports",
+      "source_type": "blog",
+      "date": "June 04, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Expected $200+ higher than M4 generation base pricing",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple M5 generation claimed 4x faster than M4 for AI workloads including LLM inference, with local 14B-parameter model inference in under 10 seconds per Apple MLX research",
+      "source": "felloai.com M5 Ultra Mac Studio coverage",
+      "source_type": "blog",
+      "date": "June 04, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 now in stock and shipping in India from Amazon India, EliteHubs, PrimeABGB, MDComputers. Price range: ₹2,14,000 (reference) to ₹6,24,399 (ASUS TUF). Gigabyte Windforce OC at ₹4,49,789-₹4,91,669",
+      "source": "amazon.in, elitehubs.com, primeabgb.com",
+      "source_type": "retailer",
+      "date": "June 04, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,000 - 6,24,399",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "MSI GeForce RTX 5090 Gaming Trio OC priced at ~₹5,11,329 in India",
+      "source": "amazon.in RTX 5090 listings",
+      "source_type": "retailer",
+      "date": "June 04, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 5,11,329",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Framework Desktop with AMD Ryzen AI Max+ 395 and 128GB LPDDR5X no

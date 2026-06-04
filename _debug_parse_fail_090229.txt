@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 runs Qwen3.5 35B (MXFP4) at 97 tok/s at 256k context; DeepSeek R2 at 256 tok/s (512 context, batch 1)",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ and markaicode.com/benchmarks/litellm-deepseek-r2-rtx-5090-throughput-benchmark/",
+      "source_type": "community",
+      "date": "June 04, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "ZOTAC RTX 5090 AMP Extreme available on Flipkart India at ₹2.83-2.87L (offer price, MRP ₹3.79L), listed as in stock",
+      "source": "flipkart.com ZOTAC RTX 5090 AMP Extreme INFINITY listing",
+      "source_type": "community",
+      "date": "June 04, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Mac Studio M5 Max/Ultra announcement expected at WWDC 2026 (June 8-12) but actual shipping may slip to October 2026 due to global RAM shortages. M5 Ultra: 256GB unified, ~1100 GB/s bandwidth, 80-core GPU",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+      "source_type": "community",
+      "date": "June 04, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "llama.cpp MTP (Multi-Token Prediction) prefill bottleneck fix delivers 1.5x-1.8x speed improvement for Qwen3.6 and other MTP-enabled models — many prior benchmarks significantly underreported performance",
+      "source": "aiweekly.co/alerts/llamacpp-update-unlocks-18x-mtp-speed-gains",
+      "source_type": "community",
+      "date": "June 04, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "relat

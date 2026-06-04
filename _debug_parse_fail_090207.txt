@@ -1,0 +1,38 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp PR #22673 merged MTP support on May 16, 2026; now at build b9496 (June 3). Qwen 3.6-27B on RTX 3090 goes from 38 tok/s to 65 tok/s with --spec-type draft-mtp --spec-draft-n-max 2",
+      "source": "github.com/ggml-org/llama.cpp/pull/22673, braincuber.com, mer.vin",
+      "source_type": "github",
+      "date": "June 04, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38→65 tok/s on RTX 3090 (71% gain) for Qwen 3.6-27B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 26B-A4B MoE runs on 12GB RTX 4070 with MTP using assistant-drafter GGUF architecture (separate from Qwen's built-in MTP head). Baseline ~44 tok/s, with MTP+TurboQuant ~50-58 tok/s",
+      "source": "carteakey.dev/blog/running-gemma-4-mtp-locally/, thecodersblog.com",
+      "source_type": "blog",
+      "date": "June 04, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "44→50-58 tok/s (+15-30%) on RTX 4070 12GB",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "atomic-llama-cpp-turboquant fork combines MTP with TurboQuant (turbo3/turbo4 KV-cache compression from Google DeepMind), reducing VRAM pressure for long-context MoE inference",
+      "source": "github.com/AtomicBot-ai/atomic-llama-cpp-turboquant",
+      "source_type": "github",
+      "date": "June 04, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "Reduces KV cache memory; enables long-context on consumer GPUs",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 MTP on Apple Silicon (M-series) reported up to 3x speedup versus sequential decoding in llama.cpp",
+      "source": "ai.plainenglish.io, blog.google/innovation-and-ai/technology/developers-tools/multi-token-prediction-gemma-4/",
+      "source_type": "official",
+      "date": "June 04, 2026",
+  
