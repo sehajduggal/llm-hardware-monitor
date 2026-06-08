@@ -1,48 +1,45 @@
-Now I have enough information to compile the JSON response.
+Based on my research, here's the JSON output:
 
 ```json
 {
   "findings": [
     {
-      "claim": "Mac Studio M5 Max/Ultra NOT announced at WWDC 2026 due to DRAM shortages; now expected October 2026",
-      "source": "macworld.com, macrumors.com",
-      "source_type": "blog",
-      "date": "June 03, 2026",
+      "claim": "Apple previewed Mac Studio M5 Max and M5 Ultra at WWDC 2026 (June 8 keynote). M5 Ultra: 36 CPU cores, 80 GPU cores, 256GB unified memory. M5 Max: 18 CPU cores, 40 GPU cores, 128GB memory.",
+      "source": "macworld.com, felloai.com, macrumors.com",
+      "source_type": "official",
+      "date": "June 05, 2026",
       "confidence_signal": "multiple_reports",
-      "price": "M5 Max expected ~$2,399 base, M5 Ultra ~$3,999 base (estimated $200+ increase over M4 gen)",
+      "price": "M5 Max ~$2,299, M5 Ultra ~$3,999 starting",
       "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "M5 Ultra leaked specs: 36-core CPU, up to 84-core GPU, 256GB unified memory, ~1100 GB/s bandwidth via UltraFusion",
-      "source": "felloai.com, ibtimes.co.uk, apfelpatient.de",
+      "claim": "Mac Studio M5 Ultra/Max shipping delayed to October 2026 due to global RAM/memory shortages. Previewed at WWDC but not immediately orderable.",
+      "source": "macrumors.com, geeky-gadgets.com",
       "source_type": "blog",
-      "date": "June 03, 2026",
+      "date": "June 05, 2026",
       "confidence_signal": "multiple_reports",
-      "price": "~$3,999 base (estimated)",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "M5 Max leaked specs: 18-core CPU, 32-42 core GPU, up to 128GB unified memory, ~614 GB/s bandwidth",
-      "source": "macworld.com, macrumors.com",
-      "source_type": "blog",
-      "date": "June 03, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "~$2,399 base (estimated)",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "RTX 5090 now widely available in India; Zotac AMP Extreme at ₹2,87,346 on Flipkart — lowest price seen",
-      "source": "flipkart.com",
-      "source_type": "retailer",
-      "date": "June 03, 2026",
-      "confidence_signal": "direct_observation",
-      "price": "INR 2,87,346",
+      "price": null,
       "related_domains": ["models"]
     },
     {
-      "claim": "RTX 5090 India stock situation improved significantly — now in stock at Amazon.in, Flipkart, EliteHubs, MDComputers with 2-7 day delivery",
-      "source": "amazon.in, elitehubs.com, flipkart.com",
-      "source_type": "retailer",
-      "date": "June 03, 2026",
+      "claim": "M5 Ultra Mac Studio with 256GB unified memory expected to have ~1,100 GB/s memory bandwidth, a major jump from M3 Ultra's 819 GB/s and M4 Max's ~546 GB/s.",
+      "source": "felloai.com, cultofmac.com",
+      "source_type": "blog",
+      "date": "June 05, 2026",
       "confidence_signal": "multiple_reports",
-  
+      "price": "$4,000-$5,000 for 256GB config",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple claims M5 Ultra is up to 4x faster than M4 for local LLM inference, can handle 14B parameter dense model in under 10 seconds.",
+      "source": "macworld.com, felloai.com",
+      "source_type": "official",
+      "date": "June 05, 2026",
+      "confidence_signal": "official_announcement",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB available on Apple India store. Base (36GB) at ₹2,14,900, 128GB CTO config exceeds ₹3,00,000.",
+      "source": "apple.com/in/shop/buy-mac/mac-studio",
+ 

@@ -1,0 +1,39 @@
+I have enough data to compile the findings. Let me produce the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP merged May 16, 2026 (build 9200+) with --spec-type draft-mtp flag, delivering 1.5-2.5x speedup on consumer hardware with no extra VRAM for draft model",
+      "source": "llmrequirements.com/news/2026-05-17-llama-cpp-mtp-merged/",
+      "source_type": "blog",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Qwen3.6 27B on RTX 3090: 38 tok/s → 65 tok/s (1.71x speedup)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP uses built-in prediction heads in single GGUF file, adding only ~1 transformer layer of memory overhead instead of requiring separate draft model",
+      "source": "startupfortune.com/llamacpp-now-supports-multi-token-prediction-in-beta",
+      "source_type": "blog",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Near-zero additional VRAM vs previous dual-model speculative decoding",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "llama.cpp MTP achieves up to 5x speedup on highly predictable sequences (mathematical reasoning) in specific tests",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 05, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "Up to 5x on math reasoning tasks",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend delivers ~2x decode speedup over Metal on Apple Silicon: Qwen 3.5 35B goes from 58 tok/s to 112 tok/s decode",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "official",
+      "date": "June 05, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "Qwen 3.5 35B: 58→112 tok/s decode; Llama 4 8B: 85→134 tok/s

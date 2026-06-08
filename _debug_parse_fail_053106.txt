@@ -1,0 +1,46 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 keynote is today (June 8). M5 Mac Studio with M5 Max and M5 Ultra announced but shipping delayed to ~October 2026 due to global RAM shortages",
+      "source": "macworld.com, macrumors.com, gadgets360.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Estimated ₹2.2-2.5L starting (M5 Max base)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra specs rumored: 32-36 CPU cores, 80 GPU cores, 256GB unified memory support, ~1100 GB/s memory bandwidth",
+      "source": "felloai.com, igeeksblog.com, macworld.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "TBD",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max specs rumored: 18-core CPU, 40-core GPU, up to 128GB unified memory, Thunderbolt 5",
+      "source": "geeky-gadgets.com, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "TBD",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max remains available on apple.com/in starting at ₹2,14,900 (36GB). 128GB CTO estimated at ₹3.15-3.65L",
+      "source": "apple.com/in, gadgets360.com",
+      "source_type": "retailer",
+      "date": "June 08, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 base; ~INR 3,15,000-3,65,000 for 128GB CTO",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "AMD Ryzen AI Halo Box (official AMD reference mini-PC) launching June 2026 with pre-orders open at $3,999 for 128GB LPDDR5X/Ryzen AI Max+ 395/2TB SSD. Available at Micro Center",
+      "source": "servethehome.com, techspot.com, wccftech.com",
+      "source_type": "official",
+  

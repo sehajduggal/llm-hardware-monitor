@@ -1,0 +1,45 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 kicks off June 8 with Mac Studio M5 Max and M5 Ultra expected to be announced, but shipping likely delayed to October 2026 due to global RAM shortages",
+      "source": "macworld.com, macrumors.com, felloai.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max rumored specs: 18-core CPU, 42-core GPU (up from earlier 40-core rumors), significant performance uplift over M4 Max",
+      "source": "geeky-gadgets.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra expected to offer 32-36 core CPU, 80-84 GPU cores, and up to 256GB unified memory — skipping M4 Ultra entirely",
+      "source": "felloai.com, ibtimes.co.uk, igeeksblog.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$3,999+ starting (speculation)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base (36GB/512GB) currently available on apple.com/in at ₹2,14,900; 128GB CTO pricing available via configurator",
+      "source": "apple.com/in, indiatoday.in, gadgets360.com",
+      "source_type": "retailer",
+      "date": "June 08, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 (base 36GB)",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Beelink GTR9 Pro with Ryzen AI Max+ 395, 128GB LPDDR5x-8000, 2TB SSD available for pre-order globally at $1,985 (pre-sale) / $2,399 MSRP, ships within 35 days",
+      "source": "bee-link.com, notebookcheck.net",
+      "source_type": "retai

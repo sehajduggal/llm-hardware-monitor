@@ -1,0 +1,37 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves ~186 tok/s on Qwen3 8B Q4_K_M, ~43.8 tok/s on Qwen3 32B at 32k context, and can run Qwen3.5 35B at 256K context with ~100 tok/s generation",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/ and markaicode.com RTX 5090 benchmarks",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio expected at WWDC 2026 (June 8-12) with 36 CPU cores, 80 GPU cores, 256GB unified memory, ~1100 GB/s bandwidth — but RAM shortages may push ship date to October 2026",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors, macrumors.com/guide/mac-studio-2026-rumors",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "multiple credible sources (Gurman/Bloomberg)",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "vLLM is 32% faster than Ollama for single-threaded LLM inference on RTX 5090, and scales to ~312 tok/s total with 4 concurrent clients vs ~148 tok/s for Ollama on Mistral 7B",
+      "source": "dev.to/johalputt/performance-test-ollama-050-vs-vllm-040-local-llm-inference-latency-on-nvidia-rtx-5090",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["optimization", "models"]
+    },
+    {
+      "claim": "MLX backend is now 20-87% faster than llama.cpp for models under 14B on Apple Silicon, making Ollama+MLX the speed king for M4 Max users",
+      "source": "blog.starmorph.com/blog/apple-silicon-llm-inference-optimization-guide",
+      "source_type": "community",
+   

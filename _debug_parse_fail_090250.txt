@@ -1,0 +1,43 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 benchmarks show Qwen3.5 35B MXFP4 at 97.3 tok/s generation and 2,003 t/s prompt processing at 256K context; Qwen3 32B Q4_K at 43.8 tok/s at 32K context",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "vLLM is 32% faster than Ollama on RTX 5090 for Mistral 7B (148 vs 112 tok/s), and 2.1x throughput advantage with 4 concurrent users; p99 latency 210ms vs 320ms",
+      "source": "markaicode.com/benchmarks/rtx-5090-local-ai-benchmark/",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["optimization", "hardware"]
+    },
+    {
+      "claim": "M5 Mac Studio NOT announced at WWDC 2026 — delayed to October 2026 due to global RAM shortages from AI infrastructure demand. M5 Ultra will offer 256GB unified memory",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB runs Llama 3.1 70B Q4 at ~14 tok/s, 32B Q4 at ~30 tok/s, 13B Q4 at ~68 tok/s via llama.cpp with Metal acceleration",
+      "source": "blog.imseankim.com/apple-m4-max-macbook-pro-ai-inference-benchmarks/",
+      "source_type": "community",
+      "date": "June 05, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+    

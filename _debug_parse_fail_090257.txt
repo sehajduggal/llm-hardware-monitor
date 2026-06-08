@@ -1,0 +1,35 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP on Strix Halo (Ryzen AI Max+ 395) delivers 69.5% speedup for dense models: Qwen 3.6 27B Q4_K_XL goes from 11.8 to 20.0 tok/s, and 12% for MoE (Qwen 3.6 35B Q8_K_XL from 45.5 to 51.0 tok/s)",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo",
+      "source_type": "benchmark",
+      "date": "June 05, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "Dense 27B: 11.8→20.0 tok/s (+69.5%), MoE 35B: 45.5→51.0 tok/s (+12%), Vulkan backend on Strix Halo 128GB",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp 2026 unified backend rewrite completed: single ggml-backend API layer for CPU/CUDA/Metal/Vulkan/HIP, new kernel generator for hardware-specific optimizations, restructured KV cache for speculative decoding support",
+      "source": "mlsystemsreview.com/llama-cpp-2026-rewrite/",
+      "source_type": "blog",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2-4x speedups under optimal conditions with MTP; hardware-agnostic plugin backends",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Ollama 0.19 MLX backend on M4 Max 64GB: decode speed 112-134 tok/s (up from 58 tok/s on Metal), prefill 1810-1851 tok/s (up from 1154 tok/s). ~2x generation speedup confirmed",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "official",
+      "date": "June 05, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Decode: 58→134 tok/s (2.3x), Prefill: 1154→1851 tok/s (1.6x), M4 Max 64GB, Llama 4 8B Q4",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama MLX enables 30B models at ~100 tok/s on 32GB M-class Macs and 70B models at usable interactive speeds on 64GB Macs",
+      "source": "byteiota.com/ollama-mlx-2x-faster-local-ai-on-apple-sili

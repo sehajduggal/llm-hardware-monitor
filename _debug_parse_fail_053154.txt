@@ -1,0 +1,36 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp build 9200+ adds Gemma 4 MTP support alongside existing Qwen 3.6 and DeepSeek V3 MTP, using --spec-type draft-mtp flag (changed from --spec-type mtp)",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.5-2.5x speedup; Qwen 3.6 27B went from ~38 tok/s to ~65 tok/s on single GPU with MTP enabled (70%+ gain)",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "ExLlamaV3 with EXL3 quantization format achieves 140-177 tok/s on coding workloads vs 59 tok/s baseline, with 3x speedup on consumer GPUs and minimal quality loss at 2-4 bpw",
+      "source": "startupfortune.com/exllamav3-makes-local-ai-infrastructure-more-practical-for-founders/",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "EXL3 Q3.5 on Llama 3 8B: ~170 tok/s in ~4GB VRAM vs EXL2 Q4 ~120 tok/s in ~5GB",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang achieves 29% higher throughput than vLLM in shared-prefix workloads (1920 vs 1850 tok/s on Llama 70B FP8 H100) with aggressive automatic prefix sharing",
+      "source": "aimadetools.com/blog/sglang-vs-vllm/",
+      "source_type": "benchmark",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1920 tok/s SGLang vs 1850 tok/s vLLM on H100, 112ms vs 120ms p50 latency",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Ollama MLX backend on Apple Silicon now achieves 300 tok/s decode on Gemma 4 with MTP on Mac Studio, and 134 tok/s on M5 Max with int4 quantization for large models",
+      "source": "pooyagolchian.com/blog/gemma-4-ollama-multi-token-prediction-local-2026/",
+   
