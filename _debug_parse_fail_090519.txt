@@ -1,0 +1,38 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M5 Max Mac Studio delayed from WWDC 2026 to ~October 2026 due to global DRAM shortages. M5 Max confirmed specs: 18-core CPU, 40-core GPU, up to 128GB unified memory, ~614GB/s bandwidth. M5 Ultra: 36-core CPU, 80-core GPU, up to 256GB.",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+      "source_type": "community",
+      "date": "June 09, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "ZOTAC RTX 5090 AMP Extreme INFINITY available on Flipkart India at ₹2,87,346 — significantly lower than previous ₹3.05L floor estimate. Stock appears available as of early June 2026.",
+      "source": "flipkart.com/zotac-rtx-5090-amp-extreme-infinity-gddr7-32-gb",
+      "source_type": "community",
+      "date": "June 09, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "live listing",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 India price range now ₹2.87L-₹8.73L across brands. GIGABYTE Windforce OC at ₹4.49L, MSI Gaming Trio OC at ₹5.11L, ASUS TUF at ₹6.24L. Most listings show 'Only 1-2 left in stock' on Amazon India.",
+      "source": "amazon.in/rtx-5090/s?k=rtx+5090",
+      "source_type": "community",
+      "date": "June 09, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "live listings",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 delivers 3.2x throughput vs RTX 4090 in llama.cpp. Llama 3.1 8B Q4_K_M: 178 tok/s. 14B model at 16K context: 102.7 tok/s. Mistral 3 3B: 265 tok/s. Can fit 34B Q4 fully in 32GB VRAM.",
+      "source": "github.com/patrickwhelan-uk/llm-inference-benchmarks",
+      "source_type": "github",
+      "date": "June 09, 2026",
+      "confidence_signal": "verified_

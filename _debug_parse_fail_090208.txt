@@ -1,0 +1,43 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Qwen3.6-27B on RTX 3090 with 1.71x speedup (38 to 65 tok/s), up to 2.44x in favorable conditions",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo, baguaai.com",
+      "source_type": "benchmark",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 tok/s -> 65 tok/s on RTX 3090 (1.71x), up to 2.44x reported",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 MTP support proposed/landing in llama.cpp with ~2x decoding speedup and zero quality loss",
+      "source": "aiweekly.co/alerts/gemma-4-mtp-support-proposed-for-llamacpp, ai.plainenglish.io",
+      "source_type": "community",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "~2x decoding speedup for Gemma 4 models",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "AMD Strix Halo APU achieves 200+ GB/s memory bandwidth enabling 30B+ parameter models at conversational speeds with llama.cpp MTP",
+      "source": "hardware-corner.net/strix-halo-llm-optimization/, strixhalo.wiki",
+      "source_type": "benchmark",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "200+ GB/s bandwidth, up to 2.4x MTP speedup on edge APU",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "llama.cpp now supports distributed GGUF model splitting across multiple Strix Halo nodes via rpc-server for mini-cluster edge LLM serving",
+      "source": "kyuz0.github.io/amd-strix-halo-toolboxes/",
+      "source_type": "github",
+      "date": "June 08, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "Enables multi-node edge serving of large models",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "KTransformers adds DeepSe

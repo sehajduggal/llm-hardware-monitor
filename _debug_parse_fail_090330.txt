@@ -1,0 +1,38 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models with up to 2.44x speedup on AMD Strix Halo APU (Qwen3.6-27B dense, from 11.8 to 20 tok/s = 1.7x; peak 2.44x in stacked benchmarks)",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo",
+      "source_type": "benchmark",
+      "date": "June 09, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Qwen3.6-27B Q4_K_XL: 11.8→20 tok/s (1.7x); Qwen3.6-35B MoE: 45.5→51 tok/s (12%); peak 2.44x observed",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "atomic-llama-cpp-turboquant fork combines MTP + TurboQuant KV-cache quantization, enabling 100K+ context on consumer GPUs with only 5-8% throughput loss",
+      "source": "github.com/AtomicBot-ai/atomic-llama-cpp-turboquant",
+      "source_type": "github",
+      "date": "June 09, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Gemma 4 26B-A4B on RTX 4070: 44→50-58 tok/s with MTP+TurboQuant; 100K context on 3090 at ~7% throughput loss",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama MLX backend now delivers 2x decode speed vs old Metal backend: Qwen3.5-35B-A3B on M5 hits 134 tok/s decode (vs 58 tok/s Metal) and 1851 tok/s prefill (vs 1154)",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "official",
+      "date": "June 09, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "Decode: 134 vs 58 tok/s (2.3x); Prefill: 1851 vs 1154 tok/s (1.6x) on M5 chip",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama introduces NVFP4 quantization format support, providing higher quality than Q4_K_M while reducing storage and bandwidth requirements",
+      "source": "ollama.com/blog/mlx",
+      "source_type": "official",
+      "date": "June 09, 2026",
+      "confidence_signal": 

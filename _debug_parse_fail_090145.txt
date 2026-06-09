@@ -1,0 +1,44 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) confirmed M5 Mac Studio with M5 Max and M5 Ultra chips announced. M5 Ultra specs: up to 36 CPU cores, 80 GPU cores, 256GB unified memory, ~1100 GB/s memory bandwidth",
+      "source": "felloai.com, macworld.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio expected starting price ~$3,999 USD for base Ultra config; 256GB memory option likely well north of $5,000 USD",
+      "source": "felloai.com, ibtimes.co.uk, zeerawireless.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$3,999+ USD base",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "M5 Mac Studio retail availability delayed due to global RAM shortages — expected October 2026 actual shipping, not immediate after WWDC",
+      "source": "macworld.com, felloai.com, techrepublic.com",
+      "source_type": "blog",
+      "date": "June 08, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base (36GB/512GB) available in India at ₹2,14,900 from Apple India, Aptronix, India iStore. 128GB CTO estimated ₹3.5-4L+",
+      "source": "indiaistore.com, aptronixindia.com, gadgets360.com",
+      "source_type": "retailer",
+      "date": "June 08, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 base; INR 3.5-4L+ for 128GB CTO",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Framework Desktop with Ryzen AI Max+ 395 (128GB LPDDR5x-8000) orderable at $1,999 USD. Sells out in waves, shipping in batches",
+      "source": "frame.work, pcguide.com, servetheh

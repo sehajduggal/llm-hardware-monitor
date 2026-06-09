@@ -1,24 +1,24 @@
 {
-  "last_run": "2026-06-08T05:44:01.874176",
+  "last_run": "2026-06-09T09:17:58.243603",
   "checks": {
     "model_benchmarks": {
-      "name": "Qwen3-30B-A3B",
-      "params": "30B",
+      "name": "Qwen3-235B-A22B",
+      "params": "235B",
       "architecture": "MoE",
-      "active_params": "3B",
-      "humaneval_plus": 79.2,
-      "swe_bench_verified": 38.8,
-      "livecode_bench": 52.2,
-      "vram_q4": "18GB",
-      "vram_q8": "33GB",
-      "tok_s_128gb_unified": 155,
-      "tok_s_48gb_unified": 142,
-      "tok_s_rtx5090": 95,
-      "tok_s_rtx4060ti_16gb_moe_offload": 38,
+      "active_params": "22B",
+      "humaneval_plus": 94.1,
+      "swe_bench_verified": 58.7,
+      "livecode_bench": null,
+      "vram_q4": "128GB",
+      "vram_q8": "235GB",
+      "tok_s_128gb_unified": 18,
+      "tok_s_48gb_unified": null,
+      "tok_s_rtx5090": 12,
+      "tok_s_rtx4060ti_16gb_moe_offload": null,
       "best_quant": "Q4_K_M",
       "context_max": "128K",
-      "released": "2025-04-29",
-      "notes": "MoE efficiency king - only 3B active params gives near-32B quality at 7B speed. Fits easily on 16GB VRAM at Q4."
+      "released": "2025-04-28",
+      "notes": "Best open-weight coding model overall; requires 128GB unified memory at Q4; MoE with 128 experts, 8 active"
     },
     "learning_feed": {
       "topic_id": "vram_calculation",
@@ -70,7 +70,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       "mac_studio_m5": {
         "info": "Mac Studio M5 Max/Ultra expected October 2026 launch, possible WWDC preview. Global DRAM shortage may delay availability and increase pricing",
@@ -102,7 +102,7 @@
         "playwright_status": "ok",
         "store_url": "https://frame.work/desktop",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       "strix_halo_options": {
         "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB) available since mid-2025; current price ~$2,799 US / \u20ac2,343 EU (intro price of $1,699 ended)",
@@ -129,7 +129,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861",
+        "checked_at": "2026-06-09T09:09:23.385514",
         "alt_rtx_5090_flipkart": {
           "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
           "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
@@ -165,7 +165,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861",
+        "checked_at": "2026-06-09T09:09:23.385514",
         "price_usd": 1799.0
       }
     },
@@ -995,6 +995,12 @@
     },
     {
       "timestamp": "2026-06-08 05:44",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
+    },
+    {
+      "timestamp": "2026-06-09 09:17",
       "changes_count": 0,
       "status": "partial",
       "changes": []
@@ -16126,10 +16132,139 @@
           "is_new": false
         }
       ]
+    },
+    {
+      "timestamp": "2026-06-09 09:17",
+      "date_label": "June 09, 2026",
+      "run_status": {
+        "model_benchmarks": "success",
+        "hardware_gather": "error",
+        "efficiency_gather": "error",
+        "models_gather": "error",
+        "community_gather": "error",
+        "learning_feed": "error",
+        "researcher": "skipped",
+        "critique": "skipped"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "model_benchmarks",
+          "key": "name",
+          "label": "Name",
+          "data": "Qwen3-235B-A22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "params",
+          "label": "Params",
+          "data": "235B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "active_params",
+          "label": "Active Params",
+          "data": "22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "humaneval_plus",
+          "label": "Humaneval Plus",
+          "data": 94.1,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "swe_bench_verified",
+          "label": "Swe Bench Verified",
+          "data": 58.7,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "livecode_bench",
+          "label": "Livecode Bench",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q4",
+          "label": "Vram Q4",
+          "data": "128GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q8",
+          "label": "Vram Q8",
+          "data": "235GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_128gb_unified",
+          "label": "Tok S 128Gb Unified",
+          "data": 18,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_48gb_unified",
+          "label": "Tok S 48Gb Unified",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx5090",
+          "label": "Tok S Rtx5090",
+          "data": 12,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx4060ti_16gb_moe_offload",
+          "label": "Tok S Rtx4060Ti 16Gb Moe Offload",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "released",
+          "label": "Released",
+          "data": "2025-04-28",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "notes",
+          "label": "Notes",
+          "data": "Best open-weight coding model overall; requires 128GB unified memory at Q4; MoE with 128 experts, 8 active",
+          "severity": "info",
+          "is_new": false
+        }
+      ]
     }
   ],
   "store_check": {
-    "timestamp": "2026-06-08T05:35:44.323861",
+    "timestamp": "2026-06-09T09:09:23.385514",
     "results": [
       {
         "key": "mac_studio_128gb_india",
@@ -16145,7 +16280,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "mac_studio_128gb_india_1tb",
@@ -16161,7 +16296,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "mac_studio_128gb_us",
@@ -16177,7 +16312,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "mac_mini_48gb_india",
@@ -16193,7 +16328,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "mac_mini_48gb_us",
@@ -16209,7 +16344,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "apple_refurbished_india",
@@ -16226,7 +16361,7 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "apple_refurbished_us",
@@ -16234,7 +16369,7 @@
         "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
         "page_reachable": true,
         "sku_present": true,
-        "price": 1189.0,
+        "price": 4159.0,
         "currency": "USD",
         "target_config_selectable": false,
         "continue_enabled": false,
@@ -16242,7 +16377,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "framework_desktop_128gb",
@@ -16258,7 +16393,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "bosgame_m5_128gb",
@@ -16274,7 +16409,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "beelink_gtr9_pro_128gb",
@@ -16290,7 +16425,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "minisforum_ms_s1_max",
@@ -16306,7 +16441,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "corsair_ws300",
@@ -16323,7 +16458,7 @@
         "delivery_info": "delivery by\":\"Order today for estimated delivery by\",\"Out of Stock\":\"Out of Stoc",
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "amd_strix_halo_128gb_india",
@@ -16339,7 +16474,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "rtx_5090_india",
@@ -16355,7 +16490,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "checked_at": "2026-06-09T09:09:23.385514"
       },
       {
         "key": "rtx_5090_flipkart",
@@ -16368,11 +16503,13 @@
         "target_config_selectable": false,
         "continue_enabled": false,
         "availability_signal": "metadata_only",
-        "playwright_status": "ok",
+        "playwright_status": "stale_cache",
         "delivery_info": null,
-        "fallback_used": "stealth_retry",
-        "freshness": "fresh_verified",
-        "checked_at": "2026-06-08T05:35:44.323861"
+        "fallback_used": "stale_cache",
+        "freshness": "stale",
+        "checked_at": "2026-06-09T09:09:23.385514",
+        "stale_from": "2026-06-08T05:35:44.323861",
+        "stale_hours": 27.6
       }
     ]
   },
@@ -16970,10 +17107,10 @@
       ],
       "warranty": "global Apple warranty",
       "last_enrichment": "M5 Mac Studio expected October 2026 (delayed from WWDC due to global RAM shortage). M5 Max: 18-core CPU, up to 128GB unified memory, ~$2,499. M5 Ultra: 36-core CPU, up to 256GB unified memory, ~800GB/s+ bandwidth, ~$3,999. Significantly better than M4 Max 128GB for 70B inference due to higher bandwidth and potential 256GB capacity. Wait if budget allows; current M4 Max 128GB is the best available now.",
-      "enrichment_date": "2026-06-08"
+      "enrichment_date": "2026-06-09"
     }
   },
-  "enrichment_timestamp": "2026-06-08T05:43:25.724664",
+  "enrichment_timestamp": "2026-06-09T09:17:50.170818",
   "price_history": {
     "mac_mini_48gb_india": [
       {
@@ -17043,6 +17180,11 @@
       },
       {
         "date": "2026-06-08",
+        "price": 189900.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-06-09",
         "price": 189900.0,
         "currency": "INR"
       }
@@ -17117,6 +17259,11 @@
         "date": "2026-06-08",
         "price": 1799.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-09",
+        "price": 1799.0,
+        "currency": "USD"
       }
     ],
     "apple_refurbished_us": [
@@ -17188,6 +17335,11 @@
       {
         "date": "2026-06-08",
         "price": 1189.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-09",
+        "price": 4159.0,
         "currency": "USD"
       }
     ],
@@ -17261,6 +17413,11 @@
         "date": "2026-06-08",
         "price": 4499.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-09",
+        "price": 4499.0,
+        "currency": "USD"
       }
     ],
     "minisforum_ms_s1_max": [
@@ -17331,6 +17488,11 @@
       },
       {
         "date": "2026-06-08",
+        "price": 2599.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-09",
         "price": 2599.0,
         "currency": "USD"
       }
@@ -17463,6 +17625,11 @@
         "date": "2026-06-08",
         "price": 292689.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-09",
+        "price": 292689.0,
+        "currency": "INR"
       }
     ],
     "framework_desktop_128gb_usd": [
@@ -17482,6 +17649,11 @@
     "rtx_5090_flipkart": [
       {
         "date": "2026-06-08",
+        "price": 309134.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-06-09",
         "price": 309134.0,
         "currency": "INR"
       }
@@ -17517,7 +17689,7 @@
       "summary": "Best option: Mac Mini M4 Pro 48GB at \u20b91.90L / $1,799.0",
       "blockers": []
     },
-    "timestamp": "2026-06-08T05:43:59",
+    "timestamp": "2026-06-09T09:17:55",
     "trend": "stable"
   },
   "readiness_history": [
@@ -17664,13 +17836,21 @@
       "models": 25,
       "tools": 80,
       "cost": 75
+    },
+    {
+      "date": "2026-06-09",
+      "overall": 41,
+      "hardware": 20,
+      "models": 25,
+      "tools": 80,
+      "cost": 75
     }
   ],
   "model_benchmark_history": [],
   "copilot_sessions": {
-    "run_id": "f46d",
-    "run_date": "2026-06-08",
-    "pattern": "llm-homelab-{category}-2026-06-08-f46d"
+    "run_id": "3a97",
+    "run_date": "2026-06-09",
+    "pattern": "llm-homelab-{category}-2026-06-09-3a97"
   },
   "knowledge_state": {
     "version": 1,
@@ -19206,7 +19386,7 @@
     }
   ],
   "pipeline_meta": {
-    "last_pipeline_run": "2026-06-08T05:33:15.851483",
+    "last_pipeline_run": "2026-06-09T09:06:08.663744",
     "last_gather_results": {},
     "last_critique_status": null,
     "iteration_count": 0,

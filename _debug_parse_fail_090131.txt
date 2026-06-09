@@ -1,43 +1,34 @@
-Based on my research, here's the JSON output:
+I have enough data to compile the findings. Here's the JSON:
 
 ```json
 {
   "findings": [
     {
-      "claim": "Mac Studio M4 Max 128GB is in stock and shipping in India via Apple Store, Aptronix, Flipkart. Base M4 Max (36GB) at ₹2,14,900, 128GB CTO well above ₹3,00,000",
-      "source": "apple.com/in, indiatoday.in, gadgets360.com",
-      "source_type": "retailer",
-      "date": "May 18, 2026",
+      "claim": "llama.cpp MTP PR #22673 merged May 2026, now stable in June builds. Flag changed to --spec-type draft-mtp. Supports Gemma 4, Qwen 3.6, DeepSeek-V3 natively without separate draft model.",
+      "source": "baguaai.com/llama-cpp-merges-mtp-support, codersera.com/blog/local-ai-runtimes-may-2026-update",
+      "source_type": "blog",
+      "date": "June 09, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2-3x speedup possible; Qwen3.6 27B went from 38 tok/s to 65 tok/s (1.7x) on RTX 3090",
+      "related_domains": ["inference", "speculative_decoding"]
+    },
+    {
+      "claim": "llama.cpp MTP flag syntax updated: now --spec-type draft-mtp (not --spec-type mtp as previously documented). Draft head weights loaded from same GGUF file, sharing KV cache and tokenizer.",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 09, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.4x faster inference claimed in tutorial benchmarks",
+      "related_domains": ["inference", "speculative_decoding"]
+    },
+    {
+      "claim": "Gemma 4 models with MTP achieve significant speedups especially in coding/predictable-text contexts. MTP draft heads co-trained with main model ensure no quality degradation.",
+      "source": "ai.plainenglish.io/i-spent-3-nights-testing-gemma-4-mtp",
+      "source_type": "community",
+      "date": "June 09, 2026",
       "confidence_signal": "direct_observation",
-      "price": "INR 2,14,900 base; INR 3,00,000+ for 128GB CTO",
-      "related_domains": ["models", "optimization"]
+      "performance_data": "30-100 tok/s depending on quantization and setup on consumer GPUs",
+      "related_domains": ["models", "speculative_decoding"]
     },
     {
-      "claim": "WWDC 2026 officially confirmed June 8-12, keynote June 8 at 10am PT. Apple emphasizing AI advancements. Possible M5 Mac hardware announcement",
-      "source": "macrumors.com, techcrunch.com, igeeksblog.com",
-      "source_type": "official",
-      "date": "May 18, 2026",
-      "confidence_signal": "official_announcement",
-      "price": null,
-      "related_domains": ["models"]
-    },
-    {
-      "claim": "M5 Ultra Mac Studio rumored: 32-36 core CPU, 80-core GPU, up to 256GB unified memory, ~1100 GB/s bandwidth. Reveal possible at WWDC but shipping may slip to October 2026 due to RAM shortages",
-      "source": "macworld.com, macrumors.com, felloai.com",
-      "source_type": "blog",
-      "date": "May 18, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "Expected ~$3,999 USD entry",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "M5 Max confirmed shipping in MacBook Pros already (early 2026): 18-core CPU, 40-core GPU, 128GB unified memory, ~614 GB/s bandwidth",
-      "source": "macworld.com, apfelpatient.de",
-      "source_type": "blog",
-      "date": "May 18, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": null,
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "RTX 5090 India pricing has shifted UP significantly: entry-level AIB cards (Zotac, ASUS TUF) now ₹4.30L-4.56L, mid-range ₹4.50L-5.50L, pr
+      "claim": "SGLang achieves up to 29% higher throughput than vLLM on multi-turn/context-sharing workloads (chatbots, RAG, multi-agent) via aggressive automatic p
