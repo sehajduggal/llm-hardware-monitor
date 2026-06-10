@@ -1,0 +1,36 @@
+Based on my research, here's the community intelligence JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M5 Max NOT announced at WWDC 2026 — delayed to October 2026 due to global RAM supply shortages. M5 Max specs confirmed: 18-core CPU, 40-core GPU, 128GB unified memory, ~614 GB/s bandwidth. M5 Ultra: 256GB unified memory.",
+      "source": "macworld.com, macrumors.com/guide/mac-studio-2026-rumors, apfelpatient.de",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 India pricing now ₹3.96L (MSI 32G on IndiaMART) to ₹6.99L (ROG Astral/liquid-cooled). Stock available in small batches on EliteHubs, PrimeABGB, Vedant Computers, Amazon.in. Limited-time bundles running until mid-June.",
+      "source": "indiamart.com, elitehubs.com, primeabgb.com, amazon.in RTX 5090 listings",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 benchmarks: Qwen3 32B Q4_K at 43.8 tok/s, Qwen3 8B at 186 tok/s, Llama 3.1 8B at 197 tok/s (vLLM). 30-50% faster than RTX 4090 for token generation. 10,400 tok/s prompt processing at 4k context.",
+      "source": "hardware-corner.net/rtx-5090-llm-benchmarks, markaicode.com/benchmarks/rtx-5090-ai-benchmark",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "Qwen3.5 35B MXFP4 quantization achieves 97.3 tok/s at 256k context window on RTX 5090 — making it viable for full-codebase agentic work on single GPU.",
+      "source": "hardware-corner.net/rtx-5090-llm-benchmarks",
+      "source_type": "co

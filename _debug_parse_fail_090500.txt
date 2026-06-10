@@ -1,0 +1,37 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp PR #22673 merged May 16, 2026 adds first-class MTP support. Qwen3.6 27B on AMD Strix Halo achieves 2.44x speedup (7.4 to 18.1 t/s Q8_0). On RTX 3090: 38 to 65 t/s (1.7x).",
+      "source": "calebcoffie.com/blog/benchmarking-llama-cpp-mtp-on-strix-halo, startupfortune.com",
+      "source_type": "benchmark",
+      "date": "June 10, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.44x on Strix Halo, 1.7x on RTX 3090 for Qwen3.6 27B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Gemma 4 MTP uses a separate drafter model (~0.4-0.45 GiB). On Strix Halo achieves 3.7x faster for 31B and +45% for 26B-A4B MoE variant. Activated via --spec-draft-model <drafter.gguf> --spec-type mtp.",
+      "source": "sleepingrobots.com/dreams/gemma4-mtp-assistant-strix-halo/",
+      "source_type": "benchmark",
+      "date": "June 10, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "3.7x speedup for Gemma 4 31B on Strix Halo; +45% for 26B-A4B",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 achieves 158 tok/s on Llama 7B Q4_K_M (3x faster than RTX 4090). Qwen3 8B prefill reaches 10,400 tok/s at 4K context. 32GB GDDR7 with 1792 GB/s bandwidth.",
+      "source": "markaicode.com/benchmarks/rtx-5090-llamacpp-benchmark/, hardware-corner.net",
+      "source_type": "benchmark",
+      "date": "June 10, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "158 tok/s gen (7B Q4), 10400 tok/s prefill (8B Q4), 3x over RTX 4090",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "ExLlamaV2 archived after v0.3.2 (July 2025), succeeded by ExLlamaV3. EXL2 format still dominant for NVIDIA GPU inference but active development moved to v3.",
+      "source": "aiwiki.ai/wiki/exl2",
+      "source_type": "community",
+      "date": "June

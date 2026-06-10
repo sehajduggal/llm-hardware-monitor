@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M5 Max Mac Studio NOT announced at WWDC 2026; delayed to October 2026 due to DRAM shortages. Specs leaked: 18-core CPU, 42-core GPU, 614GB/s bandwidth, 128GB unified memory. Lower-memory configs may be eliminated.",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date-specs-price-rumors.html",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M5 Max early benchmarks via MLX stack show 750-1800 tok/s prompt processing and 50-80 tok/s generation on large models like Qwen3/120B, competitive with RTX Pro 6000",
+      "source": "hardware-corner.net/m5-max-local-llm-benchmarks-20261233/",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 achieves 178 tok/s on Llama 3.1 8B Q4_K_M via Ollama, 124 tok/s on 14B models, ~70 tok/s on 70B Q4/Q5. 32GB GDDR7 at 1.79TB/s bandwidth. India pricing ₹3.7L-4.2L after GST.",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395) with 128GB LPDDR5X achieves ~212GB/s bandwidth. Qwen 3.6 35B MoE at 45-51 tok/s, 70B models at 3-5 tok/s. Vulkan backend preferred over ROCm.",
+      "source": "hardware-corner.net/strix-halo-llm-optimization/",
+      "source_type": "community",
+      "date": "June 10, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_
