@@ -1,0 +1,38 @@
+Based on all the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M4 Max 128GB runs Llama 3.1 70B Q4_K_M at ~18 tok/s (llama.cpp) and ~20 tok/s (MLX), with Q8 dropping to 10-12 tok/s. MLX consistently 20-30% faster than llama.cpp on Apple Silicon.",
+      "source": "blog.imseankim.com - M4 Max AI Inference Benchmarks",
+      "source_type": "community",
+      "date": "June 11, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "M5 Max Mac Studio delayed to October 2026 due to DRAM shortages. Specs confirmed: 18-core CPU, 40-core GPU, 128GB max unified memory, ~50-55% GPU perf gain over M4 Max. Starting price ~$2,499 (higher than previous gen).",
+      "source": "macworld.com - M5 Mac Studio 2026 Release date specs rumors",
+      "source_type": "community",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 achieves 43.8 tok/s on Qwen3 32B Q4_K_M at 32K context. Prompt processing hits 10,400 tok/s on Qwen3 8B. 70B models fit in 4-bit but only with 8K-16K context on 32GB VRAM.",
+      "source": "hardware-corner.net - RTX 5090 Local LLM Benchmarks",
+      "source_type": "community",
+      "date": "June 11, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: ZOTAC AMP Extreme on Flipkart at ₹3,79,250 (discounted to ₹2,83,346 with offers). ASUS TUF at ₹4,69,999. GIGABYTE Gaming OC at ₹5,17,889. Stock remains 'only 1 left' on most listings.",
+      "source": "flipkart.com, elitehubs.com, pricehistory.app",
+      "source_type": "community",
+      "date": "June 11, 2026",
+      "confidence_signal": "direct_observa

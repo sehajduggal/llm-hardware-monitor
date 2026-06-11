@@ -1,0 +1,40 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP prefill bottleneck fix (post-May 16 builds) unlocks 1.8x true throughput that was previously throttled by a silent bug in prompt processing stage",
+      "source": "aiweekly.co/alerts/llamacpp-update-unlocks-18x-mtp-speed-gains",
+      "source_type": "blog",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.8x throughput improvement over pre-fix MTP builds",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6 27B on RTX 3090 with MTP achieves ~65 tok/s up from ~38 tok/s baseline (1.7x speedup)",
+      "source": "startupfortune.com/llamacpp-adds-multi-token-prediction-and-doubles-qwen36-27b-throughput-for-local-inference/",
+      "source_type": "benchmark",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 tok/s → 65 tok/s on RTX 3090, 1.7x speedup",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "AMD Strix Halo CPUs achieve 2.44x speedup with llama.cpp MTP on dense models",
+      "source": "baguaai.com/llama-cpp-lands-mtp-support-local-inference-breakthrough-sees-qwen-3-6-gains-up-to-2-44x/",
+      "source_type": "benchmark",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.44x throughput improvement on AMD Strix Halo",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Gemma 4 MTP merges draft and verification heads within main model file, reducing VRAM usage compared to older two-model speculative approaches",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Single-file MTP eliminates draft model VRAM overhead",
+      "related_doma

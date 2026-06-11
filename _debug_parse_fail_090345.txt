@@ -1,34 +1,35 @@
-Now I have enough data. Let me compile the JSON response.
+Based on my research, here's the JSON output:
 
 ```json
 {
   "findings": [
     {
-      "claim": "Google released MTP (Multi-Token Prediction) drafters for Gemma 4, achieving up to 3x speedup for Dense models (31B: 280-320 tok/s → 820-890 tok/s on H100) and 2.6-2.98x on dual RTX 3090 via ik_llama.cpp fork. MoE variant (26B A4B) gains only +13% at batch=1.",
-      "source": "github.com/karany97/llamacpp-gemma4-mtp, ai.google.dev/gemma/docs/mtp/overview, marktechpost.com",
-      "source_type": "official",
-      "date": "May 6, 2026",
-      "confidence_signal": "official_announcement",
-      "performance_data": "3x throughput for Dense models; pp2048 test: 869→2828 tok/s; MoE only +13%",
-      "related_domains": ["inference", "speculative_decoding", "models"]
-    },
-    {
-      "claim": "llama.cpp restructured KV cache memory management for Gemma 4, reducing VRAM usage by ~40% in large-context scenarios. Gemma 4 26B now fits in 24GB VRAM at 8K context; 31B Q4 uses ~18GB at 8K context.",
-      "source": "explore.n1n.ai/blog/gemma-4-local-inference-llama-cpp-kv-cache-fix-npu-benchmarks-2026-04-05",
-      "source_type": "community",
-      "date": "April-May 2026",
-      "confidence_signal": "multiple_reports",
-      "performance_data": "40% VRAM reduction; 26B Q4 ~14GB at 8K context; 31B fits 24GB cards",
-      "related_domains": ["hardware", "memory_optimization"]
-    },
-    {
-      "claim": "TurboQuant KV cache compression (per-layer, outlier-aware quantization) achieves 3-4x KV cache compression with minimal quality loss. Available in DFlash/Luce-Org forks via --cache-type-k turbo3 --cache-type-v turbo3 flags, being merged upstream.",
-      "source": "github.com/AtomicBot-ai/atomic-llama-cpp-turboquant",
+      "claim": "Gemma 4 MTP in llama.cpp achieves 2.6-3.34x lossless speedup, with 26B MoE hitting 180-220 tok/s on Mac Studio M2 (up from 70 tok/s baseline)",
+      "source": "github.com/karany97/llamacpp-gemma4-mtp, aiweekly.co",
       "source_type": "github",
-      "date": "May 2026",
-      "confidence_signal": "direct_observation",
-      "performance_data": "3-4x KV cache size reduction",
-      "related_domains": ["memory_optimization", "quantization"]
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.6-3.34x speedup; Gemma 4B: 35→90-100 tok/s on RTX 4060; Gemma 26B MoE: 70→180-220 tok/s on Mac Studio; draft acceptance rates 70-85%",
+      "related_domains": ["hardware", "models"]
     },
     {
-      "claim": "Ol
+      "claim": "Google released Gemma 4 QAT (Quantization Aware Training) GGUFs on June 6, 2026 — E2B under 1GB (from 9.6GB BF16), 26B-A4B fits in 14-15GB, with significantly better quality than PTQ (85.6% vs 70% top-1 accuracy on Q4_0)",
+      "source": "blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/",
+      "source_type": "official",
+      "date": "June 11, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "~90% size reduction for E2B; QAT Q4_0 gets 85.6% accuracy vs 70% for naive PTQ on 26B-A4B",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, with --spec-type draft-mtp flag variant for Gemma architecture",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
+      "source_type": "blog",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Gemma 4 MTP uses shared KV cache between draft and main model, avoiding extra VRAM overhead",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "KTransformers 0.6.2 adds DeepSeek-V4-Flash support with Expert Deferral technique providing 1.45x additional throughput by overlapping CPU and GPU expert computation",
+      "sou

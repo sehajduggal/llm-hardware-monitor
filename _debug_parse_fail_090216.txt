@@ -1,0 +1,52 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8) was software-only — no M5 Max/Ultra Mac Studio announced. Event focused on Siri AI, iOS 27, macOS Golden Gate",
+      "source": "macworld.com, studioglobal.ai, techrepublic.com",
+      "source_type": "official",
+      "date": "June 11, 2026",
+      "confidence_signal": "official_announcement",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio delayed to October 2026 due to global DRAM shortage. Expected specs: 36 CPU cores, 80 GPU cores, up to 512GB unified memory, ~1TB/s bandwidth",
+      "source": "macworld.com, bloomberg reports",
+      "source_type": "blog",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max already shipping in MacBook Pros (18 CPU cores, 40 GPU cores) but Mac Studio form factor delayed",
+      "source": "macworld.com",
+      "source_type": "blog",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB CTO configurations showing 18-week shipping delays on apple.com/in due to DRAM shortage",
+      "source": "techtimes.com, ptrva.com",
+      "source_type": "community",
+      "date": "June 11, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "INR 3,50,000-4,00,000 (128GB CTO)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Apple discontinued $599 Mac Mini base model; new entry point is $799/512GB due to DRAM cost pressure",
+      "source": "thenextweb.com",
+      "source_type": "official",
+      "date": "June 11, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "$799",
+      "related_domains": ["models"]
+    },
+    {
+      "cl
