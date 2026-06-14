@@ -1,0 +1,44 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) was software-focused; Mac Studio M5 was NOT announced. Apple delayed M5 Mac Studio to October 2026 due to global RAM shortages.",
+      "source": "Engadget, Macworld, studioglobal.ai WWDC 2026 coverage",
+      "source_type": "official",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra specs rumored: up to 36 CPU cores, 80-84 GPU cores, 256-512GB unified memory, bandwidth exceeding 1,000 GB/s. Expected October 2026.",
+      "source": "Macworld, notebookcheck.net, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Starting above $1,999 (price increase expected)",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Mac Mini was confirmed/announced at WWDC 2026, though details limited.",
+      "source": "Geeky Gadgets WWDC 2026 coverage",
+      "source_type": "blog",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max remains available on apple.com/in starting at ₹2,14,900 (36GB). Max standard config is 96GB. 128GB requires CTO custom order.",
+      "source": "apple.com/in Mac Studio specs page",
+      "source_type": "retailer",
+      "date": "June 14, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900 base; INR 2,84,900 for 64GB/8TB config",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 desktop GPUs now broadly available on Amazon India and primeabgb.com. Prices: Zotac AMP Extreme ₹4,56,989; MSI Gaming Trio OC ₹5,11,329; Gigabyte Gaming OC ₹5,17,889; ASUS TUF ₹6,24,399.",
+      "source": "Amazon.i

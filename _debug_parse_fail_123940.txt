@@ -1,0 +1,39 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp v9200+ (mid-May 2026) merged native MTP into mainline, no longer requiring external draft models. MTP heads integrated into GGUF format directly.",
+      "source": "runanywhere.ai/newsletter/2026-W20, braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Up to 2.4x faster inference confirmed across multiple sources",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Qwen3.6 27B with MTP on RTX 3090 benchmarked at 65 tok/s vs 38 tok/s baseline (71% improvement)",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "benchmark",
+      "date": "June 14, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "38 tok/s -> 65 tok/s on RTX 3090, 71% speedup",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP now uses --spec-type draft-mtp flag (changed from --spec-type mtp), with KV cache overhead under 10%",
+      "source": "mer.vin/2026/05/run-qwen-3-6-mtp-in-llama-cpp-faster-local-inference-with-built-in-speculative-decoding/",
+      "source_type": "blog",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "<10% additional VRAM overhead for MTP heads",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "MoE models with MTP in llama.cpp achieving over 100 tok/s on suitable hardware (RTX 4090 class)",
+      "source": "mer.vin/2026/05/run-qwen-3-6-mtp-in-llama-cpp-faster-local-inference-with-built-in-speculative-decoding/",
+      "source_type": "benchmark",
+      "date": "June 14, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "100+ tok/s on 

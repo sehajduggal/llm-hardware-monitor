@@ -1,0 +1,34 @@
+I have enough data. Let me compile the JSON output.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, with PR #22673 merged mid-May 2026. Qwen3.6 27B MTP achieves ~65 tok/s on RTX 3090 (up from ~38 tok/s baseline), a 71% throughput gain.",
+      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/, mer.vin/2026/05/run-qwen-3-6-mtp-in-llama-cpp",
+      "source_type": "blog",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Qwen3.6 27B: 38 -> 65 tok/s on RTX 3090 (71% gain); MoE MTP: 98 -> 144 tok/s",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "MoE models with MTP speculative decoding achieve 144 tok/s on RTX 5060 Ti 16GB GPU in llama.cpp, demonstrating budget hardware can run 30B+ MoE models at high speed.",
+      "source": "njannasch.dev/blog/mtp-speculative-decoding-qwen-3-6-5060ti/",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "144 tok/s on 16GB GPU with MoE MTP",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Google TurboQuant compresses KV cache to 3-4 bits per value with ~zero accuracy loss, achieving 6x memory reduction and 4-8x speedup on H100 attention computation vs FP16. Open-source implementations appearing in vLLM and llama.cpp Q2 2026.",
+      "source": "research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/",
+      "source_type": "official",
+      "date": "June 14, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "6x KV cache memory reduction, 4-8x attention speedup on H100",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang RadixAttention delivers up to 5x throughput over vLLM for multi-turn/agentic workloads with prefix sharing. SGLang now powers 400,00

@@ -1,0 +1,38 @@
+Based on all the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M5 Ultra Mac Studio announced at WWDC 2026 with up to 256GB unified memory, 800-1000+ GB/s bandwidth, UltraFusion connecting two M5 Max dies. Shipping may be delayed to October 2026 due to DRAM shortages.",
+      "source": "macworld.com, trendforce.com, felloai.com - WWDC 2026 coverage",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "high engagement across tech press",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M5 Max confirmed at 128GB unified memory, 614GB/s bandwidth. M5 Ultra runs Llama 3.3 70B and even 405B quantized models locally — something no single GPU can match.",
+      "source": "contracollective.com/blog/m5-ultra-local-ai-inference-mlx-2026",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 India pricing has INCREASED since last analysis — now ₹4.57L-6.62L across retailers (MDComputers, Amazon, Vedant). MSI Vanguard SOC at ₹3.05L on Flipkart appears to be gone. Lowest observed is Gigabyte at ~₹4.85L.",
+      "source": "mdcomputers.in, amazon.in, vedantcomputers.com RTX 5090 listings",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "n/a - retail listings",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 benchmarks: Qwen3.5 35B at MXFP4 runs 97.3 tok/s generation (2003.7 tok/s prompt) with 256k context entirely in 32GB VRAM. Qwen3 32B Q4_K at 43.8 tok/s.",
+      "source": "hardware-corner.net/gpu-llm-benchmarks/rtx-5090/",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "veri

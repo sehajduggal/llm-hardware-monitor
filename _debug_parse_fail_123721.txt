@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3-30B-A3B achieves 78-88 tokens/sec on M4 Max 128GB with MLX 4-bit quantization, outperforming Ollama significantly on Apple Silicon",
+      "source": "deepnewz.com/ai-modeling/qwen3-30b-a3b-model-mlx-weights-shows-m4-max-m3-ultra-lead + alexdong.com review",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "M5 Max Mac Studio now shipping (since March 2026) with 128GB unified memory, benchmarked at 25-32 tok/s on Llama 4 70B Q4 and 55-66 tok/s on Qwen3.5-122B MoE via MLX",
+      "source": "hardware-corner.net/m5-max-local-llm-benchmarks + macgpu.com 2026 review",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio delayed to October 2026 due to DRAM shortages — expected 256GB unified memory, 1100 GB/s bandwidth, 80 GPU cores",
+      "source": "macworld.com/article/2973459/2026-mac-studio-m5-release-date + felloai.com",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "RTX 5090 achieves 158 tok/s on 7B Q4_K_M, 35-65 tok/s on 30-32B models, and 10,400+ tok/s prompt processing on 8B models with llama.cpp",
+      "source": "markaicode.com/benchmarks/rtx-5090-llamacpp-benchmark + hardware-corner.net/rtx-5090-llm-benchmarks",
+      "source_type": "community",
+      "date": "June 14, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"
