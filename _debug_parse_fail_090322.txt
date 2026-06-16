@@ -1,39 +1,45 @@
-Now I have enough data to compile the JSON response.
+Based on my research, here's the JSON output:
 
 ```json
 {
   "findings": [
     {
-      "claim": "Qwen3.6-27B with MTP achieves 52.8 tok/s on AMD MI50 (up from ~29.9 tok/s baseline), a 76% speedup using MTP + TurboQuant KV cache compression",
-      "source": "dasroot.net/posts/2026/05/qwen-36-27b-52-8-tok-s-on-mi50s-mtp-turboquant/",
+      "claim": "Mac Studio M5 Ultra confirmed but delayed to October 2026 due to global DRAM shortages — NOT announced for immediate availability at WWDC 2026 (June 8-12)",
+      "source": "Macworld, Geeky Gadgets, Bloomberg/Gurman reports",
       "source_type": "blog",
-      "date": "May 2026",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "Expected ~$3,999 USD starting",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra specs confirmed: up to 36 CPU cores, 80-84 GPU cores, up to 256GB unified memory, >1000GB/s bandwidth, dual M5 Max dies fused",
+      "source": "notebookcheck.net, felloai.com, ibtimes.co.uk",
+      "source_type": "blog",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max Mac Studio expected to start at $2,299 USD (up from M4 Max $1,999) due to memory chip cost increases",
+      "source": "Macworld, Geeky Gadgets",
+      "source_type": "blog",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$2,299 USD",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max available in India starting at ₹2,14,900 (base 36GB), 128GB CTO estimated ₹3.5-4L via Apple India store and authorized resellers",
+      "source": "Apple India, Aptronix, India iStore",
+      "source_type": "retailer",
+      "date": "June 16, 2026",
       "confidence_signal": "direct_observation",
-      "performance_data": "29.9 → 52.8 tok/s (+76%) on MI50, batch=1",
-      "related_domains": ["hardware", "models"]
+      "price": "INR 2,14,900 base; INR 3.5-4L for 128GB CTO",
+      "related_domains": ["models", "optimization"]
     },
     {
-      "claim": "Qwen3.6-27B with MTP on RTX 3090 goes from ~38 tok/s to ~65 tok/s (+71%) with no quality degradation, no separate draft model required",
-      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
-      "source_type": "blog",
-      "date": "May 2026",
-      "confidence_signal": "multiple_reports",
-      "performance_data": "38 → 65 tok/s (+71%) on RTX 3090",
-      "related_domains": ["hardware", "models"]
-    },
-    {
-      "claim": "TurboQuant KV cache quantization (tbq3_0/tbq4_0) enables 12.2x context length extension on RTX 3090 (8K → 100K tokens) with only -7.5% speed loss and +1.8GB VRAM. Presented at ICLR 2026.",
-      "source": "huggingface.co/spaces/ai-engineering-at/llama-cpp-turboquant-guide",
-      "source_type": "github",
-      "date": "May 2026",
-      "confidence_signal": "official_announcement",
-      "performance_data": "12.2x context (8K→100K) on RTX 3090, -7.5% TPS, +1.8GB VRAM",
-      "related_domains": ["hardware", "models"]
-    },
-    {
-      "claim": "Ollama 0.19 MLX backend doubles decode speed on Apple Silicon: 58 tok/s (Metal) → 112-134 tok/s (MLX), prefill 1100 → 1810-1851 tok/s",
-      "source": "andrew.ooo/posts/ollama-mlx-apple-silicon-review/",
-      "source_type": "blog",
-      "date": "May 2026",
-      "confidence_signal": "multiple_reports",
-      "performance_data": "Decode: 58→112-134 tok/s (2x), Prefill: 1
+      "claim": "RTX 5090 now widely listed in India on Amazon.in, MDComputers, EliteHubs — premium AIBs priced ₹4.8L-6.25L; some entry models as low as ₹2.14L-3.99L",
+      "source": "Amazon.in, MDComputers, EliteHubs",
+      "source_ty

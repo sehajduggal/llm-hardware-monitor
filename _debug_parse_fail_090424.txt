@@ -1,0 +1,40 @@
+Based on my research, here's the consolidated JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "RTX 5090 achieves 158 tok/s on Llama 7B Q4_K_M and 124 tok/s on 14B Q4_K_M via llama.cpp, with 1,792 GB/s bandwidth and 32GB GDDR7",
+      "source": "markaicode.com/benchmarks/rtx-5090-llamacpp-benchmark/",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization"]
+    },
+    {
+      "claim": "Qwen3-30B-A3B runs at 78-88 tok/s on M4 Max 128GB with MLX (4-bit/6-bit quant), exceeding 100 tok/s for short context windows",
+      "source": "deepnewz.com - Qwen3-30B-A3B Model with MLX Weights Shows M4 Max Lead",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M5 Max confirmed: 128GB unified memory, ~614 GB/s bandwidth, runs Qwen3.5-122B-A10B at 55-65 tok/s locally. M5 Ultra expected 256GB, 80 GPU cores, 1100+ GB/s bandwidth. DRAM shortages may delay shipment to October 2026",
+      "source": "hardware-corner.net/m5-max-local-llm-benchmarks-20261233/",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 India pricing: MSI Vanguard SOC at ₹4,59,999 on Flipkart (₹3,05,134 with discounts), Amazon range ₹3,29,000-₹6,99,999. Stock now widely available with next-day delivery in metros",
+      "source": "flipkart.com/msi-rtx-5090-32g-vanguard-soc and amazon.in",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "direct_observation",
+      "upvotes_or_engagement": "unknown",
+      "related_domai

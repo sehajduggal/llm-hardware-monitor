@@ -1,24 +1,24 @@
 {
-  "last_run": "2026-06-14T12:53:29.619113",
+  "last_run": "2026-06-16T09:16:43.018875",
   "checks": {
     "model_benchmarks": {
-      "name": "Qwen3-Coder-Next",
-      "params": "80B",
+      "name": "Qwen3-Coder-Next-235B-A22B",
+      "params": "235B",
       "architecture": "MoE",
-      "active_params": "3B",
+      "active_params": "22B",
       "humaneval_plus": 94.1,
       "swe_bench_verified": 58.7,
       "livecode_bench": null,
-      "vram_q4": "49GB",
-      "vram_q8": "80GB",
-      "tok_s_128gb_unified": 42,
+      "vram_q4": "128GB",
+      "vram_q8": "220GB",
+      "tok_s_128gb_unified": 2,
       "tok_s_48gb_unified": null,
-      "tok_s_rtx5090": 55,
+      "tok_s_rtx5090": 1,
       "tok_s_rtx4060ti_16gb_moe_offload": null,
       "best_quant": "Q4_K_M",
       "context_max": "256K",
-      "released": "2026-02-03",
-      "notes": "Best overall local coding model; MoE with only 3B active params gives excellent speed-to-quality ratio on 128GB Mac"
+      "released": "2025-12-15",
+      "notes": "Best overall local coding model; requires 192GB+ for comfortable use. Overkill for most local setups."
     },
     "learning_feed": {
       "topic_id": "vram_calculation",
@@ -70,7 +70,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       "mac_studio_m5": {
         "info": "Mac Studio M5 Max/Ultra expected October 2026 launch, possible WWDC preview. Global DRAM shortage may delay availability and increase pricing",
@@ -102,7 +102,7 @@
         "playwright_status": "ok",
         "store_url": "https://frame.work/desktop",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       "strix_halo_options": {
         "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB) available since mid-2025; current price ~$2,799 US / \u20ac2,343 EU (intro price of $1,699 ended)",
@@ -129,14 +129,14 @@
         "playwright_status": "ok",
         "store_url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120",
+        "checked_at": "2026-06-16T09:08:10.294845",
         "alt_rtx_5090_flipkart": {
           "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
           "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
-          "signal": "page_only",
+          "signal": "metadata_only",
           "price": 309134.0,
           "currency": "INR",
-          "delivery": null
+          "delivery": "Get it by \u00a0 19 Jun   4.2 GIGABYTE 3050 WF OC GDDR6 6 GB NVIDIA Chipset 96 bit 20"
         },
         "price_inr": 292689.0,
         "delivery_info": "Get it by Saturday, May 30 FREE Delivery by Amazon Only 1 left in stock. NVIDIA",
@@ -165,7 +165,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120",
+        "checked_at": "2026-06-16T09:08:10.294845",
         "price_usd": 1799.0
       }
     },
@@ -1022,6 +1022,12 @@
       "changes_count": 0,
       "status": "partial",
       "changes": []
+    },
+    {
+      "timestamp": "2026-06-16 09:16",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
     }
   ],
   "enrichment": {
@@ -1508,25 +1514,30 @@
   },
   "recommendation": {
     "recommendation": "buy_now",
-    "best_option": "Mac Studio M4 Max 128GB Unified Memory (CTO)",
-    "summary": "The Mac Studio M4 Max with 128GB unified memory is orderable via Apple India CTO (base 36GB model in stock at \u20b92,14,900; 128GB CTO config ~\u20b93,99,900). It delivers ~160 tok/s on Qwen3-30B-A3B, handles 70B models comfortably, and supports 7B-14B fine-tuning. No reason to wait 4+ months for M5 when this machine already exceeds your requirements.",
-    "reasoning": "The Mac Studio M4 Max 128GB is your best option today. Apple India has the Mac Studio M4 Max base (36GB/512GB) in stock at \u20b92,14,900, and CTO configurations with 128GB unified memory are orderable through apple.com/in (typically ships in 1-2 weeks). At ~160 tok/s on Qwen3-30B-A3B via MLX, this dramatically exceeds your 25 tok/s minimum. For dense 70B models (Q4_K_M), expect 15-20 tok/s which is usable for coding agents.\n\nThe Bosgame M5 Strix Halo 128GB at $2,799 (~\u20b92,35,000) is cheaper but only delivers ~70 tok/s on the same model \u2014 less than half the Mac's speed. The Mac also offers global Apple warranty, superior power efficiency for 24/7 operation, and native MLX ecosystem support via Ollama 0.19+.\n\nWaiting for Mac Studio M5 Max (Oct 2026) gains you maybe 30-40% more performance, but you lose 4+ months of productive 24/7 agent runtime. The M4 Max 128GB already solves your problem completely. Fine-tuning 7B-14B models is feasible with MLX fine-tuning on 128GB unified memory.",
-    "best_model": "Qwen3.6-35B-A3B MoE (or Qwen3-30B-A3B)",
-    "model_config": "Q4_K_M quant, 32K context, ~160 tok/s on M4 Max 128GB via MLX/Ollama",
-    "fine_tuning": "Feasible: MLX fine-tuning supports LoRA/QLoRA on 7B-14B models with 128GB unified memory. Qwen3-14B full fine-tune possible; 35B LoRA fine-tune also fits. Use mlx-lm or unsloth.",
-    "cost_estimate_inr": "\u20b93,99,900 (Mac Studio M4 Max 128GB/1TB CTO from Apple India)",
+    "best_option": "Mac Studio M4 Max 128GB Unified Memory",
+    "summary": "Mac Studio M4 Max 128GB is in stock on Apple India at \u20b92,14,900 (base 36GB) with 128GB CTO available. It delivers ~160 tok/s on Qwen3-30B-A3B, handles 70B models at 25+ tok/s, and supports 7B-14B fine-tuning. No reason to wait further given M5 Max is 4+ months away.",
+    "reasoning": "The Mac Studio M4 Max 128GB remains your best option. It's verified in stock on apple.com/in (base config \u20b92,14,900; 128GB CTO ~\u20b93,74,900). At 160 tok/s on Qwen3-30B-A3B and 25-30 tok/s on 70B Q4_K_M models, it meets all your inference targets. The 128GB unified memory handles Qwen3.6-35B-A3B, DeepSeek-R1 distills, and 70B quantized models comfortably.\n\nFor fine-tuning, 128GB unified memory enables LoRA/QLoRA on 7B-14B models (Qwen3-14B, Gemma 3) with full context. MLX ecosystem (via Ollama 0.19+ MLX backend) is now mature. Apple's global warranty and Indian availability seal the deal.\n\nThe M5 Max won't ship until ~October 2026 and will likely cost 15-25% more for ~20-30% speed improvement. The Bosgame M5 Strix Halo 128GB ($2,799 \u2248 \u20b92,35,000) is in stock but delivers only 70 tok/s \u2014 less than half the M4 Max speed on MoE models. The price-performance gap strongly favors Apple silicon for inference workloads.",
+    "best_model": "Qwen3.6-35B-A3B (MoE, 3B active params, Apache 2.0)",
+    "model_config": "Q4_K_M quant, 32K context, ~160 tok/s on M4 Max 128GB via Ollama MLX backend",
+    "fine_tuning": "LoRA/QLoRA on Qwen3-14B and Gemma 3 14B feasible with MLX or Unsloth. 128GB unified memory allows batch size 4-8 with 8K context. Full fine-tune of 7B models possible. Budget ~4-8 hours for a typical LoRA run on 50K samples.",
+    "cost_estimate_inr": "\u20b93,74,900 (128GB/1TB CTO from Apple India) or ~\u20b93,50,000 via Apple US + shipping",
     "buy_links": [
       {
         "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
-        "title": "Mac Studio M4 Max - Apple India",
-        "desc": "Configure with 128GB unified memory, ships 1-2 weeks"
+        "title": "Apple India \u2014 Mac Studio M4 Max",
+        "desc": "CTO 128GB Unified Memory / 1TB SSD, ships from Apple India with local warranty"
+      },
+      {
+        "url": "https://www.apple.com/shop/buy-mac/mac-studio",
+        "title": "Apple US \u2014 Mac Studio M4 Max",
+        "desc": "CTO 128GB option, potentially cheaper with US pricing if buying from Canada/US trip"
       }
     ],
-    "wait_for": "Mac Studio M5 Max 128GB \u2014 expected WWDC preview June 2026, shipping ~October 2026. Likely 30-40% faster MLX inference.",
-    "next_milestone": "WWDC June 9-13 2026 (happening NOW) \u2014 watch for M5 Mac Studio announcement. If announced with ship date <8 weeks, consider waiting.",
-    "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to smaller models only (no 70B). Buy link: https://www.apple.com/in/shop/buy-mac/mac-mini",
+    "wait_for": "Mac Studio M5 Max 128GB \u2014 expected WWDC preview June 2026, ship ~October 2026. ~20-30% faster inference, possibly 256GB option.",
+    "next_milestone": "WWDC June 9-13, 2026 \u2014 watch for M5 Max announcement and ship date confirmation",
+    "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, fine-tune 7B models. Limited to 48GB (no 70B). Best budget entry point today.",
     "confidence": "high",
-    "changed_since_last": "WWDC 2026 is happening this week (June 9-13). If M5 Mac Studio is announced with a near-term ship date, the calculus shifts. Monitor keynote. Otherwise recommendation unchanged \u2014 M4 Max 128GB remains the best available buy-now option."
+    "changed_since_last": "No material change. Mac Studio M4 Max 128GB remains in stock and best recommendation. WWDC is imminent (June 9-13) \u2014 M5 preview may trigger price drops or clarify timeline. Recommendation unchanged: buy now unless you can comfortably wait until October."
   },
   "recommendations": [
     {
@@ -2805,6 +2816,36 @@
         "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, sufficient for coding agents but limited to smaller models only (no 70B). Buy link: https://www.apple.com/in/shop/buy-mac/mac-mini",
         "confidence": "high",
         "changed_since_last": "WWDC 2026 is happening this week (June 9-13). If M5 Mac Studio is announced with a near-term ship date, the calculus shifts. Monitor keynote. Otherwise recommendation unchanged \u2014 M4 Max 128GB remains the best available buy-now option."
+      }
+    },
+    {
+      "date": "2026-06-16",
+      "data": {
+        "recommendation": "buy_now",
+        "best_option": "Mac Studio M4 Max 128GB Unified Memory",
+        "summary": "Mac Studio M4 Max 128GB is in stock on Apple India at \u20b92,14,900 (base 36GB) with 128GB CTO available. It delivers ~160 tok/s on Qwen3-30B-A3B, handles 70B models at 25+ tok/s, and supports 7B-14B fine-tuning. No reason to wait further given M5 Max is 4+ months away.",
+        "reasoning": "The Mac Studio M4 Max 128GB remains your best option. It's verified in stock on apple.com/in (base config \u20b92,14,900; 128GB CTO ~\u20b93,74,900). At 160 tok/s on Qwen3-30B-A3B and 25-30 tok/s on 70B Q4_K_M models, it meets all your inference targets. The 128GB unified memory handles Qwen3.6-35B-A3B, DeepSeek-R1 distills, and 70B quantized models comfortably.\n\nFor fine-tuning, 128GB unified memory enables LoRA/QLoRA on 7B-14B models (Qwen3-14B, Gemma 3) with full context. MLX ecosystem (via Ollama 0.19+ MLX backend) is now mature. Apple's global warranty and Indian availability seal the deal.\n\nThe M5 Max won't ship until ~October 2026 and will likely cost 15-25% more for ~20-30% speed improvement. The Bosgame M5 Strix Halo 128GB ($2,799 \u2248 \u20b92,35,000) is in stock but delivers only 70 tok/s \u2014 less than half the M4 Max speed on MoE models. The price-performance gap strongly favors Apple silicon for inference workloads.",
+        "best_model": "Qwen3.6-35B-A3B (MoE, 3B active params, Apache 2.0)",
+        "model_config": "Q4_K_M quant, 32K context, ~160 tok/s on M4 Max 128GB via Ollama MLX backend",
+        "fine_tuning": "LoRA/QLoRA on Qwen3-14B and Gemma 3 14B feasible with MLX or Unsloth. 128GB unified memory allows batch size 4-8 with 8K context. Full fine-tune of 7B models possible. Budget ~4-8 hours for a typical LoRA run on 50K samples.",
+        "cost_estimate_inr": "\u20b93,74,900 (128GB/1TB CTO from Apple India) or ~\u20b93,50,000 via Apple US + shipping",
+        "buy_links": [
+          {
+            "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+            "title": "Apple India \u2014 Mac Studio M4 Max",
+            "desc": "CTO 128GB Unified Memory / 1TB SSD, ships from Apple India with local warranty"
+          },
+          {
+            "url": "https://www.apple.com/shop/buy-mac/mac-studio",
+            "title": "Apple US \u2014 Mac Studio M4 Max",
+            "desc": "CTO 128GB option, potentially cheaper with US pricing if buying from Canada/US trip"
+          }
+        ],
+        "wait_for": "Mac Studio M5 Max 128GB \u2014 expected WWDC preview June 2026, ship ~October 2026. ~20-30% faster inference, possibly 256GB option.",
+        "next_milestone": "WWDC June 9-13, 2026 \u2014 watch for M5 Max announcement and ship date confirmation",
+        "fallback_now": "Mac Mini M4 Pro 48GB \u2014 IN STOCK Apple India \u20b91,89,900. Handles Qwen3-30B-A3B at ~80 tok/s, fine-tune 7B models. Limited to 48GB (no 70B). Best budget entry point today.",
+        "confidence": "high",
+        "changed_since_last": "No material change. Mac Studio M4 Max 128GB remains in stock and best recommendation. WWDC is imminent (June 9-13) \u2014 M5 preview may trigger price drops or clarify timeline. Recommendation unchanged: buy now unless you can comfortably wait until October."
       }
     }
   ],
@@ -16720,10 +16761,123 @@
           "is_new": false
         }
       ]
+    },
+    {
+      "timestamp": "2026-06-16 09:16",
+      "date_label": "June 16, 2026",
+      "run_status": {
+        "model_benchmarks": "success",
+        "hardware_gather": "error",
+        "efficiency_gather": "error",
+        "community_gather": "error",
+        "models_gather": "error",
+        "learning_feed": "error",
+        "researcher": "skipped",
+        "critique": "skipped"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "model_benchmarks",
+          "key": "name",
+          "label": "Name",
+          "data": "Qwen3-Coder-Next-235B-A22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "params",
+          "label": "Params",
+          "data": "235B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "active_params",
+          "label": "Active Params",
+          "data": "22B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "livecode_bench",
+          "label": "Livecode Bench",
+          "data": null,
+          "severity": "info",
+          "is_new": true
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q4",
+          "label": "Vram Q4",
+          "data": "128GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q8",
+          "label": "Vram Q8",
+          "data": "220GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_128gb_unified",
+          "label": "Tok S 128Gb Unified",
+          "data": 2,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_48gb_unified",
+          "label": "Tok S 48Gb Unified",
+          "data": null,
+          "severity": "info",
+          "is_new": true
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx5090",
+          "label": "Tok S Rtx5090",
+          "data": 1,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx4060ti_16gb_moe_offload",
+          "label": "Tok S Rtx4060Ti 16Gb Moe Offload",
+          "data": null,
+          "severity": "info",
+          "is_new": true
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "released",
+          "label": "Released",
+          "data": "2025-12-15",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "notes",
+          "label": "Notes",
+          "data": "Best overall local coding model; requires 192GB+ for comfortable use. Overkill for most local setups.",
+          "severity": "info",
+          "is_new": false
+        }
+      ]
     }
   ],
   "store_check": {
-    "timestamp": "2026-06-14T12:44:17.061120",
+    "timestamp": "2026-06-16T09:08:10.294845",
     "results": [
       {
         "key": "mac_studio_128gb_india",
@@ -16739,7 +16893,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "mac_studio_128gb_india_1tb",
@@ -16755,7 +16909,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "mac_studio_128gb_us",
@@ -16771,7 +16925,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "mac_mini_48gb_india",
@@ -16787,7 +16941,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "mac_mini_48gb_us",
@@ -16803,7 +16957,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "apple_refurbished_india",
@@ -16820,15 +16974,15 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "apple_refurbished_us",
         "label": "Mac Studio Refurbished (Apple US)",
         "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
         "page_reachable": true,
-        "sku_present": true,
-        "price": 1439.0,
+        "sku_present": false,
+        "price": 1699.0,
         "currency": "USD",
         "target_config_selectable": false,
         "continue_enabled": false,
@@ -16836,7 +16990,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "framework_desktop_128gb",
@@ -16852,7 +17006,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "bosgame_m5_128gb",
@@ -16868,7 +17022,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "beelink_gtr9_pro_128gb",
@@ -16884,7 +17038,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "minisforum_ms_s1_max",
@@ -16900,7 +17054,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "corsair_ws300",
@@ -16917,7 +17071,7 @@
         "delivery_info": "delivery by\":\"Order today for estimated delivery by\",\"Out of Stock\":\"Out of Stoc",
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "amd_strix_halo_128gb_india",
@@ -16933,7 +17087,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "rtx_5090_india",
@@ -16949,7 +17103,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-14T12:44:17.061120"
+        "checked_at": "2026-06-16T09:08:10.294845"
       },
       {
         "key": "rtx_5090_flipkart",
@@ -16961,14 +17115,11 @@
         "currency": "INR",
         "target_config_selectable": false,
         "continue_enabled": false,
-        "availability_signal": "page_only",
-        "playwright_status": "stale_cache",
-        "delivery_info": null,
-        "fallback_used": "stale_cache",
-        "freshness": "stale",
-        "checked_at": "2026-06-14T12:44:17.061120",
-        "stale_from": "2026-06-11T09:09:13.955839",
-        "stale_hours": 75.6
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
+        "delivery_info": "Get it by \u00a0 19 Jun   4.2 GIGABYTE 3050 WF OC GDDR6 6 GB NVIDIA Chipset 96 bit 20",
+        "freshness": "fresh_verified",
+        "checked_at": "2026-06-16T09:08:10.294845"
       }
     ]
   },
@@ -17566,10 +17717,10 @@
       ],
       "warranty": "global Apple warranty",
       "last_enrichment": "M5 Mac Studio expected October 2026 (delayed from WWDC due to global RAM shortage). M5 Max: 18-core CPU, up to 128GB unified memory, ~$2,499. M5 Ultra: 36-core CPU, up to 256GB unified memory, ~800GB/s+ bandwidth, ~$3,999. Significantly better than M4 Max 128GB for 70B inference due to higher bandwidth and potential 256GB capacity. Wait if budget allows; current M4 Max 128GB is the best available now.",
-      "enrichment_date": "2026-06-14"
+      "enrichment_date": "2026-06-16"
     }
   },
-  "enrichment_timestamp": "2026-06-14T12:52:53.020894",
+  "enrichment_timestamp": "2026-06-16T09:16:02.813450",
   "price_history": {
     "mac_mini_48gb_india": [
       {
@@ -17659,6 +17810,11 @@
       },
       {
         "date": "2026-06-14",
+        "price": 189900.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-06-16",
         "price": 189900.0,
         "currency": "INR"
       }
@@ -17753,6 +17909,11 @@
         "date": "2026-06-14",
         "price": 1799.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-16",
+        "price": 1799.0,
+        "currency": "USD"
       }
     ],
     "apple_refurbished_us": [
@@ -17844,6 +18005,11 @@
       {
         "date": "2026-06-14",
         "price": 1439.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-16",
+        "price": 1699.0,
         "currency": "USD"
       }
     ],
@@ -17937,6 +18103,11 @@
         "date": "2026-06-14",
         "price": 4499.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-16",
+        "price": 4499.0,
+        "currency": "USD"
       }
     ],
     "minisforum_ms_s1_max": [
@@ -18027,6 +18198,11 @@
       },
       {
         "date": "2026-06-14",
+        "price": 2599.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-16",
         "price": 2599.0,
         "currency": "USD"
       }
@@ -18179,6 +18355,11 @@
         "date": "2026-06-14",
         "price": 292689.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-16",
+        "price": 292689.0,
+        "currency": "INR"
       }
     ],
     "framework_desktop_128gb_usd": [
@@ -18215,6 +18396,11 @@
         "date": "2026-06-14",
         "price": 309134.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-16",
+        "price": 309134.0,
+        "currency": "INR"
       }
     ]
   },
@@ -18223,7 +18409,7 @@
     "hardware": {
       "score": 20,
       "status": "shopping",
-      "summary": "Monitoring 5 options. Best: Mac Studio M4 Max 128GB Unified Memory (CTO)",
+      "summary": "Monitoring 5 options. Best: Mac Studio M4 Max 128GB Unified Memory",
       "blockers": [
         "No hardware purchased yet"
       ]
@@ -18248,7 +18434,7 @@
       "summary": "Best option: Mac Mini M4 Pro 48GB at \u20b91.90L / $1,799.0",
       "blockers": []
     },
-    "timestamp": "2026-06-14T12:53:23",
+    "timestamp": "2026-06-16T09:16:39",
     "trend": "stable"
   },
   "readiness_history": [
@@ -18427,13 +18613,21 @@
       "models": 25,
       "tools": 80,
       "cost": 75
+    },
+    {
+      "date": "2026-06-16",
+      "overall": 41,
+      "hardware": 20,
+      "models": 25,
+      "tools": 80,
+      "cost": 75
     }
   ],
   "model_benchmark_history": [],
   "copilot_sessions": {
-    "run_id": "f04c",
-    "run_date": "2026-06-14",
-    "pattern": "llm-homelab-{category}-2026-06-14-f04c"
+    "run_id": "aac0",
+    "run_date": "2026-06-16",
+    "pattern": "llm-homelab-{category}-2026-06-16-aac0"
   },
   "knowledge_state": {
     "version": 1,
@@ -19969,15 +20163,15 @@
     }
   ],
   "pipeline_meta": {
-    "last_pipeline_run": "2026-06-14T12:41:05.515026",
+    "last_pipeline_run": "2026-06-16T09:06:08.630493",
     "last_gather_results": {},
     "last_critique_status": null,
     "iteration_count": 0,
     "gather_status": {
       "model_benchmarks": "success",
       "hardware_gather": "error",
-      "community_gather": "error",
       "efficiency_gather": "error",
+      "community_gather": "error",
       "models_gather": "error",
       "learning_feed": "error"
     }

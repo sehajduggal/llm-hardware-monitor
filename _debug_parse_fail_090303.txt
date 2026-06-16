@@ -1,0 +1,40 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio M5 Ultra announced at WWDC 2026 with up to 256GB unified memory, 80-core GPU, 1000+ GB/s bandwidth, 36-core CPU on TSMC N3P. M5 Max confirmed at 18-core CPU, 40-core GPU, 128GB unified memory, ~614 GB/s bandwidth.",
+      "source": "macworld.com, notebookcheck.net, trendforce.com WWDC 2026 coverage",
+      "source_type": "community",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "major tech press coverage",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio reportedly starts at ~$3,999; M5 Max Studio above $2,299. Broad availability may slip to October 2026 due to DRAM shortages.",
+      "source": "techrepublic.com, macworld.com Mac Studio 2026 pricing reports",
+      "source_type": "community",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Qwen3-30B-A3B (MoE) achieves ~87 tok/s on M4 Max 128GB with llama.cpp Q4_K_M at 8K context; MLX backend reaches up to 92 tok/s on same hardware.",
+      "source": "deepnewz.com Qwen3-30B-A3B benchmark article; blog.starmorph.com Apple Silicon LLM guide",
+      "source_type": "community",
+      "date": "June 15, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 achieves 186 tok/s on Qwen3-8B Q4_K_M, 124 tok/s on Qwen3-14B, 44 tok/s on Qwen3-32B Q4_K at 32K context. Prompt processing hits 10,400+ tok/s on 8B models.",
+      "source": "hardware-corner.net RTX 5090 LLM Benchmarks",
+      "source_type": "community",
+      "date": "June 15, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "relat

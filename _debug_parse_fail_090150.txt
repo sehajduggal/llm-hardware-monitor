@@ -1,0 +1,46 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 (June 8-12) did NOT announce Mac Studio M5. Hardware delayed to October 2026 due to global DRAM shortage.",
+      "source": "macworld.com, studioglobal.ai, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra rumored specs: ~36 CPU cores, up to 80 GPU cores, up to 256GB unified memory, possible 512GB config for AI professionals. Expected October 2026.",
+      "source": "felloai.com, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 16, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base (36GB) in stock in India at ₹2,14,900 on Apple India and authorized resellers, shipping within days.",
+      "source": "apple.com/in, indiaistore.com, aptronixindia.com",
+      "source_type": "retailer",
+      "date": "June 16, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 2,14,900",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB (16-core CPU, 40-core GPU) CTO price is ~$3,529 USD at CDW; Apple India CTO expected over ₹3,00,000.",
+      "source": "cdw.com, apple.com",
+      "source_type": "retailer",
+      "date": "June 16, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "$3,529 USD",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 now widely available in India on Amazon.in, MDComputers, ServerBasket. Prices start at ₹4,91,669 (Gigabyte Windforce) up to ₹8,73,199 (MSI Lightning). Most variants ₹5L-6.5L.",
+      "source": "amazon.in, mdcomputers.in, serverbasket.com",
+      "source_type": "retailer",
+      "date": "June 16, 202

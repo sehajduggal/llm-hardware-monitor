@@ -1,0 +1,37 @@
+Based on all the research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP now supports Gemma 4 models (26B MoE, 31B Dense) with 2x speedup; Qwen3.6-27B on 3090 jumps from 38 to 65 tok/s with MTP enabled",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "blog",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Qwen3.6-27B: 38→65 tok/s on RTX 3090; Gemma 4 26B MoE: ~129 tok/s on RTX 4090 Q5_K_M at 262K context",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Huawei KVarN KV cache quantization achieves 3-5x VRAM compression and 1.4x speedup over FP16; BeeLlama v0.3.1 hits 177.8 tok/s on Qwen3.6-27B on single RTX 3090",
+      "source": "note.com/samehadaonsen/n/n9700c907c5dd (r/LocalLLaMA aggregation)",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "177.8 tok/s on RTX 3090 for Qwen3.6-27B (~5x over baseline); 3-5x VRAM compression",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama 0.30.x (June 2026) is current release; MLX backend now supports Gemma 4 and mixed-precision quantization with hardened linear/embedding layers and speculative decoding snapshots",
+      "source": "github.com/ollama/ollama/releases",
+      "source_type": "github",
+      "date": "June 16, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "MLX gives ~1.6x faster prefill and ~2x faster generation on Apple Silicon vs previous backend",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "SGLang achieved 25x inference performance on NVIDIA GB300 NVL72; now powers inference across 400,000+ GPUs with FP4/FP8/INT4 multi-quantization support",
+      "source": "pypi.org/project/sglang/",
+      "source_type": "official",
+  

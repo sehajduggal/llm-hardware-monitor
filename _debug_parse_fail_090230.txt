@@ -1,0 +1,36 @@
+Based on my research, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp merged native Gemma 4 MTP support (PR #23398) in early June 2026, delivering 52.4 tok/s vs 44.6 baseline on RTX 4070 for Gemma 4 26B-A4B (~17% gain), and up to 140 tok/s on RTX 4070 Super with tuned settings",
+      "source": "dev.to/everylocalai/how-to-get-2x-speed-on-gemma-4-with-multi-token-prediction-in-llamacpp-1b8e",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "52.4 tok/s with MTP vs 44.6 baseline on RTX 4070; 140 tok/s on 4070 Super; up to 3x on H100 (828 vs 280 tok/s)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp now supports n-gram based self-speculative decoding without external draft model, reducing VRAM overhead while still providing 2x speedup on consumer GPUs",
+      "source": "github.com/ggml-org/llama.cpp/blob/master/docs/speculative.md",
+      "source_type": "github",
+      "date": "June 16, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "2x speedup without needing separate draft model VRAM",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Qwen-3.6 27B jumped from 38 to 65 tokens/sec with MTP enabled on RTX 3090 in llama.cpp mainline",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "community",
+      "date": "June 16, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 -> 65 tok/s on RTX 3090 (~71% improvement)",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "Ollama MLX on M5 MacBook Pro: Qwen3.5-35B int4 decode jumps from 58 to 112 tok/s (1.9x), prefill from 1154 to 1810 tok/s (1.6x) vs Metal backend",
+      "source": "andrew.ooo/answers/ollama-mlx-vs-ollama-metal-apple-silicon-2026/",
+      "source_type": "benchmark

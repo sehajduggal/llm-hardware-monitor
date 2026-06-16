@@ -1,0 +1,43 @@
+Now I have enough data. Let me output the JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "WWDC 2026 keynote (June 8-12) did NOT announce Mac Studio M5 for immediate shipping. Apple focused on software/AI. Mac Studio M5 delayed to October 2026 due to global DRAM shortages.",
+      "source": "Macworld, Bloomberg/Mark Gurman reports",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": null,
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio confirmed specs: 36-core CPU, 80-84 GPU cores, up to 256-512GB unified memory, >1000 GB/s bandwidth. Apple claims 4x speed improvement on some local LLM tasks vs M4 silicon.",
+      "source": "TrendForce, felloai.com, Macworld",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$3,999+ expected for M5 Ultra base",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max Mac Studio expected to start at $2,299 USD when it ships (price hike vs M4 Max's $1,999 base). Shipping October 2026 earliest.",
+      "source": "Macworld, apfelpatient.de",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "$2,299+ base",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max 128GB available in India. Base (36GB) at ₹2,14,900. 128GB CTO estimated ₹3,30,000-₹3,70,000 depending on SSD config.",
+      "source": "apple.com/in, India iStore",
+      "source_type": "retailer",
+      "date": "June 15, 2026",
+      "confidence_signal": "direct_observation",
+      "price": "INR 3,30,000-3,70,000 for 128GB CTO",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 now widely listed in India. GIGABYTE Gaming OC at ₹5,17,889 (in stock), Zotac ₹4,80,000-5,60,000 (in stock), ASUS ROG Astral from ₹3,98,

@@ -1,0 +1,40 @@
+Based on the research gathered, here's the JSON output:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP PR #22673 merged mid-May 2026, now uses --spec-type draft-mtp flag (changed from --spec-type mtp), supporting both dense and MoE models",
+      "source": "mer.vin/2026/05/run-qwen-3-6-mtp-in-llama-cpp",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Flag syntax update: --spec-type draft-mtp --spec-draft-n-max 2-3",
+      "related_domains": ["inference", "speculative_decoding"]
+    },
+    {
+      "claim": "llama.cpp MTP on Qwen3.6 27B RTX 3090 achieves 38→65 tok/s (71% speedup), higher than previously reported 30-47% on RTX 4070",
+      "source": "braincuber.com/tutorial/how-to-use-multi-token-prediction-llama-cpp-complete-tutorial",
+      "source_type": "benchmark",
+      "date": "June 15, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "71% speedup on RTX 3090 (38→65 tok/s), up to 2.4x in best cases",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MTP on Apple Silicon shows up to 65% speedup depending on model and memory layout",
+      "source": "python.plainenglish.io/one-llama-cpp-update-made-local-ai-65-faster",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "single_anecdote",
+      "performance_data": "65% speedup on Apple Silicon with MTP",
+      "related_domains": ["hardware", "inference"]
+    },
+    {
+      "claim": "llama.cpp MTP eliminates need for separate draft model, reducing VRAM overhead by ~10% compared to external drafter speculative decoding",
+      "source": "baguaai.com/llama-cpp-merges-mtp-support",
+      "source_type": "blog",
+      "date": "June 15, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "~10% VRAM reduction vs external draft model speculative decoding",
+      "related_domains": ["memory",

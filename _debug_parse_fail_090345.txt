@@ -4,32 +4,31 @@ Based on my research, here's the JSON output:
 {
   "findings": [
     {
-      "claim": "Gemma 4 MTP in llama.cpp achieves 2.6-3.34x lossless speedup, with 26B MoE hitting 180-220 tok/s on Mac Studio M2 (up from 70 tok/s baseline)",
-      "source": "github.com/karany97/llamacpp-gemma4-mtp, aiweekly.co",
-      "source_type": "github",
-      "date": "June 11, 2026",
+      "claim": "llama.cpp b9549+ now supports Gemma 4 MTP with --spec-type draft-mtp --spec-draft-n-max 4, delivering 2x-3x speedup. Gemma 4 26B-A4B achieves 52-140 tok/s on RTX 4070 Super (up from ~44 baseline)",
+      "source": "dev.to/everylocalai, knightli.com/en/2026/06/12/gemma-4-mtp-assistant-llama-cli-speedup",
+      "source_type": "community",
+      "date": "June 12, 2026",
       "confidence_signal": "multiple_reports",
-      "performance_data": "2.6-3.34x speedup; Gemma 4B: 35→90-100 tok/s on RTX 4060; Gemma 26B MoE: 70→180-220 tok/s on Mac Studio; draft acceptance rates 70-85%",
+      "performance_data": "52-140 tok/s on RTX 4070 (17%-3x speedup); ~80% acceptance rate on predictable text",
       "related_domains": ["hardware", "models"]
     },
     {
-      "claim": "Google released Gemma 4 QAT (Quantization Aware Training) GGUFs on June 6, 2026 — E2B under 1GB (from 9.6GB BF16), 26B-A4B fits in 14-15GB, with significantly better quality than PTQ (85.6% vs 70% top-1 accuracy on Q4_0)",
-      "source": "blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/",
-      "source_type": "official",
-      "date": "June 11, 2026",
-      "confidence_signal": "official_announcement",
-      "performance_data": "~90% size reduction for E2B; QAT Q4_0 gets 85.6% accuracy vs 70% for naive PTQ on 26B-A4B",
-      "related_domains": ["models"]
-    },
-    {
-      "claim": "llama.cpp MTP now supports Gemma 4 models in addition to Qwen3.6, with --spec-type draft-mtp flag variant for Gemma architecture",
-      "source": "thecodersblog.com/multi-token-prediction-speedup-for-llama-cpp-2026/",
-      "source_type": "blog",
-      "date": "June 11, 2026",
+      "claim": "ExLlamaV3 released with DFlash speculative decoding, tripling token generation speed from ~59 to ~177 tok/s for code/agent workloads. New EXL3 quantization format based on QTIP supports 2-8 bit mixed precision",
+      "source": "localainews.co/news/tools/exllamav3-supercharges-home-ai-with-triple-speed-dflash-decoding",
+      "source_type": "community",
+      "date": "June 15, 2026",
       "confidence_signal": "multiple_reports",
-      "performance_data": "Gemma 4 MTP uses shared KV cache between draft and main model, avoiding extra VRAM overhead",
+      "performance_data": "3x generation speed (59→177 tok/s); EXL3 2-8bit quantization with fused Viterbi kernel",
       "related_domains": ["hardware", "models"]
     },
     {
-      "claim": "KTransformers 0.6.2 adds DeepSeek-V4-Flash support with Expert Deferral technique providing 1.45x additional throughput by overlapping CPU and GPU expert computation",
-      "sou
+      "claim": "SGLang surpasses vLLM by 29% on shared-prefix workloads (RAG, multi-turn, agents) via RadixAttention automatic KV cache reuse. ~1920 tok/s vs ~1850 tok/s on H100",
+      "source": "spheron.network/blog/vllm-vs-tensorrt-llm-vs-sglang-benchmarks",
+      "source_type": "benchmark",
+      "date": "June 15, 2026",
+      "confidence_signal": "direct_observation",
+      "performance_data": "29% higher throughput; up to 5x for shared-context workloads; p50 TTFT 112ms vs 120ms",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "KTransformers v0.6.2 supports DeepSeek-V4-Flash (1T params, 37B active) with dynamic MoE expert offloading. Reports 19x prefill s
