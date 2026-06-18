@@ -1,0 +1,38 @@
+I have enough material. Let me compile the JSON findings.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Community benchmarks report Llama 3 70B Q4_K_M at 21-24 tok/s on llama.cpp-Metal (Ollama ~20-22 tok/s) on MacBook Pro M4 Max 128GB, ~110GB RAM used at 8K context with minimal swapping; 128GB is required for 70B.",
+      "source": "kunalganglani.com 'M4 vs M4 Max for Local LLMs (2026)' / r/LocalLLaMA roundups",
+      "source_type": "community",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "30B-class Q4/Q5 models hit roughly 40-55 tok/s on M4 Max 128GB, about double the 70B speed; users call ~20-25 tok/s the threshold for 'real-time usable' 70B inference.",
+      "source": "Best Local LLM Models 2026 benchmarks / r/LocalLLaMA comments",
+      "source_type": "community",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "RTX 5090 benchmarks: Qwen3 32B Q4_K at 43.8 tok/s gen @32K context (1,451 tok/s prefill, ~19GB VRAM); Qwen3 8B Q4_K_M at 186 tok/s gen with up to ~10,400 tok/s prompt processing in LM Studio.",
+      "source": "hardware-corner.net 'RTX 5090 LLM Benchmark Results'",
+      "source_type": "forum",
+      "date": "June 18, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "vLLM on RTX 5090 reportedly serves Qwen3-Coder-30B-A3B-AWQ at 555 tok/s aggregate output throughput, far above llama.cpp single-stream, making it the preferred concurrency serving stack.",
+      "source": "cloudrift.ai 'Optimizing Qwen3 Coder for RTX 5090 and PRO 6000'",
+      "source_type": "github",
+      "date": "June 18, 2026",
+      "

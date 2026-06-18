@@ -1,0 +1,35 @@
+I have enough data to compile the findings.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "M5 Pro/Max local LLM users get up to 4x faster prompt prefill vs M4 Max, but only ~12% faster token generation; M5 Max specs are 614 GB/s bandwidth, 40-core GPU, 128GB unified memory ceiling, with new in-GPU Neural Accelerators (matmul units)",
+      "source": "hardware-corner.net 'M5 Pro and M5 Max Local LLM Users Get 4x Faster Prefill, But Modest...'",
+      "source_type": "forum",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization", "models"]
+    },
+    {
+      "claim": "Apple did NOT announce M5 Max/Ultra Mac Studio at WWDC 2026; launch now expected around October due to global DRAM shortages impacting RAM supply/pricing",
+      "source": "macworld.com 'M5 Mac Studio 2026: Release date, M5 Ultra rumors, specs'",
+      "source_type": "community",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware"]
+    },
+    {
+      "claim": "Strix Halo (Ryzen AI MAX+ 395, 128GB) hits ~98-101 tok/s on Qwen3-30B-A3B/Coder via llama.cpp Vulkan RADV backend (direct local inference), saturating ~215-256 GB/s bandwidth; RADV Vulkan is the top community-recommended backend over ROCm",
+      "source": "github.com/strix-halo-guide README + level1techs forum 'Strix Halo LLM inference notes'",
+      "source_type": "github",
+      "date": "June 18, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "unknown",
+      "related_domains": ["hardware", "optimization", "models"]
+    },
+    {
+      "claim": "Strix Halo runs Qwen3.6-35B-A3B UD-Q8_K_XL at stable ~25 tok/s with 150,000+ token live context under sustained 100W draw; 70B-class models ~5 tok/s",
+      "source": "hardware-corner.net 'I optimized my Strix Halo for local LLMs: benchmarks'",

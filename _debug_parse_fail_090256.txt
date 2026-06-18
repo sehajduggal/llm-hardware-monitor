@@ -1,46 +1,34 @@
-Based on my research, here's the JSON output:
+I'll search the web for recent LLM optimization developments across the focus areas.
+
+I have good coverage. Let me run a few more targeted searches on KV cache compression, MLX/Ollama updates, and exllamav2/EXL3.
+
+Rate limited. Let me wait and retry.
+
+I have enough material across all focus areas. Compiling the JSON findings.
+
+I have comprehensive coverage. Here is the JSON output.
 
 ```json
 {
   "findings": [
     {
-      "claim": "WWDC 2026 (June 8-12) confirmed to unveil M5 Mac Studio with M5 Max (18-core CPU, 40-core GPU, up to 128GB) and M5 Ultra (36 CPU cores, 80 GPU cores, up to 256GB unified memory)",
-      "source": "macworld.com, techrepublic.com, zeerawireless.com",
+      "claim": "Google's TurboQuant (PolarQuant rotation-based vector quantization, ICLR 2026) compresses KV cache from 16-bit to ~3-bit, cutting a 128K-token Llama 3 70B KV cache from ~40GB to under 7GB (6x reduction) with up to 8x faster attention on H100 and no loss on LongBench/Needle-in-a-Haystack.",
+      "source": "research.google/blog/turboquant + nerdleveltech.com",
+      "source_type": "official",
+      "date": "June 18, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "6x KV cache memory reduction (40GB->7GB), 8x faster attention, full-precision accuracy retained",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "DeepSeek-V4 uses hybrid compressed/sequence-length attention (CSA/HCA) that aggregates historical tokens into compressed memory blocks, making a 1M-token KV cache just ~10% of DeepSeek-V3.2 and ~2% of standard bf16 GQA (e.g. under ~7GB vs ~330GB for a Llama 3.1-70B equivalent), enabling 1M+ contexts on a single high-end GPU.",
+      "source": "knightli.com DeepSeek-V4 KV cache analysis",
       "source_type": "blog",
-      "date": "May 26, 2026",
+      "date": "June 18, 2026",
       "confidence_signal": "multiple_reports",
-      "price": "TBD, expected higher than current M4 Mac Studio",
-      "related_domains": ["models", "optimization"]
+      "performance_data": "KV cache reduced to ~2% of bf16 GQA baseline; 1M context on single GPU",
+      "related_domains": ["models", "hardware"]
     },
     {
-      "claim": "M5 Mac Studio availability may slip to October 2026 for high-memory configurations due to global RAM shortages",
-      "source": "macworld.com, techrepublic.com",
-      "source_type": "blog",
-      "date": "May 26, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "",
-      "related_domains": ["models"]
-    },
-    {
-      "claim": "Mac Studio M4 Max base (36GB) available on apple.com/in at INR 2,14,900; 128GB CTO estimated at INR 3.5-4L",
-      "source": "apple.com/in/shop/buy-mac/mac-studio",
-      "source_type": "retailer",
-      "date": "May 26, 2026",
-      "confidence_signal": "direct_observation",
-      "price": "INR 2,14,900 base; ~INR 3.5-4L for 128GB CTO",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "NVIDIA RTX 5090 official India starting price is INR 2,14,000; AIB models range INR 3,60,000-9,00,000 on Amazon India and EliteHubs",
-      "source": "moneycontrol.com, bizzbuzz.news, elitehubs.com",
-      "source_type": "retailer",
-      "date": "May 26, 2026",
-      "confidence_signal": "multiple_reports",
-      "price": "INR 2,14,000-9,00,000",
-      "related_domains": ["models", "optimization"]
-    },
-    {
-      "claim": "RTX 5090 stock in India sells out within minutes of restocks; availability remains critically limited",
-      "source": "moneycontrol.com, bizzbuzz.news",
-      "source_type": "community",
-      "da
+      "claim": "NVIDIA KVPress toolkit provides plug-and-play KV cache compressors for HuggingFace models, handling a 1M-token context on Llama 3.1-70B at single-digit GB VRAM versus >300GB for naive float16 cache.",
+      "sou

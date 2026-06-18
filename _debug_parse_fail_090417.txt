@@ -1,0 +1,34 @@
+I have enough data. Here is the JSON:
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp 2026 architectural rewrite delivers ~2.1x speedup for 70B quantized models and ~1.4x for 7B models via a build-time C kernel generator, head-contiguous KV cache layout, and unified Metal/CUDA backend dispatch",
+      "source": "mlsystemsreview.com/llama-cpp-2026-rewrite",
+      "source_type": "blog",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "2.1x (70B), 1.4x (7B) on M3 Ultra / H100",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp MoE offloading now uses -ot \"exps=CPU\" and --cpu-moe flags to route routed-expert submodules to CPU RAM while keeping attention/dense FFN on GPU, enabling models too large for VRAM with auto-fit configuration improving",
+      "source": "huggingface.co/blog/Doctor-Shotgun/llamacpp-moe-offload-guide",
+      "source_type": "github",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Enables 30B+ MoE on 16GB VRAM at ~1-3 tok/s with 32-48GB system RAM",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "llama.cpp mainline MTP speculative decoding now uses --speculative-draft-type mtp --speculative-draft-max N, giving ~65% speedup for dense models (Gemma 4) and up to 22% more tok/s for heavily-offloaded MoE models, with 80-90% draft acceptance",
+      "source": "python.plainenglish.io/one-llama-cpp-update-made-local-ai-65-faster",
+      "source_type": "blog",
+      "date": "June 18, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "65% dense speedup, +22% MoE tok/s, 80-90% acceptance",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "EAGLE 3.1 released (May 2026) fixes 'attention drift' via FC normalization after each target hidden state, achieving up to 2x longer speculative acceptance than EAGLE 3 and 3-5x sp
