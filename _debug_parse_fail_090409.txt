@@ -1,0 +1,34 @@
+I have enough findings. Compiling the JSON.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Qwen3-30B-A3B (MoE, ~3.3B active params) runs at ~78-88 tok/s with MLX 4-bit at 8K-32K context on M4 Max 128GB; llama.cpp GGUF config hits ~35-50 tok/s. Community calls it the first local model that 'feels like cloud-level speed'.",
+      "source": "deepnewz.com + omlx.ai/benchmarks + alexdong.com 'Qwen3-30B: first model good enough for local deployment' (aggregated from LocalLLaMA reports)",
+      "source_type": "community",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "widely cited across LocalLLaMA",
+      "related_domains": ["models", "optimization", "hardware"]
+    },
+    {
+      "claim": "MLX runs local LLMs ~3-4x faster than llama.cpp on Apple Silicon for short/mid context, but the advantage collapses once context exceeds ~40K tokens — a recurring practical caveat shared by Mac users.",
+      "source": "pub.towardsai.net 'Apple's MLX Runs Local LLMs 3x Faster Than llama.cpp — Until Your Context Hits 40k'",
+      "source_type": "community",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "upvotes_or_engagement": "n/a",
+      "related_domains": ["optimization", "models"]
+    },
+    {
+      "claim": "AMD Strix Halo (Ryzen AI Max+ 395, 128GB unified, ~96GB allocatable as VRAM) runs full 70B Q4 at only ~3-5 tok/s but is praised for having 'no VRAM wall'; Qwen3-30B BF16 ~9 tok/s, Llama-3 3B Q4 ~93 tok/s. Reviewers call it a 'mini workstation replacing a GPU cluster'.",
+      "source": "hardware-corner.net 'I optimized my Strix Halo for local LLMs', starryhope.com, valerian.dtdg.fr benchmark blog",
+      "source_type": "forum",
+      "date": "June 19, 2026",
+      "confidence_signal": "verified_benchmark",
+      "upvotes_or_engagement": "n/a",
+      "related_domains": ["hardware", "models", "optimization"]
+    },
+    {
+      "claim": "RTX 5090 (32GB GDDR7) is the fastest singl

@@ -1,0 +1,33 @@
+I'll search for recent optimization developments across several focus areas.
+
+Let me gather more on KV cache compression, MLX/Ollama updates, and exllamav2/community tricks.
+
+Rate limited. Waiting before retrying.
+
+I have enough findings. Compiling the JSON.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp MTP/speculative decoding now merged in mainline (build ~b9549) for Gemma 4 and Qwen 3.6; Gemma 4 31B throughput jumped from 38 tok/s to up to 140 tok/s on consumer GPUs (2-2.5x) with no quality loss, using --spec-type draft-mtp and --spec-draft-n-max",
+      "source": "dev.to/everylocalai, braincuber.com, github.com/ggml-org/llama.cpp/releases",
+      "source_type": "blog",
+      "date": "June 22, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "38 -> 140 tok/s (2-2.5x) on Gemma 4 31B",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "Google Research's TurboQuant KV cache compression (Turbo3/Turbo4 modes) brings 4-6x KV cache memory reduction at 3-4 bits with negligible loss; enables up to 5x longer context in same VRAM and up to 8x faster attention on H100 4-bit mode; open-source implementation available for llama.cpp and ik_llama.cpp",
+      "source": "github.com/AmesianX/TurboQuant, github.com/ikawrakow/ik_llama.cpp/issues/1509, arxiv.org/abs/2604.12818",
+      "source_type": "github",
+      "date": "June 22, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "4-6x KV cache reduction, 5x longer context, up to 8x faster attention",
+      "related_domains": ["hardware", "models"]
+    },
+    {
+      "claim": "EAGLE-3 became production-standard speculative decoding in vLLM/SGLang/TensorRT-LLM in early 2026, raising acceptance rates from 0.72-0.78 (EAGLE-2) to 0.80-0.88; on Llama-3.3 70B on H200 it delivers 3-4x faster inference with no quality loss",
+      "source": "vllm.ai/blog/2026-05-26-eagle-3-1, spheron.network/blog/eagle-3-speculative-decoding-gpu-cloud",
+     

@@ -1,59 +1,58 @@
 {
-  "last_run": "2026-06-18T09:13:38.612296",
+  "last_run": "2026-06-22T05:44:20.923612",
   "checks": {
     "model_benchmarks": {
-      "name": "Qwen3-Coder-30B-A3B-Instruct",
-      "params": "30B",
+      "name": "GLM-4.5-Air",
+      "params": "106B",
       "architecture": "MoE",
-      "active_params": "3B",
-      "humaneval_plus": 89.7,
-      "swe_bench_verified": 68.4,
-      "livecode_bench": null,
-      "vram_q4": "18GB",
-      "vram_q8": "32GB",
-      "tok_s_128gb_unified": 75,
-      "tok_s_48gb_unified": 55,
-      "tok_s_rtx5090": 130,
-      "tok_s_rtx4060ti_16gb_moe_offload": 38,
+      "active_params": "12B",
+      "humaneval_plus": null,
+      "swe_bench_verified": 57.6,
+      "livecode_bench": 70.7,
+      "vram_q4": "61GB",
+      "vram_q8": "113GB",
+      "tok_s_128gb_unified": 36,
+      "tok_s_48gb_unified": null,
+      "tok_s_rtx5090": 16,
+      "tok_s_rtx4060ti_16gb_moe_offload": 9,
       "best_quant": "Q4_K_M",
-      "context_max": "256K",
-      "released": "2025-07-31",
-      "notes": "Best overall local coding model; MoE means only 3B params active so it runs fast even on modest hardware while keeping near-SOTA accuracy. Top pick for 48-128GB unified memory."
+      "context_max": "128K",
+      "released": "2025-07-28",
+      "notes": "Strongest local coding model that still fits 128GB unified memory at Q4; MoE with only 12B active keeps it usable on a Mac Studio M4 Max. Too large for 48GB or single 32GB GPU without heavy offload. MIT license."
     },
     "learning_feed": {
-      "topic_id": "context_window_math",
-      "title": "Context Windows: Size, Cost & Why It Matters for Agents",
-      "content": "A context window is the total number of tokens a model can 'see' at once \u2014 your prompt, the files you paste, the conversation history, and the tokens the model generates. For coding agents this is the single biggest hidden cost driver, because YOLO agents (autonomous agents that read files, run tools, and iterate) constantly refill the window with code, tool outputs, and reasoning.\n\nFrom your earlier lesson you learned that a 70B Q4 model needs ~35 GB for weights plus ~4 GB for KV-cache and overhead at 8K context. That KV-cache number is entirely a function of context length. The KV-cache stores one Key and one Value vector per token, per layer, so memory scales linearly with context: double the context, double the KV-cache.\n\nA practical formula: KV bytes = 2 (K and V) \u00d7 layers \u00d7 tokens \u00d7 kv_heads \u00d7 head_dim \u00d7 bytes_per_element. Modern coding models use Grouped-Query Attention (GQA) which slashes kv_heads dramatically. Qwen3.6-27B-style models with GQA might use only ~0.12-0.2 GB per 1K tokens at FP16 KV. So 8K context \u2248 1-1.6 GB; 32K context \u2248 4-6.5 GB; 128K context \u2248 16-26 GB \u2014 sometimes larger than the model weights themselves.\n\nConcrete example: a 70B Q4 model (35 GB weights) at 8K needs ~39 GB. Push the same model to 64K context for a big agent task and KV-cache can balloon to 25-30 GB, pushing total VRAM past 60 GB \u2014 which no longer fits on a single 32 GB RTX 5090. This is why context length, not just model size, decides your hardware.\n\nTwo mitigations matter for your 24/7 rig: (1) KV-cache quantization \u2014 storing K/V at Q8 or Q4 instead of FP16 halves or quarters KV memory with minimal quality loss (llama.cpp supports `--cache-type-k q8_0`). (2) Right-sizing context: most coding tasks need 16-32K, not 128K. A 27B coding model at 32K with Q8 KV-cache fits comfortably in 32 GB, leaving headroom for 25+ tok/s.\n\nFor agents specifically: every tool call appends output to the window, and prefill cost (covered next lesson) grows with how full the window is. A bloated 100K-token context means every single agent step re-processes a huge prompt, tanking throughput. Disciplined context management \u2014 pruning old tool outputs, summarizing \u2014 keeps both speed and VRAM in check.",
+      "topic_id": "prefill_vs_decode",
+      "title": "Prefill vs Decode: The Two Phases of LLM Inference",
+      "content": "Every time you send a prompt to a local model, inference happens in two distinct phases with completely different performance characteristics. Understanding this split is the key to predicting whether your rig will feel fast or sluggish.\n\nPHASE 1 \u2014 PREFILL (a.k.a. prompt processing). The model reads your entire input prompt at once and computes the key/value vectors for every token in parallel. Because all tokens are processed together, prefill is compute-bound: it hammers the GPU's matrix-multiply units (tensor cores). Prefill speed is measured in tokens/second too, but it's usually 10-50x faster than decode. On an RTX 5090 running Qwen3.6-27B Q4, prefill runs at roughly 3,000-6,000 tok/s. So a 4,000-token codebase context is digested in well under a second.\n\nPHASE 2 \u2014 DECODE (a.k.a. generation). Now the model produces output one token at a time. To generate token N it must read the ENTIRE model weights plus the whole KV-cache from memory, do one forward pass, emit one token, append it to the KV-cache, and repeat. Each step touches very little compute but must stream all ~16 GB of Q4 weights (for 27B) from VRAM. This makes decode memory-bandwidth-bound. Decode is the 'tok/s' number you see in chat \u2014 typically 25-90 tok/s on a 5090 for a 27B Q4 model.\n\nWhy this matters for a 24/7 YOLO coding agent: agents send HUGE prompts (full files, tool outputs, long histories \u2014 often 16K-32K tokens) but often generate SHORT responses (a diff, a command). So your experience is dominated by: (a) prefill speed for that giant context, and (b) decode speed for the answer. A slow prefill means every agent turn has a painful 'thinking' pause before the first token. This is why 'time to first token' (TTFT) = prefill time, and 'tokens per second' = decode rate are reported separately.\n\nConcrete example: Qwen3.6-27B Q4 on a 5090, agent sends 20K-token context, asks for a 500-token patch. Prefill at 4,000 tok/s \u2192 20000/4000 = 5 seconds TTFT. Decode at 50 tok/s \u2192 500/50 = 10 seconds generation. Total ~15s per turn. On a Strix Halo mini-PC (Framework Desktop / Bosgame M5, 128GB unified LPDDR5X at ~256 GB/s) the same model prefills much slower (~300-500 tok/s) so TTFT becomes 40+ seconds \u2014 a major agent UX problem even though its decode might be a 'usable' 12-18 tok/s.\n\nMTP (Multi-Token Prediction), now confirmed in llama.cpp for Qwen3.6 models, speeds up DECODE by letting the model draft several tokens per forward pass and verify them \u2014 effectively raising your tok/s by 1.5-2x without changing weights. It does nothing for prefill, which is already parallel.\n\nKey insight: the two phases stress different hardware. Compute (TFLOPS) governs prefill; memory bandwidth (GB/s) governs decode. A card can be great at one and mediocre at the other. The 5090 happens to be strong at both (104 TFLOPS-class compute + 1,792 GB/s bandwidth), which is why it's the gold standard for agentic coding.",
       "key_takeaways": [
-        "KV-cache memory scales linearly with context length: 2\u00d7K/V per token per layer",
-        "GQA models (Qwen3.6, Llama-3) use far less KV memory than old multi-head models",
-        "At long context (64K-128K) the KV-cache can exceed the model weights in size",
-        "KV-cache quantization (Q8/Q4) can halve or quarter context memory cost"
+        "Prefill processes the whole prompt in parallel and is compute-bound; decode generates one token at a time and is memory-bandwidth-bound",
+        "Time-to-first-token (TTFT) = prefill time; the streaming tok/s number = decode rate \u2014 they are governed by different hardware specs",
+        "Coding agents send large prompts (16K-32K tokens) so prefill speed strongly shapes responsiveness; MTP boosts decode 1.5-2x but not prefill"
       ],
-      "prerequisite_recap": "You learned that a 70B Q4 model needs ~39 GB (35 GB weights + 4 GB KV/overhead) at 8K context, and that KV-cache grows linearly with context length.",
-      "practical_exercise": "Estimate total VRAM for a 70B Q4 model (35 GB weights, 1.5 GB overhead) at 32K context, assuming the KV-cache costs 0.6 GB per 1K tokens at FP16. Then recompute with Q8 KV-cache (half the size). Does either fit in a single 32 GB RTX 5090?",
-      "answer": "FP16 KV: 32K \u00d7 0.6 GB = 19.2 GB KV; total = 35 + 19.2 + 1.5 = 55.7 GB \u2014 does NOT fit in 32 GB. Q8 KV: 9.6 GB KV; total = 46.1 GB \u2014 still does NOT fit. A 70B at 32K simply won't fit on one 5090; you'd need a 27B-30B model, dual GPUs, or a 128 GB unified-memory machine (Mac Studio / Strix Halo).",
-      "hardware_implication": "If you want long-context (32K+) coding agents on a single 32 GB GPU, you're effectively capped at ~27-32B models; 70B at long context demands 64 GB+ unified memory (Strix Halo 128GB, Mac Studio) or multi-GPU.",
+      "prerequisite_recap": "You learned that model size in memory follows bytes-per-parameter (0.5/1/2 for Q4/Q8/FP16), so a 27B Q4 model is roughly 14-16 GB of weights that must be loaded.",
+      "practical_exercise": "Your agent sends a 24,000-token context and expects a 600-token answer. On hardware with prefill 4,000 tok/s and decode 50 tok/s, calculate TTFT, generation time, and total turn time. Then redo it for a Strix Halo box at prefill 400 tok/s and decode 15 tok/s.",
+      "answer": "5090: TTFT = 24000/4000 = 6s; generation = 600/50 = 12s; total = 18s. Strix Halo: TTFT = 24000/400 = 60s; generation = 600/15 = 40s; total = 100s. The Strix Halo is ~5.5x slower overall, and the 60-second TTFT alone makes it frustrating for interactive agent loops \u2014 illustrating why prefill (compute) matters as much as decode (bandwidth) for agents.",
+      "hardware_implication": "Pick hardware strong in BOTH compute (for prefill/TTFT on big agent prompts) and bandwidth (for decode tok/s); a discrete GPU like the RTX 5090 beats unified-memory mini-PCs on prefill by ~10x, which is decisive for large-context coding agents.",
       "resources": [
         {
-          "title": "Transformer Inference Arithmetic (KV-cache math)",
-          "url": "https://kipp.ly/transformer-inference-arithmetic/",
+          "title": "Mastering LLM Inference: Prefill and Decode Phases",
+          "url": "https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/",
           "type": "article"
         },
         {
-          "title": "llama.cpp KV-cache quantization options",
-          "url": "https://github.com/ggerganov/llama.cpp/discussions/5932",
+          "title": "llama.cpp GitHub (server, MTP/speculative decoding)",
+          "url": "https://github.com/ggml-org/llama.cpp",
           "type": "docs"
         },
         {
-          "title": "GQA explained (Grouped-Query Attention paper)",
-          "url": "https://arxiv.org/abs/2305.13245",
+          "title": "vLLM docs: how inference batching works",
+          "url": "https://docs.vllm.ai/en/latest/",
+          "type": "docs"
+        },
+        {
+          "title": "Efficient Memory Management for LLM Serving (PagedAttention paper)",
+          "url": "https://arxiv.org/abs/2309.06180",
           "type": "paper"
-        },
-        {
-          "title": "Qwen3 model card & context specs",
-          "url": "https://huggingface.co/Qwen",
-          "type": "docs"
         }
       ],
       "reliability": "stable"
@@ -70,7 +69,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       "mac_studio_m5": {
         "info": "Mac Studio M5 Max/Ultra expected October 2026 launch, possible WWDC preview. Global DRAM shortage may delay availability and increase pricing",
@@ -102,7 +101,7 @@
         "playwright_status": "ok",
         "store_url": "https://frame.work/desktop",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       "strix_halo_options": {
         "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB) available since mid-2025; current price ~$2,799 US / \u20ac2,343 EU (intro price of $1,699 ended)",
@@ -129,14 +128,14 @@
         "playwright_status": "ok",
         "store_url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501",
+        "checked_at": "2026-06-22T05:34:28.819444",
         "alt_rtx_5090_flipkart": {
           "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
           "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
           "signal": "metadata_only",
           "price": 309134.0,
           "currency": "INR",
-          "delivery": "Get it by \u00a0 22 Jun   4.7 ZOTAC GAMING GeForce RTX 5060 Twin Edge 8GB GDDR7 128 B"
+          "delivery": "Get it by \u00a0 27 Jun   GIGABYTE Aero Geforce Rtx 5080 Oc 16Gb Gddr7 Graphics Card"
         },
         "price_inr": 292689.0,
         "delivery_info": "Get it by Saturday, May 30 FREE Delivery by Amazon Only 1 left in stock. NVIDIA",
@@ -165,7 +164,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501",
+        "checked_at": "2026-06-22T05:34:28.819444",
         "price_usd": 1799.0
       }
     },
@@ -1040,6 +1039,12 @@
       "changes_count": 0,
       "status": "partial",
       "changes": []
+    },
+    {
+      "timestamp": "2026-06-22 05:44",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
     }
   ],
   "enrichment": {
@@ -1525,36 +1530,31 @@
     }
   },
   "recommendation": {
-    "recommendation": "buy_now",
-    "best_option": "Bosgame M5 (AMD Ryzen AI Max+ 395 Strix Halo, 128GB LPDDR5X / 2TB)",
-    "summary": "The ideal pick (Mac Studio M5 Max 128GB) is confirmed delayed to October 2026 with no WWDC release, and the M4 Max 128GB Mac Studio remains NOT orderable in your verified stores \u2014 so per availability rules it cannot be a buy_now. The Bosgame M5 Strix Halo 128GB is IN STOCK at $2,799, has the full 128GB unified memory, runs Qwen3-30B-A3B at ~70 tok/s, and lands well within budget. Buy it now to get 24/7 agents running immediately; revisit the M5 Max in October if you want maximum throughput later.",
-    "reasoning": "Your hard requirements are 48-128GB unified memory and 25+ tok/s on 30B-70B MoE models for round-the-clock coding agents. The Bosgame M5 (Strix Halo, 128GB, 256GB/s-class bandwidth) clears both: ~70 tok/s on Qwen3-30B-A3B and ~18-29 tok/s on a 70B Q4 dense model, all in-memory thanks to the 96-110GB assignable VRAM. At $2,799 (~\u20b92.4L direct, ~\u20b93.0-3.4L landed in India with duty) it is verified IN STOCK and the only 128GB machine you can actually order today that meets spec.\n\nThe Mac Studio M5 Max 128GB would be faster (Apple MLX ~160+ tok/s class on 30B MoE) but multiple sources now agree it was not released at WWDC and slips to October 2026 due to the global DRAM shortage \u2014 a 4-month wait that defeats your 'agents running 24/7 now' goal. The M4 Max 128GB and US refurb pages exist but are NOT orderable, so they are disqualified as buy_now. The Beelink GTR9 Pro 128GB ($4,499) is also in stock but offers the same Strix Halo silicon at a 60% premium \u2014 no performance reason to pay it.\n\nVersus cloud (Sonnet 4.6 24/7 \u2248 \u20b91.32Cr/yr), local pays for itself in days. Fine-tuning 7B-14B is feasible via QLoRA on ROCm (Qwen3-14B / Qwen3.6-class), slower than an NVIDIA box but workable on the 128GB pool for adapter training. If you want peak inference speed and Apple's global warranty, the rational move is buy the Bosgame now and re-evaluate the M5 Max as an upgrade in October.",
-    "best_model": "Qwen3-30B-A3B (MoE) for coding agents; Qwen3.6-35B-A3B if you want the newer checkpoint, with a 70B dense (Llama-3.x / Qwen2.5-72B) as a slower 'deep reasoning' fallback",
-    "model_config": "Q4_K_M / INT4 quant, 32K-64K context (fits comfortably in 96GB assigned VRAM), ~70 tok/s single-session on Qwen3-30B-A3B; 70B Q4 ~18-29 tok/s. Run via Ollama 0.19+ or LM Studio on ROCm/Vulkan.",
-    "fine_tuning": "Feasible but not fast. 7B-14B QLoRA (4-bit) on the 128GB unified pool via ROCm + PEFT/Unsloth-ROCm; expect hours-not-minutes per epoch vs an NVIDIA card. Best for LoRA adapters and domain SFT, not full fine-tunes. Inference of the merged adapter is excellent.",
-    "cost_estimate_inr": "~\u20b92,40,000 direct (USD $2,799); ~\u20b93,00,000-3,40,000 landed in India incl. import duty/GST. Well within the 1.5-5L budget.",
+    "recommendation": "wait",
+    "best_option": "Mac Studio M5 Max 128GB (expected Oct 2026) \u2014 fallback: Mac Studio M4 Max 128GB available now",
+    "summary": "WWDC already passed (June 8, 2026) and the M5 Max Mac Studio has been previewed, with retail shipping slipping to ~October 2026 due to memory-chip shortages. Since you're only ~4 months out from a clear generational upgrade with better perf-per-watt for 24/7 use, waiting is justified \u2014 but if you need to run agents today, the Mac Studio M4 Max 128GB is configurable-to-order on Apple India right now at ~\u20b93\u20133.5L and already hits ~160 tok/s on Qwen3-30B-A3B.",
+    "reasoning": "Your workload (24/7 MoE inference of Qwen3-30B-A3B, 30B\u201370B dense at 25+ tok/s, occasional 7B\u201314B fine-tuning) is fundamentally a unified-memory bandwidth problem, and Apple silicon dominates here: the M4 Max delivers ~160 tok/s on Qwen3-30B-A3B vs ~70 tok/s on Strix Halo \u2014 more than 2x \u2014 with vastly better idle power for round-the-clock operation and Apple's globally valid warranty. The M5 Max is now officially in the pipeline (WWDC preview done), with the same 128GB ceiling but a faster GPU/Neural Engine and Thunderbolt 5; for a multi-year 24/7 investment, waiting ~4 months for the newer silicon and better efficiency is the rational call, especially as it stays within your \u20b95L ceiling.\n\nAvailability is the deciding factor against the alternatives. Per verified store status, the only IN-STOCK 128GB unified-memory machines are Strix Halo mini-PCs (Bosgame M5 $2,799, Beelink GTR9 Pro $4,499) \u2014 but at half the inference speed, Windows/ROCm driver friction for 24/7 stability, and only a 1-year warranty. The Mac Mini M4 Pro 48GB (\u20b9189,900, in stock in India) fits budget but 48GB caps you out of comfortable 70B and limits fine-tuning headroom. The M4 Max 128GB is buildable today on Apple India as configure-to-order (~\u20b93\u20133.5L) and is the correct fallback if you can't wait.\n\nFine-tuning 7B\u201314B (Qwen3-14B) is feasible on either 128GB platform via MLX LoRA/QLoRA on Mac (well-supported, the cleanest path) or Unsloth on Strix Halo; full fine-tunes are impractical, but parameter-efficient LoRA at 4-bit fits comfortably in 128GB. Net: wait for M5 Max, fall back to M4 Max 128GB if needed, and skip the Strix Halo boxes unless you specifically want a cheaper/Linux-native \u20b92.3L option today.",
+    "best_model": "Qwen3-30B-A3B (MoE, ~3B active) for the agent loop; Qwen3-32B / Llama-3.3-70B for harder dense reasoning at 25+ tok/s on 128GB",
+    "model_config": "Qwen3-30B-A3B at 4-bit (MLX/GGUF Q4_K_M), 32K context (up to 128K with YaRN), ~160 tok/s on M4 Max / ~70 tok/s on Strix Halo; 70B dense at 4-bit ~25\u201330 tok/s on 128GB",
+    "fine_tuning": "Feasible: LoRA/QLoRA on 7B\u201314B (Qwen3-14B) fits in 128GB at 4-bit. On Mac use MLX-LM LoRA (cleanest, well-supported); on Strix Halo use Unsloth/PEFT via ROCm. Full fine-tunes impractical; PEFT adapters are the right approach and train comfortably overnight.",
+    "cost_estimate_inr": "Wait (M5 Max 128GB): ~\u20b93.5\u20134L expected. Fallback M4 Max 128GB now: ~\u20b93\u20133.5L. Strix Halo 128GB now: ~\u20b92.3L (Bosgame M5 $2,799).",
     "buy_links": [
       {
-        "url": "https://www.bosgamepc.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395",
-        "title": "Bosgame M5 \u2014 Ryzen AI Max+ 395, 128GB/2TB",
-        "desc": "IN STOCK $2,799. 128GB unified, ~70 tok/s Qwen3-30B-A3B. Best in-stock 128GB value today."
+        "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+        "title": "Mac Studio \u2014 Apple India (Configure M4 Max 128GB / await M5 Max)",
+        "desc": "Configure-to-order M4 Max with 128GB unified memory now (~\u20b93\u20133.5L); M5 Max expected to list here ~Oct 2026."
       },
       {
-        "url": "https://www.apple.com/in/shop/buy-mac/mac-mini",
-        "title": "Mac Mini M4 Pro 48GB/512GB (Apple India)",
-        "desc": "IN STOCK \u20b9189,900. 48GB fallback \u2014 runs 30B MoE well but too small for comfortable 70B."
-      },
-      {
-        "url": "https://www.bee-link.com/products/beelink-gtr9-pro-ai-mini-pc",
-        "title": "Beelink GTR9 Pro Strix Halo 128GB",
-        "desc": "IN STOCK $4,499. Same silicon as Bosgame at a premium \u2014 only if Bosgame sells out."
+        "url": "https://www.bosgame.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395-96gb-128gb-2tb",
+        "title": "Bosgame M5 Strix Halo 128GB \u2014 IN STOCK $2,799",
+        "desc": "Cheapest in-stock 128GB unified-memory box (~\u20b92.3L); ~70 tok/s, Windows/Linux, 1yr warranty."
       }
     ],
-    "wait_for": "Optional: Mac Studio M5 Max 128GB for ~160 tok/s-class inference + global Apple warranty. Now expected to ship October 2026 (no WWDC release; delayed by DRAM shortage). Only worth waiting if you do NOT need agents running before Q4 2026.",
-    "next_milestone": "Mac Studio M5 Max/Ultra launch \u2014 October 2026 (watch for pre-order opening); also monitor Bosgame M5 restock and Strix Halo price drops as Framework/Minisforum/Corsair inventory returns.",
-    "fallback_now": "If you must order within India today: Mac Mini M4 Pro 48GB/512GB on Apple India \u2014 IN STOCK \u20b9189,900 (https://www.apple.com/in/shop/buy-mac/mac-mini). It runs Qwen3-30B-A3B at ~80 tok/s but its 48GB ceiling rules out comfortable 70B work; choose it only if you want an Apple/MLX machine immediately and can live without 70B.",
+    "wait_for": "Mac Studio M5 Max 128GB \u2014 announced/previewed at WWDC (June 8, 2026); retail shipping expected ~October 2026 (possible slip past due to memory-chip shortages).",
+    "next_milestone": "M5 Max Mac Studio order/ship window ~October 2026 \u2014 watch Apple India store listing and shipping estimates through Aug\u2013Oct 2026.",
+    "fallback_now": "If you need a machine TODAY: Mac Studio M4 Max 128GB (configure-to-order on Apple India, ~\u20b93\u20133.5L, ~160 tok/s, global warranty) is the best buy. If you want the cheapest in-stock 128GB box, Bosgame M5 Strix Halo 128GB is IN STOCK at $2,799 (~\u20b92.3L) but ~70 tok/s and Windows-driver friction. Avoid Mac Mini M4 Pro 48GB (\u20b9189,900) for this workload \u2014 memory is too tight.",
     "confidence": "medium",
-    "changed_since_last": "Major change: Mac Studio M5 Max is now confirmed NOT released at WWDC and delayed to October 2026 (DRAM shortage). The M4 Max 128GB Mac Studio remains NOT orderable in verified stores, so the previous 'buy_now Mac Studio M4 Max 128GB' recommendation is no longer valid under availability rules. Pivoting to the verified IN-STOCK Bosgame M5 Strix Halo 128GB ($2,799), which meets the 128GB + 25+ tok/s requirement and ships now."
+    "changed_since_last": "WWDC 2026 (June 8) has now passed and the M5 Max Mac Studio has been officially previewed; retail shipping is reported slipping to ~October 2026 on memory-chip shortages. Mac Studio M4 Max 128GB confirmed configurable-to-order on Apple India (~\u20b93\u20133.5L) as the available fast fallback. Bosgame M5 128GB remains IN STOCK ($2,799)."
   },
   "recommendations": [
     {
@@ -2898,6 +2898,36 @@
         "fallback_now": "If you must order within India today: Mac Mini M4 Pro 48GB/512GB on Apple India \u2014 IN STOCK \u20b9189,900 (https://www.apple.com/in/shop/buy-mac/mac-mini). It runs Qwen3-30B-A3B at ~80 tok/s but its 48GB ceiling rules out comfortable 70B work; choose it only if you want an Apple/MLX machine immediately and can live without 70B.",
         "confidence": "medium",
         "changed_since_last": "Major change: Mac Studio M5 Max is now confirmed NOT released at WWDC and delayed to October 2026 (DRAM shortage). The M4 Max 128GB Mac Studio remains NOT orderable in verified stores, so the previous 'buy_now Mac Studio M4 Max 128GB' recommendation is no longer valid under availability rules. Pivoting to the verified IN-STOCK Bosgame M5 Strix Halo 128GB ($2,799), which meets the 128GB + 25+ tok/s requirement and ships now."
+      }
+    },
+    {
+      "date": "2026-06-22",
+      "data": {
+        "recommendation": "wait",
+        "best_option": "Mac Studio M5 Max 128GB (expected Oct 2026) \u2014 fallback: Mac Studio M4 Max 128GB available now",
+        "summary": "WWDC already passed (June 8, 2026) and the M5 Max Mac Studio has been previewed, with retail shipping slipping to ~October 2026 due to memory-chip shortages. Since you're only ~4 months out from a clear generational upgrade with better perf-per-watt for 24/7 use, waiting is justified \u2014 but if you need to run agents today, the Mac Studio M4 Max 128GB is configurable-to-order on Apple India right now at ~\u20b93\u20133.5L and already hits ~160 tok/s on Qwen3-30B-A3B.",
+        "reasoning": "Your workload (24/7 MoE inference of Qwen3-30B-A3B, 30B\u201370B dense at 25+ tok/s, occasional 7B\u201314B fine-tuning) is fundamentally a unified-memory bandwidth problem, and Apple silicon dominates here: the M4 Max delivers ~160 tok/s on Qwen3-30B-A3B vs ~70 tok/s on Strix Halo \u2014 more than 2x \u2014 with vastly better idle power for round-the-clock operation and Apple's globally valid warranty. The M5 Max is now officially in the pipeline (WWDC preview done), with the same 128GB ceiling but a faster GPU/Neural Engine and Thunderbolt 5; for a multi-year 24/7 investment, waiting ~4 months for the newer silicon and better efficiency is the rational call, especially as it stays within your \u20b95L ceiling.\n\nAvailability is the deciding factor against the alternatives. Per verified store status, the only IN-STOCK 128GB unified-memory machines are Strix Halo mini-PCs (Bosgame M5 $2,799, Beelink GTR9 Pro $4,499) \u2014 but at half the inference speed, Windows/ROCm driver friction for 24/7 stability, and only a 1-year warranty. The Mac Mini M4 Pro 48GB (\u20b9189,900, in stock in India) fits budget but 48GB caps you out of comfortable 70B and limits fine-tuning headroom. The M4 Max 128GB is buildable today on Apple India as configure-to-order (~\u20b93\u20133.5L) and is the correct fallback if you can't wait.\n\nFine-tuning 7B\u201314B (Qwen3-14B) is feasible on either 128GB platform via MLX LoRA/QLoRA on Mac (well-supported, the cleanest path) or Unsloth on Strix Halo; full fine-tunes are impractical, but parameter-efficient LoRA at 4-bit fits comfortably in 128GB. Net: wait for M5 Max, fall back to M4 Max 128GB if needed, and skip the Strix Halo boxes unless you specifically want a cheaper/Linux-native \u20b92.3L option today.",
+        "best_model": "Qwen3-30B-A3B (MoE, ~3B active) for the agent loop; Qwen3-32B / Llama-3.3-70B for harder dense reasoning at 25+ tok/s on 128GB",
+        "model_config": "Qwen3-30B-A3B at 4-bit (MLX/GGUF Q4_K_M), 32K context (up to 128K with YaRN), ~160 tok/s on M4 Max / ~70 tok/s on Strix Halo; 70B dense at 4-bit ~25\u201330 tok/s on 128GB",
+        "fine_tuning": "Feasible: LoRA/QLoRA on 7B\u201314B (Qwen3-14B) fits in 128GB at 4-bit. On Mac use MLX-LM LoRA (cleanest, well-supported); on Strix Halo use Unsloth/PEFT via ROCm. Full fine-tunes impractical; PEFT adapters are the right approach and train comfortably overnight.",
+        "cost_estimate_inr": "Wait (M5 Max 128GB): ~\u20b93.5\u20134L expected. Fallback M4 Max 128GB now: ~\u20b93\u20133.5L. Strix Halo 128GB now: ~\u20b92.3L (Bosgame M5 $2,799).",
+        "buy_links": [
+          {
+            "url": "https://www.apple.com/in/shop/buy-mac/mac-studio",
+            "title": "Mac Studio \u2014 Apple India (Configure M4 Max 128GB / await M5 Max)",
+            "desc": "Configure-to-order M4 Max with 128GB unified memory now (~\u20b93\u20133.5L); M5 Max expected to list here ~Oct 2026."
+          },
+          {
+            "url": "https://www.bosgame.com/products/bosgame-m5-ai-mini-desktop-ryzen-ai-max-395-96gb-128gb-2tb",
+            "title": "Bosgame M5 Strix Halo 128GB \u2014 IN STOCK $2,799",
+            "desc": "Cheapest in-stock 128GB unified-memory box (~\u20b92.3L); ~70 tok/s, Windows/Linux, 1yr warranty."
+          }
+        ],
+        "wait_for": "Mac Studio M5 Max 128GB \u2014 announced/previewed at WWDC (June 8, 2026); retail shipping expected ~October 2026 (possible slip past due to memory-chip shortages).",
+        "next_milestone": "M5 Max Mac Studio order/ship window ~October 2026 \u2014 watch Apple India store listing and shipping estimates through Aug\u2013Oct 2026.",
+        "fallback_now": "If you need a machine TODAY: Mac Studio M4 Max 128GB (configure-to-order on Apple India, ~\u20b93\u20133.5L, ~160 tok/s, global warranty) is the best buy. If you want the cheapest in-stock 128GB box, Bosgame M5 Strix Halo 128GB is IN STOCK at $2,799 (~\u20b92.3L) but ~70 tok/s and Windows-driver friction. Avoid Mac Mini M4 Pro 48GB (\u20b9189,900) for this workload \u2014 memory is too tight.",
+        "confidence": "medium",
+        "changed_since_last": "WWDC 2026 (June 8) has now passed and the M5 Max Mac Studio has been officially previewed; retail shipping is reported slipping to ~October 2026 on memory-chip shortages. Mac Studio M4 Max 128GB confirmed configurable-to-order on Apple India (~\u20b93\u20133.5L) as the available fast fallback. Bosgame M5 128GB remains IN STOCK ($2,799)."
       }
     }
   ],
@@ -17218,10 +17248,244 @@
           "is_new": false
         }
       ]
+    },
+    {
+      "timestamp": "2026-06-22 05:44",
+      "date_label": "June 22, 2026",
+      "run_status": {
+        "models_gather": "error",
+        "hardware_gather": "error",
+        "community_gather": "error",
+        "model_benchmarks": "success",
+        "learning_feed": "success",
+        "efficiency_gather": "error",
+        "researcher": "skipped",
+        "critique": "skipped"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "model_benchmarks",
+          "key": "name",
+          "label": "Name",
+          "data": "GLM-4.5-Air",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "params",
+          "label": "Params",
+          "data": "106B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "active_params",
+          "label": "Active Params",
+          "data": "12B",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "humaneval_plus",
+          "label": "Humaneval Plus",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "swe_bench_verified",
+          "label": "Swe Bench Verified",
+          "data": 57.6,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "livecode_bench",
+          "label": "Livecode Bench",
+          "data": 70.7,
+          "severity": "info",
+          "is_new": true
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q4",
+          "label": "Vram Q4",
+          "data": "61GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "vram_q8",
+          "label": "Vram Q8",
+          "data": "113GB",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_128gb_unified",
+          "label": "Tok S 128Gb Unified",
+          "data": 36,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_48gb_unified",
+          "label": "Tok S 48Gb Unified",
+          "data": null,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx5090",
+          "label": "Tok S Rtx5090",
+          "data": 16,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_rtx4060ti_16gb_moe_offload",
+          "label": "Tok S Rtx4060Ti 16Gb Moe Offload",
+          "data": 9,
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "context_max",
+          "label": "Context Max",
+          "data": "128K",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "released",
+          "label": "Released",
+          "data": "2025-07-28",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "notes",
+          "label": "Notes",
+          "data": "Strongest local coding model that still fits 128GB unified memory at Q4; MoE with only 12B active keeps it usable on a Mac Studio M4 Max. Too large for 48GB or single 32GB GPU without heavy offload. MIT license.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "topic_id",
+          "label": "Topic Id",
+          "data": "prefill_vs_decode",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "title",
+          "label": "Title",
+          "data": "Prefill vs Decode: The Two Phases of LLM Inference",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "content",
+          "label": "Content",
+          "data": "Every time you send a prompt to a local model, inference happens in two distinct phases with completely different performance characteristics. Understanding this split is the key to predicting whether your rig will feel fast or sluggish.\n\nPHASE 1 \u2014 PREFILL (a.k.a. prompt processing). The model reads your entire input prompt at once and computes the key/value vectors for every token in parallel. Because all tokens are processed together, prefill is compute-bound: it hammers the GPU's matrix-multiply units (tensor cores). Prefill speed is measured in tokens/second too, but it's usually 10-50x faster than decode. On an RTX 5090 running Qwen3.6-27B Q4, prefill runs at roughly 3,000-6,000 tok/s. So a 4,000-token codebase context is digested in well under a second.\n\nPHASE 2 \u2014 DECODE (a.k.a. generation). Now the model produces output one token at a time. To generate token N it must read the ENTIRE model weights plus the whole KV-cache from memory, do one forward pass, emit one token, append it to the KV-cache, and repeat. Each step touches very little compute but must stream all ~16 GB of Q4 weights (for 27B) from VRAM. This makes decode memory-bandwidth-bound. Decode is the 'tok/s' number you see in chat \u2014 typically 25-90 tok/s on a 5090 for a 27B Q4 model.\n\nWhy this matters for a 24/7 YOLO coding agent: agents send HUGE prompts (full files, tool outputs, long histories \u2014 often 16K-32K tokens) but often generate SHORT responses (a diff, a command). So your experience is dominated by: (a) prefill speed for that giant context, and (b) decode speed for the answer. A slow prefill means every agent turn has a painful 'thinking' pause before the first token. This is why 'time to first token' (TTFT) = prefill time, and 'tokens per second' = decode rate are reported separately.\n\nConcrete example: Qwen3.6-27B Q4 on a 5090, agent sends 20K-token context, asks for a 500-token patch. Prefill at 4,000 tok/s \u2192 20000/4000 = 5 seconds TTFT. Decode at 50 tok/s \u2192 500/50 = 10 seconds generation. Total ~15s per turn. On a Strix Halo mini-PC (Framework Desktop / Bosgame M5, 128GB unified LPDDR5X at ~256 GB/s) the same model prefills much slower (~300-500 tok/s) so TTFT becomes 40+ seconds \u2014 a major agent UX problem even though its decode might be a 'usable' 12-18 tok/s.\n\nMTP (Multi-Token Prediction), now confirmed in llama.cpp for Qwen3.6 models, speeds up DECODE by letting the model draft several tokens per forward pass and verify them \u2014 effectively raising your tok/s by 1.5-2x without changing weights. It does nothing for prefill, which is already parallel.\n\nKey insight: the two phases stress different hardware. Compute (TFLOPS) governs prefill; memory bandwidth (GB/s) governs decode. A card can be great at one and mediocre at the other. The 5090 happens to be strong at both (104 TFLOPS-class compute + 1,792 GB/s bandwidth), which is why it's the gold standard for agentic coding.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "key_takeaways",
+          "label": "Key Takeaways",
+          "data": [
+            "Prefill processes the whole prompt in parallel and is compute-bound; decode generates one token at a time and is memory-bandwidth-bound",
+            "Time-to-first-token (TTFT) = prefill time; the streaming tok/s number = decode rate \u2014 they are governed by different hardware specs",
+            "Coding agents send large prompts (16K-32K tokens) so prefill speed strongly shapes responsiveness; MTP boosts decode 1.5-2x but not prefill"
+          ],
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "prerequisite_recap",
+          "label": "Prerequisite Recap",
+          "data": "You learned that model size in memory follows bytes-per-parameter (0.5/1/2 for Q4/Q8/FP16), so a 27B Q4 model is roughly 14-16 GB of weights that must be loaded.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "practical_exercise",
+          "label": "Practical Exercise",
+          "data": "Your agent sends a 24,000-token context and expects a 600-token answer. On hardware with prefill 4,000 tok/s and decode 50 tok/s, calculate TTFT, generation time, and total turn time. Then redo it for a Strix Halo box at prefill 400 tok/s and decode 15 tok/s.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "answer",
+          "label": "Answer",
+          "data": "5090: TTFT = 24000/4000 = 6s; generation = 600/50 = 12s; total = 18s. Strix Halo: TTFT = 24000/400 = 60s; generation = 600/15 = 40s; total = 100s. The Strix Halo is ~5.5x slower overall, and the 60-second TTFT alone makes it frustrating for interactive agent loops \u2014 illustrating why prefill (compute) matters as much as decode (bandwidth) for agents.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "hardware_implication",
+          "label": "Hardware Implication",
+          "data": "Pick hardware strong in BOTH compute (for prefill/TTFT on big agent prompts) and bandwidth (for decode tok/s); a discrete GPU like the RTX 5090 beats unified-memory mini-PCs on prefill by ~10x, which is decisive for large-context coding agents.",
+          "severity": "info",
+          "is_new": false
+        },
+        {
+          "category": "learning_feed",
+          "key": "resources",
+          "label": "Resources",
+          "data": [
+            {
+              "title": "Mastering LLM Inference: Prefill and Decode Phases",
+              "url": "https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/",
+              "type": "article"
+            },
+            {
+              "title": "llama.cpp GitHub (server, MTP/speculative decoding)",
+              "url": "https://github.com/ggml-org/llama.cpp",
+              "type": "docs"
+            },
+            {
+              "title": "vLLM docs: how inference batching works",
+              "url": "https://docs.vllm.ai/en/latest/",
+              "type": "docs"
+            },
+            {
+              "title": "Efficient Memory Management for LLM Serving (PagedAttention paper)",
+              "url": "https://arxiv.org/abs/2309.06180",
+              "type": "paper"
+            }
+          ],
+          "severity": "info",
+          "is_new": false
+        }
+      ]
     }
   ],
   "store_check": {
-    "timestamp": "2026-06-18T09:06:15.978501",
+    "timestamp": "2026-06-22T05:34:28.819444",
     "results": [
       {
         "key": "mac_studio_128gb_india",
@@ -17237,7 +17501,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "mac_studio_128gb_india_1tb",
@@ -17253,7 +17517,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "mac_studio_128gb_us",
@@ -17269,7 +17533,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "mac_mini_48gb_india",
@@ -17285,7 +17549,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "mac_mini_48gb_us",
@@ -17301,7 +17565,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "apple_refurbished_india",
@@ -17318,15 +17582,15 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "apple_refurbished_us",
         "label": "Mac Studio Refurbished (Apple US)",
         "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
         "page_reachable": true,
-        "sku_present": false,
-        "price": 1699.0,
+        "sku_present": true,
+        "price": 1709.0,
         "currency": "USD",
         "target_config_selectable": false,
         "continue_enabled": false,
@@ -17334,7 +17598,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "framework_desktop_128gb",
@@ -17350,7 +17614,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "bosgame_m5_128gb",
@@ -17366,7 +17630,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "beelink_gtr9_pro_128gb",
@@ -17382,7 +17646,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "minisforum_ms_s1_max",
@@ -17398,7 +17662,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "corsair_ws300",
@@ -17415,7 +17679,7 @@
         "delivery_info": "delivery by\":\"Order today for estimated delivery by\",\"Out of Stock\":\"Out of Stoc",
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "amd_strix_halo_128gb_india",
@@ -17431,7 +17695,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "rtx_5090_india",
@@ -17447,7 +17711,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       },
       {
         "key": "rtx_5090_flipkart",
@@ -17461,9 +17725,10 @@
         "continue_enabled": false,
         "availability_signal": "metadata_only",
         "playwright_status": "ok",
-        "delivery_info": "Get it by \u00a0 22 Jun   4.7 ZOTAC GAMING GeForce RTX 5060 Twin Edge 8GB GDDR7 128 B",
+        "delivery_info": "Get it by \u00a0 27 Jun   GIGABYTE Aero Geforce Rtx 5080 Oc 16Gb Gddr7 Graphics Card",
+        "fallback_used": "stealth_retry",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-18T09:06:15.978501"
+        "checked_at": "2026-06-22T05:34:28.819444"
       }
     ]
   },
@@ -18061,10 +18326,10 @@
       ],
       "warranty": "global Apple warranty",
       "last_enrichment": "M5 Mac Studio expected October 2026 (delayed from WWDC due to global RAM shortage). M5 Max: 18-core CPU, up to 128GB unified memory, ~$2,499. M5 Ultra: 36-core CPU, up to 256GB unified memory, ~800GB/s+ bandwidth, ~$3,999. Significantly better than M4 Max 128GB for 70B inference due to higher bandwidth and potential 256GB capacity. Wait if budget allows; current M4 Max 128GB is the best available now.",
-      "enrichment_date": "2026-06-18"
+      "enrichment_date": "2026-06-22"
     }
   },
-  "enrichment_timestamp": "2026-06-18T09:12:22.196406",
+  "enrichment_timestamp": "2026-06-22T05:42:56.375392",
   "price_history": {
     "mac_mini_48gb_india": [
       {
@@ -18169,6 +18434,11 @@
       },
       {
         "date": "2026-06-18",
+        "price": 189900.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-06-22",
         "price": 189900.0,
         "currency": "INR"
       }
@@ -18278,6 +18548,11 @@
         "date": "2026-06-18",
         "price": 1799.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-22",
+        "price": 1799.0,
+        "currency": "USD"
       }
     ],
     "apple_refurbished_us": [
@@ -18384,6 +18659,11 @@
       {
         "date": "2026-06-18",
         "price": 1699.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-22",
+        "price": 1709.0,
         "currency": "USD"
       }
     ],
@@ -18492,6 +18772,11 @@
         "date": "2026-06-18",
         "price": 4499.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-22",
+        "price": 4499.0,
+        "currency": "USD"
       }
     ],
     "minisforum_ms_s1_max": [
@@ -18597,6 +18882,11 @@
       },
       {
         "date": "2026-06-18",
+        "price": 2599.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-22",
         "price": 2599.0,
         "currency": "USD"
       }
@@ -18764,6 +19054,11 @@
         "date": "2026-06-18",
         "price": 292689.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-22",
+        "price": 292689.0,
+        "currency": "INR"
       }
     ],
     "framework_desktop_128gb_usd": [
@@ -18815,6 +19110,11 @@
         "date": "2026-06-18",
         "price": 309134.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-22",
+        "price": 309134.0,
+        "currency": "INR"
       }
     ]
   },
@@ -18823,7 +19123,7 @@
     "hardware": {
       "score": 20,
       "status": "shopping",
-      "summary": "Monitoring 5 options. Best: Bosgame M5 (AMD Ryzen AI Max+ 395 Strix Halo, 128GB LPDDR5X / 2TB)",
+      "summary": "Monitoring 5 options. Best: Mac Studio M5 Max 128GB (expected Oct 2026) \u2014 fallback: Mac Studio M4 Max 128GB available now",
       "blockers": [
         "No hardware purchased yet"
       ]
@@ -18848,7 +19148,7 @@
       "summary": "Best option: Mac Mini M4 Pro 48GB at \u20b91.90L / $1,799.0",
       "blockers": []
     },
-    "timestamp": "2026-06-18T09:13:35",
+    "timestamp": "2026-06-22T05:44:16",
     "trend": "stable"
   },
   "readiness_history": [
@@ -19051,13 +19351,21 @@
       "models": 25,
       "tools": 80,
       "cost": 75
+    },
+    {
+      "date": "2026-06-22",
+      "overall": 41,
+      "hardware": 20,
+      "models": 25,
+      "tools": 80,
+      "cost": 75
     }
   ],
   "model_benchmark_history": [],
   "copilot_sessions": {
-    "run_id": "0f17",
-    "run_date": "2026-06-18",
-    "pattern": "llm-homelab-{category}-2026-06-18-0f17"
+    "run_id": "43aa",
+    "run_date": "2026-06-22",
+    "pattern": "llm-homelab-{category}-2026-06-22-43aa"
   },
   "knowledge_state": {
     "version": 1,
@@ -19222,11 +19530,53 @@
         ]
       },
       "prefill_vs_decode": {
-        "status": "unseen",
-        "confidence": 0.0,
-        "last_taught": null,
-        "key_facts": [],
-        "reliability": "stable"
+        "status": "introduced",
+        "confidence": 0.4,
+        "last_taught": "2026-06-22",
+        "key_facts": [
+          "Prefill processes the whole prompt in parallel and is compute-bound; decode generates one token at a time and is memory-bandwidth-bound",
+          "Time-to-first-token (TTFT) = prefill time; the streaming tok/s number = decode rate \u2014 they are governed by different hardware specs",
+          "Coding agents send large prompts (16K-32K tokens) so prefill speed strongly shapes responsiveness; MTP boosts decode 1.5-2x but not prefill"
+        ],
+        "reliability": "stable",
+        "lessons": [
+          {
+            "title": "Prefill vs Decode: The Two Phases of LLM Inference",
+            "content": "Every time you send a prompt to a local model, inference happens in two distinct phases with completely different performance characteristics. Understanding this split is the key to predicting whether your rig will feel fast or sluggish.\n\nPHASE 1 \u2014 PREFILL (a.k.a. prompt processing). The model reads your entire input prompt at once and computes the key/value vectors for every token in parallel. Because all tokens are processed together, prefill is compute-bound: it hammers the GPU's matrix-multiply units (tensor cores). Prefill speed is measured in tokens/second too, but it's usually 10-50x faster than decode. On an RTX 5090 running Qwen3.6-27B Q4, prefill runs at roughly 3,000-6,000 tok/s. So a 4,000-token codebase context is digested in well under a second.\n\nPHASE 2 \u2014 DECODE (a.k.a. generation). Now the model produces output one token at a time. To generate token N it must read the ENTIRE model weights plus the whole KV-cache from memory, do one forward pass, emit one token, append it to the KV-cache, and repeat. Each step touches very little compute but must stream all ~16 GB of Q4 weights (for 27B) from VRAM. This makes decode memory-bandwidth-bound. Decode is the 'tok/s' number you see in chat \u2014 typically 25-90 tok/s on a 5090 for a 27B Q4 model.\n\nWhy this matters for a 24/7 YOLO coding agent: agents send HUGE prompts (full files, tool outputs, long histories \u2014 often 16K-32K tokens) but often generate SHORT responses (a diff, a command). So your experience is dominated by: (a) prefill speed for that giant context, and (b) decode speed for the answer. A slow prefill means every agent turn has a painful 'thinking' pause before the first token. This is why 'time to first token' (TTFT) = prefill time, and 'tokens per second' = decode rate are reported separately.\n\nConcrete example: Qwen3.6-27B Q4 on a 5090, agent sends 20K-token context, asks for a 500-token patch. Prefill at 4,000 tok/s \u2192 20000/4000 = 5 seconds TTFT. Decode at 50 tok/s \u2192 500/50 = 10 seconds genera",
+            "key_takeaways": [
+              "Prefill processes the whole prompt in parallel and is compute-bound; decode generates one token at a time and is memory-bandwidth-bound",
+              "Time-to-first-token (TTFT) = prefill time; the streaming tok/s number = decode rate \u2014 they are governed by different hardware specs",
+              "Coding agents send large prompts (16K-32K tokens) so prefill speed strongly shapes responsiveness; MTP boosts decode 1.5-2x but not prefill"
+            ],
+            "prerequisite_recap": "You learned that model size in memory follows bytes-per-parameter (0.5/1/2 for Q4/Q8/FP16), so a 27B Q4 model is roughly 14-16 GB of weights that must be loaded.",
+            "practical_exercise": "Your agent sends a 24,000-token context and expects a 600-token answer. On hardware with prefill 4,000 tok/s and decode 50 tok/s, calculate TTFT, generation time, and total turn time. Then redo it for a Strix Halo box at prefill 400 tok/s and decode 15 tok/s.",
+            "answer": "5090: TTFT = 24000/4000 = 6s; generation = 600/50 = 12s; total = 18s. Strix Halo: TTFT = 24000/400 = 60s; generation = 600/15 = 40s; total = 100s. The Strix Halo is ~5.5x slower overall, and the 60-second TTFT alone makes it frustrating for interactive agent loops \u2014 illustrating why prefill (compute) matters as much as decode (bandwidth) for agents.",
+            "hardware_implication": "Pick hardware strong in BOTH compute (for prefill/TTFT on big agent prompts) and bandwidth (for decode tok/s); a discrete GPU like the RTX 5090 beats unified-memory mini-PCs on prefill by ~10x, which is decisive for large-context coding agents.",
+            "resources": [
+              {
+                "title": "Mastering LLM Inference: Prefill and Decode Phases",
+                "url": "https://developer.nvidia.com/blog/mastering-llm-techniques-inference-optimization/",
+                "type": "article"
+              },
+              {
+                "title": "llama.cpp GitHub (server, MTP/speculative decoding)",
+                "url": "https://github.com/ggml-org/llama.cpp",
+                "type": "docs"
+              },
+              {
+                "title": "vLLM docs: how inference batching works",
+                "url": "https://docs.vllm.ai/en/latest/",
+                "type": "docs"
+              },
+              {
+                "title": "Efficient Memory Management for LLM Serving (PagedAttention paper)",
+                "url": "https://arxiv.org/abs/2309.06180",
+                "type": "paper"
+              }
+            ],
+            "date": "2026-06-22"
+          }
+        ]
       },
       "kv_cache_growth": {
         "status": "unseen",
@@ -19440,14 +19790,14 @@
       }
     },
     "curriculum_position": {
-      "current_layer": 0,
+      "current_layer": 1,
       "completed_layers": [
         0
       ],
       "recent_detours": []
     },
     "applied_insights": [],
-    "total_lessons_completed": 3
+    "total_lessons_completed": 4
   },
   "state_version": 2,
   "analytical_state": {
@@ -20639,16 +20989,16 @@
     }
   ],
   "pipeline_meta": {
-    "last_pipeline_run": "2026-06-18T09:04:17.465642",
+    "last_pipeline_run": "2026-06-22T05:31:36.501595",
     "last_gather_results": {},
     "last_critique_status": null,
     "iteration_count": 0,
     "gather_status": {
-      "model_benchmarks": "success",
-      "hardware_gather": "error",
-      "learning_feed": "success",
-      "community_gather": "error",
       "models_gather": "error",
+      "hardware_gather": "error",
+      "community_gather": "error",
+      "model_benchmarks": "success",
+      "learning_feed": "success",
       "efficiency_gather": "error"
     }
   }

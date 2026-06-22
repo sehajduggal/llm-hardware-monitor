@@ -1,0 +1,34 @@
+I'll search the web across the focus areas in parallel.
+
+Let me gather a few more areas: MLX/Ollama, KV cache compression, and speculative decoding advances.
+
+I have enough data across all focus areas. Here is the JSON.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "llama.cpp --cpu-moe / -ot \"exps=CPU\" selective expert offloading lets 100B+ MoE models run on consumer GPUs by keeping attention+dense+shared-expert layers on GPU and routing experts to CPU RAM, minimizing VRAM with no quality loss.",
+      "source": "huggingface.co/blog/Doctor-Shotgun/llamacpp-moe-offload-guide",
+      "source_type": "blog",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "Enables 100B+ MoE on single consumer GPU given sufficient RAM+VRAM",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "llama.cpp MTP speculative decoding (merged May 2026) delivers 1.7x-2.4x speedups on Gemma 4 and Qwen3.6, e.g. Qwen3.6 27B going from 38 to 65 tok/s on RTX 3090, with 80-93% draft token acceptance and no separate drafter model required.",
+      "source": "braincuber.com / python.plainenglish.io / thecodersblog.com",
+      "source_type": "benchmark",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "performance_data": "1.7x-2.4x speedup; 38->65 tok/s Qwen3.6 27B RTX 3090; 80-93% acceptance",
+      "related_domains": ["models", "hardware"]
+    },
+    {
+      "claim": "Updated llama.cpp MTP flag syntax is --speculative-draft-type mtp --speculative-draft-max N (model must have built-in MTP draft head); latest release tagged b9713 (June 2026) with unified Metal/CUDA/Vulkan kernel rewrite and Mac M5 + CUDA 13.3 support.",
+      "source": "github.com/ggml-org/llama.cpp/releases, mlsystemsreview.com/llama-cpp-2026-rewrite",
+      "source_type": "github",
+      "date": "June 19, 2026",
+      "confidence_signal": "official_announcement",
+      "performance_data": "Backend unification for bett

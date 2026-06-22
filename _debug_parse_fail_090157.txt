@@ -1,0 +1,44 @@
+I have enough findings. Returning the JSON.
+
+```json
+{
+  "findings": [
+    {
+      "claim": "Mac Studio with M5 Ultra rumored to be unveiled around WWDC 2026, but global DRAM/RAM shortages have pushed broad availability to approximately October 2026",
+      "source": "MacRumors / Macworld / Notebookcheck Mac Studio 2026 rumor guides",
+      "source_type": "blog",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Ultra Mac Studio leaks indicate up to 256GB unified memory (some leaks hint 512GB), 36-core CPU, 80-84 core GPU, and over 1,000 GB/s (~1,100 GB/s) memory bandwidth, built by fusing two M5 Max dies",
+      "source": "felloAI / Notebookcheck / Apfelpatient M5 Ultra reports",
+      "source_type": "blog",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "M5 Max specs leaked at 18-core CPU, up to 40-core GPU, up to 128GB unified memory, ~614 GB/s bandwidth, with integrated Neural Accelerators for AI",
+      "source": "Macworld / Geeky Gadgets 2026 Mac Studio leaks",
+      "source_type": "blog",
+      "date": "June 19, 2026",
+      "confidence_signal": "multiple_reports",
+      "price": "",
+      "related_domains": ["models", "optimization"]
+    },
+    {
+      "claim": "2026 Mac Studio entry price expected to rise due to DRAM shortages, with leaks pointing to a starting price around $2,299 USD and likely no 32GB entry config",
+      "source": "Macworld / Apfelpatient",
+      "source_type": "blog",
+      "date": "June 19, 2026",
+      "confidence_signal": "single_anecdote",
+      "price": "$2,299",
+      "related_domains": ["models"]
+    },
+    {
+      "claim": "Mac Studio M4 Max base config (36GB, 512GB SSD) listed at INR 2,14,900 on apple.com/in; M4 Max with 128GB RAM configures to above INR 3,00,000",
+      
