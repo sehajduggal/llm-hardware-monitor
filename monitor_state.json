@@ -1,5 +1,5 @@
 {
-  "last_run": "2026-06-23T09:03:56.888306",
+  "last_run": "2026-06-24T09:02:37.771407",
   "checks": {
     "model_benchmarks": {
       "name": "GLM-4.5-Air",
@@ -69,7 +69,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-studio/m4-max-chip-16-core-cpu-40-core-gpu-128gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       "mac_studio_m5": {
         "info": "Mac Studio M5 Max/Ultra expected October 2026 launch, possible WWDC preview. Global DRAM shortage may delay availability and increase pricing",
@@ -101,7 +101,7 @@
         "playwright_status": "ok",
         "store_url": "https://frame.work/desktop",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       "strix_halo_options": {
         "info": "Bosgame M5 (Ryzen AI Max+ 395, 128GB) available since mid-2025; current price ~$2,799 US / \u20ac2,343 EU (intro price of $1,699 ended)",
@@ -124,21 +124,21 @@
         "confidence": "single_anecdote",
         "price": "INR 2,99,900",
         "playwright_verified": true,
-        "availability_signal": "page_only",
+        "availability_signal": "out_of_stock",
         "playwright_status": "ok",
         "store_url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785",
+        "checked_at": "2026-06-24T09:02:27.497961",
         "alt_rtx_5090_flipkart": {
           "label": "RTX 5090 MSI Vanguard 32GB (Flipkart India)",
           "url": "https://www.flipkart.com/msi-rtx-5090-32g-vanguard-soc-gddr6x-32-gb-nvidia-chipset-256-bit-2730-mhz-graphics-card/p/itmd6561ebac286a",
-          "signal": "page_only",
+          "signal": "metadata_only",
           "price": 309134.0,
           "currency": "INR",
           "delivery": null
         },
-        "price_inr": 292689.0,
-        "delivery_info": "Get it by Saturday, May 30 FREE Delivery by Amazon Only 1 left in stock. NVIDIA",
+        "price_inr": 333945.0,
+        "delivery_info": "Get it by Saturday, June 27 FREE Delivery by Amazon Only 1 left in stock. GIGABY",
         "orderable": false
       },
       "finding_11": {
@@ -164,7 +164,7 @@
         "playwright_status": "ok",
         "store_url": "https://www.apple.com/shop/buy-mac/mac-mini/m4-pro-chip-12-core-cpu-16-core-gpu-48gb-memory-512gb-storage",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785",
+        "checked_at": "2026-06-24T09:02:27.497961",
         "price_usd": 1799.0
       }
     },
@@ -1054,6 +1054,12 @@
     },
     {
       "timestamp": "2026-06-23 09:03",
+      "changes_count": 0,
+      "status": "partial",
+      "changes": []
+    },
+    {
+      "timestamp": "2026-06-24 09:02",
       "changes_count": 0,
       "status": "partial",
       "changes": []
@@ -17560,10 +17566,43 @@
           "is_new": true
         }
       ]
+    },
+    {
+      "timestamp": "2026-06-24 09:02",
+      "date_label": "June 24, 2026",
+      "run_status": {
+        "hardware_gather": "error",
+        "learning_feed": "error",
+        "community_gather": "error",
+        "model_benchmarks": "error",
+        "models_gather": "error",
+        "efficiency_gather": "error",
+        "researcher": "skipped",
+        "critique": "skipped"
+      },
+      "changes": [],
+      "items": [
+        {
+          "category": "model_benchmarks",
+          "key": "humaneval_plus",
+          "label": "Humaneval Plus",
+          "data": null,
+          "severity": "info",
+          "is_new": true
+        },
+        {
+          "category": "model_benchmarks",
+          "key": "tok_s_48gb_unified",
+          "label": "Tok S 48Gb Unified",
+          "data": null,
+          "severity": "info",
+          "is_new": true
+        }
+      ]
     }
   ],
   "store_check": {
-    "timestamp": "2026-06-23T09:03:21.002785",
+    "timestamp": "2026-06-24T09:02:27.497961",
     "results": [
       {
         "key": "mac_studio_128gb_india",
@@ -17579,7 +17618,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "mac_studio_128gb_india_1tb",
@@ -17595,7 +17634,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "mac_studio_128gb_us",
@@ -17611,7 +17650,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "mac_mini_48gb_india",
@@ -17627,7 +17666,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "mac_mini_48gb_us",
@@ -17643,7 +17682,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "apple_refurbished_india",
@@ -17660,7 +17699,7 @@
         "delivery_info": null,
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "apple_refurbished_us",
@@ -17668,7 +17707,7 @@
         "url": "https://www.apple.com/shop/refurbished/mac/mac-studio",
         "page_reachable": true,
         "sku_present": true,
-        "price": 1439.0,
+        "price": 1529.0,
         "currency": "USD",
         "target_config_selectable": false,
         "continue_enabled": false,
@@ -17676,7 +17715,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "framework_desktop_128gb",
@@ -17692,7 +17731,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "bosgame_m5_128gb",
@@ -17708,7 +17747,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "beelink_gtr9_pro_128gb",
@@ -17716,7 +17755,7 @@
         "url": "https://www.bee-link.com/products/beelink-gtr9-pro-amd-ryzen-ai-max-395-processor-openclaw",
         "page_reachable": true,
         "sku_present": false,
-        "price": 4499.0,
+        "price": 4349.0,
         "currency": "USD",
         "target_config_selectable": true,
         "continue_enabled": false,
@@ -17724,7 +17763,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "minisforum_ms_s1_max",
@@ -17740,7 +17779,7 @@
         "playwright_status": "ok",
         "delivery_info": null,
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "corsair_ws300",
@@ -17757,39 +17796,39 @@
         "delivery_info": "delivery by\":\"Order today for estimated delivery by\",\"Out of Stock\":\"Out of Stoc",
         "fallback_used": "http",
         "freshness": "partial",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "amd_strix_halo_128gb_india",
         "label": "ASUS ProArt PX13 Strix Halo 128GB (Amazon India)",
         "url": "https://www.amazon.in/ASUS-ProArt-Radeon-HN7306EAC-LX052WS-Creator/dp/B0GLFHMJXL",
         "page_reachable": true,
-        "sku_present": false,
-        "price": null,
+        "sku_present": true,
+        "price": 334990.0,
         "currency": "INR",
-        "target_config_selectable": false,
+        "target_config_selectable": true,
         "continue_enabled": false,
-        "availability_signal": "page_only",
+        "availability_signal": "add_to_cart",
         "playwright_status": "ok",
-        "delivery_info": null,
+        "delivery_info": "FREE delivery Saturday, 27 June. Details  Or fastest delivery Tomorrow, 25 June. Order within 10 hrs",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "rtx_5090_india",
         "label": "NVIDIA RTX 5090 Founders Edition (Amazon India)",
         "url": "https://www.amazon.in/Nvidia-GeForce-RTX-5090-Founders/dp/B0DYDY8KSC",
         "page_reachable": true,
-        "sku_present": false,
-        "price": null,
+        "sku_present": true,
+        "price": 333945.0,
         "currency": "INR",
         "target_config_selectable": false,
         "continue_enabled": false,
-        "availability_signal": "page_only",
+        "availability_signal": "out_of_stock",
         "playwright_status": "ok",
-        "delivery_info": null,
+        "delivery_info": "Get it by Saturday, June 27 FREE Delivery by Amazon Only 1 left in stock. GIGABY",
         "freshness": "fresh_verified",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "checked_at": "2026-06-24T09:02:27.497961"
       },
       {
         "key": "rtx_5090_flipkart",
@@ -17801,12 +17840,11 @@
         "currency": "INR",
         "target_config_selectable": false,
         "continue_enabled": false,
-        "availability_signal": "page_only",
-        "playwright_status": "http_fallback_ok",
+        "availability_signal": "metadata_only",
+        "playwright_status": "ok",
         "delivery_info": null,
-        "fallback_used": "http",
-        "freshness": "partial",
-        "checked_at": "2026-06-23T09:03:21.002785"
+        "freshness": "fresh_verified",
+        "checked_at": "2026-06-24T09:02:27.497961"
       }
     ]
   },
@@ -18404,7 +18442,7 @@
       ],
       "warranty": "global Apple warranty",
       "last_enrichment": "M5 Mac Studio expected October 2026 (delayed from WWDC due to global RAM shortage). M5 Max: 18-core CPU, up to 128GB unified memory, ~$2,499. M5 Ultra: 36-core CPU, up to 256GB unified memory, ~800GB/s+ bandwidth, ~$3,999. Significantly better than M4 Max 128GB for 70B inference due to higher bandwidth and potential 256GB capacity. Wait if budget allows; current M4 Max 128GB is the best available now.",
-      "enrichment_date": "2026-06-23"
+      "enrichment_date": "2026-06-24"
     }
   },
   "enrichment_timestamp": "2026-06-23T09:03:46.960797",
@@ -18524,6 +18562,11 @@
         "date": "2026-06-23",
         "price": 189900.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-24",
+        "price": 189900.0,
+        "currency": "INR"
       }
     ],
     "mac_mini_48gb_us": [
@@ -18639,6 +18682,11 @@
       },
       {
         "date": "2026-06-23",
+        "price": 1799.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-24",
         "price": 1799.0,
         "currency": "USD"
       }
@@ -18758,6 +18806,11 @@
         "date": "2026-06-23",
         "price": 1439.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-24",
+        "price": 1529.0,
+        "currency": "USD"
       }
     ],
     "beelink_gtr9_pro_128gb": [
@@ -18875,6 +18928,11 @@
         "date": "2026-06-23",
         "price": 4499.0,
         "currency": "USD"
+      },
+      {
+        "date": "2026-06-24",
+        "price": 4349.0,
+        "currency": "USD"
       }
     ],
     "minisforum_ms_s1_max": [
@@ -18990,6 +19048,11 @@
       },
       {
         "date": "2026-06-23",
+        "price": 2599.0,
+        "currency": "USD"
+      },
+      {
+        "date": "2026-06-24",
         "price": 2599.0,
         "currency": "USD"
       }
@@ -19167,6 +19230,11 @@
         "date": "2026-06-23",
         "price": 292689.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-24",
+        "price": 333945.0,
+        "currency": "INR"
       }
     ],
     "framework_desktop_128gb_usd": [
@@ -19179,6 +19247,11 @@
     "amd_strix_halo_128gb_india": [
       {
         "date": "2026-05-12",
+        "price": 334990.0,
+        "currency": "INR"
+      },
+      {
+        "date": "2026-06-24",
         "price": 334990.0,
         "currency": "INR"
       }
@@ -19228,6 +19301,11 @@
         "date": "2026-06-23",
         "price": 309134.0,
         "currency": "INR"
+      },
+      {
+        "date": "2026-06-24",
+        "price": 309134.0,
+        "currency": "INR"
       }
     ]
   },
@@ -19261,7 +19339,7 @@
       "summary": "Best option: Mac Mini M4 Pro 48GB at \u20b91.90L / $1,799.0",
       "blockers": []
     },
-    "timestamp": "2026-06-23T09:03:53",
+    "timestamp": "2026-06-24T09:02:34",
     "trend": "stable"
   },
   "readiness_history": [
@@ -19488,13 +19566,21 @@
       "models": 25,
       "tools": 80,
       "cost": 75
+    },
+    {
+      "date": "2026-06-24",
+      "overall": 41,
+      "hardware": 20,
+      "models": 25,
+      "tools": 80,
+      "cost": 75
     }
   ],
   "model_benchmark_history": [],
   "copilot_sessions": {
-    "run_id": "90fe",
-    "run_date": "2026-06-23",
-    "pattern": "llm-homelab-{category}-2026-06-23-90fe"
+    "run_id": "148c",
+    "run_date": "2026-06-24",
+    "pattern": "llm-homelab-{category}-2026-06-24-148c"
   },
   "knowledge_state": {
     "version": 1,
@@ -21118,17 +21204,17 @@
     }
   ],
   "pipeline_meta": {
-    "last_pipeline_run": "2026-06-23T09:00:25.552551",
+    "last_pipeline_run": "2026-06-24T09:00:23.377511",
     "last_gather_results": {},
     "last_critique_status": null,
     "iteration_count": 0,
     "gather_status": {
       "hardware_gather": "error",
-      "efficiency_gather": "error",
-      "model_benchmarks": "error",
+      "learning_feed": "error",
       "community_gather": "error",
+      "model_benchmarks": "error",
       "models_gather": "error",
-      "learning_feed": "error"
+      "efficiency_gather": "error"
     }
   }
 }
